@@ -5,7 +5,9 @@ const SKIP_DIRS = new Set(['.git', 'node_modules', 'assets', '.claude', '.superp
 const TEXT_EXT = new Set(['.md', '.json', '.cjs', '.js', '.py', '.jsonl', '.yaml', '.yml', '']);
 const PROVIDER_WORDS = /\b(Claude|Anthropic|OpenAI|Codex)\b/;
 // Instruction text must stay provider-neutral. README and manifests may name hosts.
-const NEUTRAL_GLOBS = [/^policy[/\\]/, /^skills[/\\].*SKILL\.md$/];
+// walk() normalises every path to forward slashes, so a backslash alternative
+// here would be unreachable on every platform. Do not add one.
+const NEUTRAL_GLOBS = [/^policy\//, /^skills\/.*SKILL\.md$/];
 
 function walk(dir, root, out = []) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
