@@ -4,7 +4,7 @@
 |---|---|
 | Date | 2026-09-04 |
 | Status | Design. Approved for planning; not implemented. |
-| Governs | `TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_EN.md` as amended by `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md` |
+| Governs | `TTAK_Plugin_Product_Definition_v0.2_EN.md` — the v0.1 candidate with `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md` applied |
 | Evidence | `docs/analysis/2026-09-04_TTAK_DESIGN_REVIEW_PACKET.md` and four adversarial reviews |
 | Hosts | Claude Code `2.1.259`, Codex CLI `0.150.1` |
 | Development platform | Windows 11 Pro 26200, Git Bash, `core.autocrlf=true` |

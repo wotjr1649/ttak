@@ -1,16 +1,16 @@
-# TTAK Plugin Product Definition — v0.2 Proposed Amendment
+# TTAK Plugin Product Definition — v0.2 Amendment
 
-> **Proposed amendment. Not applied. The v0.1 candidate remains the current normative text until this is approved.**
+> **Applied on 2026-09-04.** This amendment was approved and applied in full per §8. The resulting normative text is `TTAK_Plugin_Product_Definition_v0.2_EN.md`, with `TTAK_Plugin_Product_Definition_v0.2_KO.md` as its official translation. This document is retained as the record of what changed and why.
 
 | Field | Value |
 |---|---|
-| Status | Proposed |
-| Amends | `TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_EN.md` (normative) and `..._KO.md` (translation) |
+| Status | Applied |
+| Amends | `TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_EN.md` (normative) and `..._KO.md` (translation), renamed on application to `TTAK_Plugin_Product_Definition_v0.2_EN.md` and `..._v0.2_KO.md` |
 | Date | 2026-09-04 |
 | Normative language | English |
 | Authority | `[HANDOFF-005]` — platform constraints MAY trigger a proposed product amendment but MUST NOT silently rewrite a requirement. This document exists so that no change is silent. |
 | Evidence | `docs/analysis/2026-09-04_TTAK_DESIGN_REVIEW_PACKET.md` and the four adversarial reviews of it |
-| Applied? | No. Section 8 gives the application procedure. |
+| Applied? | Yes, on 2026-09-04. Section 8 gives the application procedure that was followed. |
 
 ---
 
@@ -28,7 +28,7 @@ failed both: it recorded ten decisions with no requirement-ID column, and the co
 twenty requirements changed without declaration. This document is the correction. Every change below
 names the requirement it touches.
 
-Nothing here has been applied to the v0.1 files.
+Everything here has now been applied; the v0.1 files became the v0.2 files on 2026-09-04.
 
 ---
 
@@ -285,7 +285,7 @@ promised — §6 claim 1 states a measured number rather than a reduction target
 
 ## 8. Application procedure
 
-This amendment is not applied. Applying it requires, in order:
+This amendment has been applied. Applying it required, in order:
 
 1. Approval of this document.
 2. Edit `..._v0.1_CANDIDATE_EN.md` → `..._v0.2_EN.md` per §2. `[DOC-003]` requires English first.
@@ -298,7 +298,7 @@ This amendment is not applied. Applying it requires, in order:
    cause of the twenty undeclared changes the compliance audit found; §20.2 lists it as required
    deliverable 1.
 
-Until step 2 completes, `..._v0.1_CANDIDATE_EN.md` remains the normative text.
+Steps 1–4 completed on 2026-09-04. `TTAK_Plugin_Product_Definition_v0.2_EN.md` is now the normative text and `..._v0.2_KO.md` its official translation; step 5, the requirements traceability analysis, remains outstanding.
 
 ---
 
@@ -306,4 +306,4 @@ Until step 2 completes, `..._v0.1_CANDIDATE_EN.md` remains the normative text.
 
 | Version | Date | Status | Summary |
 |---|---|---|---|
-| 0.2 | 2026-09-04 | Proposed | First amendment. Retires two requirements, adds two, amends twelve, defers Review to v1.1, records the LeanClarity lineage and its inherited measurements, reverses the zero-hook decision, and replaces an unavailable evaluation instrument. |
+| 0.2 | 2026-09-04 | Applied | First amendment. Retires two requirements, adds two, amends twelve, defers Review to v1.1, records the LeanClarity lineage and its inherited measurements, reverses the zero-hook decision, and replaces an unavailable evaluation instrument. |

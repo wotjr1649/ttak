@@ -5,7 +5,7 @@
 | Date | 2026-09-04 |
 | Status | Pre-decision. Under adversarial review. Not approved, not implemented. |
 | Reviews | This artifact is the single input for all reviewers. |
-| Product spec under revision | `docs/TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_EN.md` (normative), `..._KO.md` (translation), `..._REVIEW_KO.md` (prior adversarial review) |
+| Product spec under revision | `docs/TTAK_Plugin_Product_Definition_v0.2_EN.md` (normative), `..._v0.2_KO.md` (translation), `..._v0.1_CANDIDATE_REVIEW_KO.md` (prior adversarial review). The first two were named `..._v0.1_CANDIDATE_EN.md` and `..._KO.md` when this packet was written. |
 | Target hosts | Claude Code `2.1.259`, Codex CLI `0.150.1`, Windows 11 Pro 26200 |
 
 ---

@@ -106,6 +106,8 @@
 
 ## 4. 자동 검수 결과
 
+> **이 표는 v0.1 파일에만 해당한다.** 2026-09-04에 v0.2 개정안을 적용하면서 요구사항 ID 집합이 네 개 항목만큼 바뀌었고(`SRC-006`과 `LIC-004` 폐기, `TTAK-TRACK-008`과 `TTAK-TRIM-009` 추가) 문서 구조도 함께 바뀌었다. 총수는 157개로 같지만 집합이 다르므로 아래 수치를 v0.2 검증에 사용해서는 안 된다. v0.2의 영문·한글 ID 집합 일치는 `scripts/check-id-sets.cjs`가 자동으로 검사한다.
+
 | 검사 항목 | 영문 | 한글 | 결과 |
 |---|---:|---:|---|
 | 전체 줄 수 | 1,009 | 1,009 | PASS |
@@ -126,7 +128,14 @@
 | `TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_EN.md` | `a551af53526bd452624210598df2dfa98b60868f05808b509f91f5262f8ba122` |
 | `TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_KO.md` | `f24ee2ca53771cbbf62739636f7e7ad702779827ad51180eb659840e975a9780` |
 
-해시는 현재 전달본 기준이다. 파일을 수정하면 다시 계산해야 한다.
+위 해시는 검토 당시 v0.1 전달본 기준이며 검토 기록으로 보존한다. 2026-09-04에 v0.2 개정안을 적용하면서 두 파일은 각각 `TTAK_Plugin_Product_Definition_v0.2_EN.md`와 `TTAK_Plugin_Product_Definition_v0.2_KO.md`로 이름이 바뀌었다. 아래 v0.2 해시가 위 값을 대체한다.
+
+| 파일 (v0.2) | SHA-256 |
+|---|---|
+| `TTAK_Plugin_Product_Definition_v0.2_EN.md` | `01ee8b96d591e3aaf2f7c9493d2a156b8103cee09327ebe8f1d40a531bf7f4e0` |
+| `TTAK_Plugin_Product_Definition_v0.2_KO.md` | `d5b20d7be515566e7a86a7cc35e661e9b53f3d3c92e8d64352140421d8e02c6a` |
+
+두 표의 해시는 모두 LF 줄바꿈 기준으로 계산했다. 파일을 수정하면 다시 계산해야 한다.
 
 ---
 

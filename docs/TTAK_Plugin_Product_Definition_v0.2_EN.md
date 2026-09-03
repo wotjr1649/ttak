@@ -5,11 +5,12 @@
 | Field | Value |
 |---|---|
 | Status | Candidate |
-| Version | 0.1 |
+| Version | 0.2 |
 | Date | 2026-09-04 |
 | Normative language | English |
 | Source of Truth | This English document |
-| Official translation | `TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_KO.md` |
+| Official translation | `TTAK_Plugin_Product_Definition_v0.2_KO.md` |
+| Amendment applied | `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`, applied in full per its §8 |
 | Intended next stage | Claude Code and Codex CLI feasibility analysis and implementation planning |
 | Implementation status | Not started; platform-specific implementation is intentionally unspecified |
 
@@ -148,17 +149,24 @@ The source analysis for this candidate was verified on **2026-09-04** against th
 |---|---|---|---|---|
 | `SRC-PONYTAIL` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | [`2ed6c52`](https://github.com/DietrichGebert/ponytail/commit/2ed6c52c9d7e5e56942508591085fd45dea277d3), 2026-08-07 | [Core skill](https://github.com/DietrichGebert/ponytail/blob/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail/SKILL.md), [review skill](https://github.com/DietrichGebert/ponytail/blob/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail-review/SKILL.md) | [MIT LICENSE](https://github.com/DietrichGebert/ponytail/blob/2ed6c52c9d7e5e56942508591085fd45dea277d3/LICENSE) |
 | `SRC-IHAVEADHD` | [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) | [`58494af`](https://github.com/ayghri/i-have-adhd/commit/58494af57962b2d7a996b4d419474380a299af5e), 2026-09-01 | [Core skill](https://github.com/ayghri/i-have-adhd/blob/58494af57962b2d7a996b4d419474380a299af5e/skills/i-have-adhd/SKILL.md) | [MIT LICENSE](https://github.com/ayghri/i-have-adhd/blob/58494af57962b2d7a996b4d419474380a299af5e/LICENSE) |
-| `SRC-ANTHROPIC-ELI5` | [anthropics/claude-plugins-community/eli5](https://github.com/anthropics/claude-plugins-community/tree/main/eli5) | [`a727be1`](https://github.com/anthropics/claude-plugins-community/commit/a727be1c7bd6064419b6f60d71993a19198adc17), 2026-08-24 | [ELI5 skill](https://github.com/anthropics/claude-plugins-community/blob/a727be1c7bd6064419b6f60d71993a19198adc17/eli5/skills/eli5/SKILL.md), [plugin manifest](https://github.com/anthropics/claude-plugins-community/blob/a727be1c7bd6064419b6f60d71993a19198adc17/eli5/.claude-plugin/plugin.json) | Manifest declares MIT; repository root contains [Apache-2.0 LICENSE](https://github.com/anthropics/claude-plugins-community/blob/a727be1c7bd6064419b6f60d71993a19198adc17/LICENSE). See §19. |
 | `SRC-DREAMBIG-ELI5` | [DreambigOu/ELI5](https://github.com/DreambigOu/ELI5) | [`a766623`](https://github.com/DreambigOu/ELI5/commit/a766623b062331fdde53467001379b4ddf3acc2f), 2026-03-18 | [Core skill](https://github.com/DreambigOu/ELI5/blob/a766623b062331fdde53467001379b4ddf3acc2f/skills/eli5/SKILL.md), [README and evaluation description](https://github.com/DreambigOu/ELI5/blob/a766623b062331fdde53467001379b4ddf3acc2f/README.md) | [MIT LICENSE](https://github.com/DreambigOu/ELI5/blob/a766623b062331fdde53467001379b4ddf3acc2f/LICENSE) |
+| `SRC-LEANCLARITY` | [wotjr1649/leanclarity](https://github.com/wotjr1649/leanclarity) | [`7dfe5b2`](https://github.com/wotjr1649/leanclarity/commit/7dfe5b2e25166e91069034038ac59121f771e844), 2026-08-31 | [`policies/guidance.md`](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/policies/guidance.md), [`policies/engineering.md`](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/policies/engineering.md), [evidence record](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/docs/evidence/LeanClarity_v1.0_GO_EVIDENCE.md) | [MIT LICENSE](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/LICENSE) |
+
+`SRC-LEANCLARITY` is the author's own prior plugin (manifest version `1.0.2`), which TTAK supersedes. The pin is the commit carrying the measurements this specification cites; the published `v1.0.2` tag predates the corrected safety figure and is therefore not the pin. The artifacts derived from this source are enumerated and limited to:
+
+- `[TTAK-TRACK-008]` and `[TTAK-TRIM-009]`, rules restored here that reached this source from `SRC-IHAVEADHD`;
+- the measured evidence cited in the `[SRC-002]`, `[AC-005]`, and `[AC-009]` requirements;
+- the inherited limitations published under §17.
+
+TTAK's policy text is derived from the upstream `SKILL.md` files directly, not from this source's policy files (§19.3). This source pins `SRC-IHAVEADHD` at `cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c`; where text reaches TTAK through it, that pin and the §5.1 pin both belong in the attribution record.
 
 ### 5.2 Source use policy
 
 - [SRC-001] TTAK adopts ideas and behavioral patterns, not a wholesale concatenation of source `SKILL.md` files.
-- [SRC-002] Source language SHOULD be paraphrased into TTAK's own operating model.
+- [SRC-002] Source language SHOULD be paraphrased into TTAK's own operating model. Exception: the enumerated protection nouns — `standard library`, `trust-boundary validation`, `data-loss prevention`, `accessibility`, `explicit output formats` — and the verification-honesty clause SHOULD be preserved in meaning rather than paraphrased for style.
 - [SRC-003] Any copied code, substantial text, metadata, or packaging assets MUST retain the notices required by the applicable license.
 - [SRC-004] Distribution MUST include a reviewed `ATTRIBUTIONS.md` or equivalent third-party notice.
 - [SRC-005] TTAK's final distribution license is not fixed by this candidate and MUST be decided after license review.
-- [SRC-006] The Anthropic community `eli5` license discrepancy MUST be resolved before copying or redistributing any material from that directory.
 
 ### 5.3 `SRC-PONYTAIL`: adopted, adapted, and excluded
 
@@ -216,34 +224,15 @@ The source analysis for this candidate was verified on **2026-09-04** against th
 - a requirement to end every answer with a new task;
 - medical or motivational claims as product behavior.
 
-### 5.5 `SRC-ANTHROPIC-ELI5`: adopted, adapted, and excluded
-
-**Adopt**
-
-- a no-prior-knowledge explanation path;
-- big-picture-first explanation;
-- low information density when the reader is unfamiliar with the subject;
-- one idea at a time where complexity would otherwise overwhelm the explanation.
-
-**Adapt**
-
-- visual/HTML explanation becomes a text-first mental model;
-- the default audience becomes a capable adult who may be unfamiliar with the topic;
-- child-oriented simplicity becomes plain, respectful language.
-
-**Exclude**
-
-- HTML artifacts;
-- mandatory pictures or generated visuals;
-- a default five-year-old audience;
-- childlike vocabulary or tone unless the user explicitly asks for it.
-
-### 5.6 `SRC-DREAMBIG-ELI5`: adopted, adapted, and excluded
+### 5.5 `SRC-DREAMBIG-ELI5`: adopted, adapted, and excluded
 
 **Adopt**
 
 - audience detection and explicit audience targeting;
 - adaptation of vocabulary, tone, depth, analogy, and framing;
+- a no-prior-knowledge explanation path;
+- big-picture-first explanation;
+- low information density when the reader is unfamiliar with the subject;
 - role-specific explanation, such as impact and risk for decision-makers or architecture and trade-offs for engineers;
 - purpose before mechanism when explaining code or systems;
 - assertion-based A/B evaluation as an evaluation pattern.
@@ -263,11 +252,12 @@ The source analysis for this candidate was verified on **2026-09-04** against th
 - age- or relationship-based stereotypes;
 - exaggerated child-oriented enthusiasm as a default style.
 
-### 5.7 TTAK-original elements
+### 5.6 TTAK-original elements
 
 The following elements are original TTAK product decisions rather than direct source features:
 
 - the woodpecker persona and Korean brand meaning;
+- one idea at a time where complexity would otherwise overwhelm the explanation;
 - the official `Track · Trim · Adapt · Keep` operating model;
 - cross-domain role routing under one persona;
 - the **smallest complete solution** standard;
@@ -276,6 +266,8 @@ The following elements are original TTAK product decisions rather than direct so
 - the verified-versus-assumed reporting contract;
 - English Source of Truth with a synchronized Korean translation;
 - character and humor placed below correctness and task performance.
+
+**Source removal note (v0.2).** `SRC-ANTHROPIC-ELI5` is removed from this specification entirely; its former §5.5 subsection is gone and the subsections after it were renumbered. The four items that subsection listed as adopted are retained and reattributed rather than dropped: the no-prior-knowledge path, big-picture-first explanation, and low information density move to `SRC-DREAMBIG-ELI5` (§5.5); one idea at a time is recorded above as TTAK synthesis. The design review verified that none of the four appears in the removed source.
 
 ---
 
@@ -351,6 +343,7 @@ TTAK remains one persona while adopting the role best suited to the task.
 - [TTAK-TRACK-005] TTAK MUST distinguish verified facts, source-supported facts, assumptions, and inferences.
 - [TTAK-TRACK-006] When missing information materially changes the result, TTAK SHOULD ask one focused question; otherwise it SHOULD make a documented best-effort assumption and proceed.
 - [TTAK-TRACK-007] TTAK MUST NOT invent unseen file contents, test results, platform capabilities, or current facts.
+- [TTAK-TRACK-008] After repeated attempts fail for the same reason, TTAK MUST stop blind iteration, state the assumption now in doubt, and request the smallest diagnostic evidence needed.
 
 ### 7.2 Trim
 
@@ -362,6 +355,7 @@ TTAK remains one persona while adopting the role best suited to the task.
 - [TTAK-TRIM-006] TTAK MUST NOT use YAGNI to remove explicit requirements, correctness, validation, security, authorization, data integrity, error handling, accessibility, rollback, recovery, or necessary verification.
 - [TTAK-TRIM-007] If a more complex design is explicitly required and consistent with higher-priority constraints, TTAK MUST implement or analyze that design without repeatedly arguing against it.
 - [TTAK-TRIM-008] Any proposed new component SHOULD state the current evidence that justifies it.
+- [TTAK-TRIM-009] When only analysis, explanation, reporting, or review was requested, TTAK MUST NOT mutate code or force an implementation.
 
 ### 7.3 Adapt
 
@@ -459,6 +453,8 @@ Error diagnosis is part of Core and is not a separate user-facing capability in 
 
 ### 9.2 TTAK Review
 
+> **Deferred to v1.1.** v1 exposes two capabilities: the core operating discipline (§9.1) and the explainer (§9.3). `[CAP-REVIEW-001]`…`[CAP-REVIEW-007]` and `[AC-008]` remain normative but are not v1 acceptance gates. The deferral is declared here rather than taken silently, as `[PRIN-SCOPE-002]` requires. Basis: the hosts already bundle more specific code-review capabilities, and Review's non-code scope has not yet had the competitor check the explainer has had.
+
 `TTAK Review` performs evidence-based, adversarial review of:
 
 - code and diffs;
@@ -510,15 +506,16 @@ Default audience profiles:
 
 ### 9.4 User-facing capability count
 
-The v0.1 product exposes only three logical capabilities:
+The v1 product exposes only two logical capabilities:
 
 - `ttak`
-- `ttak-review`
 - `ttak-explain`
+
+`ttak-review` is deferred to v1.1 (§9.2) and is not part of the v1 public surface.
 
 Actual slash-command syntax, aliases, automatic invocation, and internal file separation are platform-dependent.
 
-Separate `diagnose`, `audit`, `debt`, `simplify`, `help`, and intensity-mode commands are excluded from the v0.1 public surface unless platform analysis proves that an internal separation is required for routing accuracy. Internal separation MUST NOT automatically create more public commands.
+Separate `diagnose`, `audit`, `debt`, `simplify`, `help`, and intensity-mode commands are excluded from the v1 public surface unless platform analysis proves that an internal separation is required for routing accuracy. Internal separation MUST NOT automatically create more public commands.
 
 ---
 
@@ -605,7 +602,7 @@ TTAK adapts:
 - [RESP-004] Tangents SHOULD be suppressed or clearly separated after the primary task.
 - [RESP-005] Alternatives SHOULD normally be limited to those that materially change the decision, usually two or three.
 - [RESP-006] When a recommendation is possible, TTAK SHOULD recommend one option and state the deciding reason.
-- [RESP-007] TTAK MUST NOT invent a next action when the task is complete.
+- [RESP-007] TTAK SHOULD give one concrete next action only when work remains for the user.
 - [RESP-008] TTAK MUST NOT require a time estimate; estimates MAY be given only when useful, evidence-based, and properly qualified.
 - [RESP-009] Long-running work SHOULD expose current progress, completed results, and remaining blockers without repeating the full plan on every turn.
 - [RESP-010] Recaps SHOULD be used only when they reduce cognitive load or preserve a decision record.
@@ -661,10 +658,10 @@ These are product requirements, not implementation claims.
 
 - [ACT-001] Installing TTAK SHOULD NOT silently force it as a global behavior for every unrelated session.
 - [ACT-002] The user SHOULD be able to explicitly activate TTAK through a platform-appropriate command or invocation.
-- [ACT-003] Once activated, TTAK SHOULD remain active for the current session when the platform can safely support session state.
+- [ACT-003] Once activated, TTAK SHOULD remain active for the current session when the platform can safely support session state. Session persistence is delivered by host lifecycle injection where the host supports it. On a host that instructs the model not to carry skill instructions across turns, a skill-only implementation MUST NOT be described as persistent.
 - [ACT-004] The user MUST have an explicit way to deactivate TTAK and return to normal behavior.
 - [ACT-005] When session persistence is unavailable, the platform implementation MUST document a per-invocation fallback rather than pretending persistence exists.
-- [ACT-006] Review and Explain MAY be invoked explicitly or routed automatically only if routing is predictable and testable.
+- [ACT-006] Explain MAY be invoked explicitly or routed automatically only if routing is predictable and testable. Review is deferred to v1.1 (§9.2), so in v1 this requirement governs Explain only.
 - [ACT-007] Automatic activation MUST NOT infer that a user has ADHD, low intelligence, or a fixed expertise profile.
 - [ACT-008] Project-default activation is Deferred until context cost, precedence, and platform behavior are measured.
 - [ACT-009] Exact commands, hooks, state files, environment variables, and lifecycle events are Platform-dependent Open Issues.
@@ -683,12 +680,14 @@ These are product requirements, not implementation claims.
 - cross-domain role routing;
 - cognitive-load-aware response structure;
 - audience-adaptive explanation;
-- Core, Review, and Explain logical capabilities;
+- Core and Explain logical capabilities (Review is deferred to v1.1; see §9.2);
 - transparent verification and uncertainty reporting;
 - English AI-facing specification;
 - Korean official human-facing translation;
 - source traceability and attribution policy;
-- platform feasibility and evaluation requirements.
+- platform feasibility and evaluation requirements;
+- a small cross-host evaluation runner;
+- one minimal visual asset: a single logo file, which both marketplace listings require.
 
 ### 15.2 Non-Goals
 
@@ -715,14 +714,17 @@ These are product requirements, not implementation claims.
 - shared versus platform-specific file layout;
 - context-loading and token-budget thresholds;
 - automatic routing implementation;
-- evaluation runner and grader implementation;
+- grader implementation beyond the v1 cross-host runner;
 - installation, update, uninstall, and marketplace workflows;
 - final TTAK distribution license;
 - `ATTRIBUTIONS.md` final text;
-- detailed character visual design and generated images;
+- detailed character visual design and generated images beyond the single v1 logo;
 - user-defined persistent audience profiles;
 - localization beyond English and Korean;
-- performance telemetry, if ever justified.
+- performance telemetry, if ever justified;
+- the `TTAK Review` capability (§9.2), deferred to v1.1.
+
+**Scope movement record (v0.2).** Two items moved from Deferred into v1 scope — the cross-host evaluation runner and a single logo file — and one capability moved from v1 scope into Deferred: `TTAK Review`. Each move is recorded here so that no Deferred item becomes v1 scope silently and no v1 item is dropped quietly, as `[PRIN-SCOPE-002]` requires.
 
 ---
 
@@ -745,6 +747,8 @@ When rules conflict, the following order applies:
 - [PREC-002] Persona and humor MUST always yield to task quality.
 - [PREC-003] When two higher-priority requirements conflict, TTAK MUST identify the conflict and use the governing instruction or request clarification when necessary.
 - [PREC-004] A lower-priority style preference MUST NOT be treated as authorization to violate a higher-priority constraint.
+
+`[PREC-001]`–`[PREC-004]` and `[WORK-021]` are unchanged in text. This specification adds their delivery obligation: the precedence order above MUST appear in the text the model receives at runtime, not only in this specification. A ranking the specification knows and the model does not cannot produce consistent behavior across users with different global instructions.
 
 ---
 
@@ -800,18 +804,20 @@ The evaluation design SHOULD include:
 
 ### 17.4 Candidate acceptance gates
 
-- [AC-001] Critical correctness, security, privacy, and data-integrity scenarios MUST have a 100% pass rate.
+- [AC-001] Critical correctness, security, privacy, and data-integrity scenarios MUST have a 100% pass rate. This gate measures TTAK's own critical scenarios under pinned evaluation conditions. It does not certify behavior when TTAK is loaded alongside other instruction sets, and TTAK is not a security control.
 - [AC-002] TTAK MUST have zero false claims that a test, command, build, or review was performed.
 - [AC-003] TTAK MUST preserve every explicit requirement in designated scope-compliance scenarios.
 - [AC-004] TTAK MUST add no speculative dependency, abstraction, command, or infrastructure in designated YAGNI scenarios.
-- [AC-005] TTAK MUST not regress correctness relative to the baseline.
-- [AC-006] Non-critical rubric assertions SHOULD reach at least 85% before v1 release.
+- [AC-005] TTAK MUST not regress correctness relative to the baseline. The instrument is the cross-host runner's baseline arm (§15.1). Measured run-to-run reproducibility is approximately 0.96, which puts the 95% upper bound on the true failure rate at 39.3%; a single-run difference is therefore not a regression.
+- [AC-006] Non-critical rubric assertions SHOULD reach at least 85% before v1 release. The rubric MUST be defined and frozen before the first scored run.
 - [AC-007] Audience-targeted explanations SHOULD pass both technical-accuracy and audience-fit assertions.
 - [AC-008] Review verdicts MUST be supported by findings and MUST allow a clean artifact to receive `GO`.
-- [AC-009] Context overhead and activation reliability MUST be measured per platform before default activation is considered.
+- [AC-009] Context overhead and activation reliability MUST be measured per platform before default activation is considered. On Claude Code, `claude plugin details` over-reports user-only skills and does not count hook-injected content, and Codex CLI has no equivalent tool; TTAK MUST therefore measure and publish the byte and token size of the text it injects, from the shipped source, as the primary figure.
 - [AC-010] A human adversarial review MUST approve the final English skill text before release.
-- [AC-011] English and Korean product documents MUST contain identical normative requirement-ID sets.
-- [AC-012] License and attribution review MUST be closed before redistribution.
+- [AC-011] English and Korean product documents MUST contain identical normative requirement-ID sets. The match MUST be checked by an automated diff in CI, not by hand.
+- [AC-012] License and attribution review MUST be closed before redistribution. This gate is **not** closed: the `[LIC-001]` copied-text inventory does not yet exist, so the review it gates has not been performed.
+
+`[AC-008]` remains normative but is not a v1 acceptance gate, because `TTAK Review` is deferred to v1.1 (§9.2).
 
 No benchmark benefit is claimed by this candidate. All performance claims require measured evidence.
 
@@ -831,8 +837,8 @@ No benchmark benefit is claimed by this candidate. All performance claims requir
 | Tangent suppression | `SRC-IHAVEADHD` | Adopted |
 | Visible progress | `SRC-IHAVEADHD` | Adapted for substantial work |
 | Session persistence concept | `SRC-IHAVEADHD` | Candidate requirement; platform-dependent |
-| No-prior-knowledge path | `SRC-ANTHROPIC-ELI5` | Adapted to text and adult default |
-| Big-picture-first explanation | `SRC-ANTHROPIC-ELI5` | Adopted |
+| No-prior-knowledge path | `SRC-DREAMBIG-ELI5` | Adapted to text and adult default; reattributed in v0.2 |
+| Big-picture-first explanation | `SRC-DREAMBIG-ELI5` | Adopted; reattributed in v0.2 |
 | Audience-specific vocabulary, tone, depth, framing | `SRC-DREAMBIG-ELI5` | Adopted with anti-stereotype safeguards |
 | Purpose before mechanism | `SRC-DREAMBIG-ELI5` | Adopted |
 | Assertion-based A/B evaluation | `SRC-DREAMBIG-ELI5` | Adopted as evaluation pattern |
@@ -852,8 +858,8 @@ No benchmark benefit is claimed by this candidate. All performance claims requir
 | ADHD diagnosis assumption | i-have-adhd | TTAK is for any reader and must not infer a condition |
 | Mandatory time estimates | i-have-adhd | Often unsupported and can manufacture confidence |
 | Mandatory next action | i-have-adhd | Incorrect when work is complete |
-| HTML and picture artifacts | Anthropic community ELI5 | Outside CLI-focused text product scope |
-| Default age-five explanation | Both ELI5 sources | Patronizing and too narrow as a general default |
+| HTML and picture artifacts | General ELI5 plugin convention; no longer traced to a retained TTAK source after the §5.1 removal | Outside CLI-focused text product scope; retained as a product boundary |
+| Default age-five explanation | `SRC-DREAMBIG-ELI5` | Patronizing and too narrow as a general default |
 | Accuracy trade-off that changes material truth | DreambigOu ELI5 | Violates Keep |
 | Demographic stereotypes | DreambigOu ELI5 categories | Audience adaptation must be evidence-based |
 
@@ -866,21 +872,32 @@ No benchmark benefit is claimed by this candidate. All performance claims requir
 - `SRC-PONYTAIL` contains an MIT license.
 - `SRC-IHAVEADHD` contains an MIT license.
 - `SRC-DREAMBIG-ELI5` contains an MIT license.
-- `SRC-ANTHROPIC-ELI5` has a plugin manifest declaring MIT, while the hosting repository's root `LICENSE` is Apache License 2.0.
-- At the pinned commit, the `eli5` directory contains `.claude-plugin`, `README.md`, and `skills`, but no directory-local `LICENSE` file.
+- `SRC-LEANCLARITY` contains an MIT license at the pinned commit.
+- `DreambigOu/ELI5`'s LICENSE reads `Copyright (c) 2026` and names no copyright holder.
 
 ### 19.2 Required handling
 
 - [LIC-001] Product concepts MAY be independently re-expressed, but copied source text or code MUST be tracked.
 - [LIC-002] Any MIT-licensed material copied into TTAK MUST retain the applicable copyright and permission notice.
 - [LIC-003] Any Apache-2.0-covered material copied into TTAK MUST comply with Apache-2.0 notice and modification requirements.
-- [LIC-004] The applicable license for material taken from `SRC-ANTHROPIC-ELI5` MUST be confirmed before copying or redistribution.
 - [LIC-005] The final package MUST include a complete third-party attribution file.
 - [LIC-006] Repository names and project descriptions MAY be used for factual attribution, but TTAK MUST NOT imply endorsement by the source authors or Anthropic.
-- [LIC-007] The final TTAK license MUST be selected only after dependency and copied-content review.
+- [LIC-007] The final TTAK license MUST be selected only after dependency and copied-content review. Selecting MIT before the `[LIC-001]` inventory exists would invert the required order: MIT is the expected outcome, not a completed decision.
 - [LIC-008] This product document is not legal advice; unresolved license interpretation MUST be escalated for appropriate review.
 
 The preferred implementation approach is to **rewrite behavioral concepts in original TTAK language** and avoid copying source prose unless there is a concrete reason.
+
+### 19.3 Derivation, notice, and license-string obligations
+
+These obligations are normative and carry no separate requirement ID; they qualify how `[SRC-001]`–`[SRC-005]` and `[LIC-001]`–`[LIC-008]` are satisfied.
+
+- Policy text MUST be derived from the upstream `SKILL.md` files directly, not from `SRC-LEANCLARITY`'s policy files. TTAK restores units that source deliberately dropped — the persona, the precedence clause, and the user-authority clause — which are absent from its text, and direct derivation makes the attribution chain one step instead of two.
+- `ATTRIBUTIONS.md` MUST reproduce each upstream notice **verbatim as published**. `DreambigOu/ELI5`'s LICENSE reads `Copyright (c) 2026` with no copyright holder named; it MUST be reproduced that way with a factual note, and MUST NOT be "corrected" by inserting a name, because inventing a copyright holder is a false attribution statement.
+- `ATTRIBUTIONS.md` MUST record which upstream commit each derived artifact passed through. Where an artifact reaches TTAK through `SRC-LEANCLARITY`, both that source's upstream pin and the §5.1 pin belong in the record.
+- `skills/ponytail-review/SKILL.md` MUST be listed as a derivation source if any Review material is carried, including `[CAP-REVIEW-007]`, which corresponds to its lean-artifact-passes rule.
+- One license string MUST be identical across `LICENSE`, all plugin and marketplace manifests, and every `SKILL.md` frontmatter, enforced by a CI check.
+- Analysis and specification documents that are distributed MUST NOT quote text from a source whose license is unresolved.
+- Attribution MUST live in `ATTRIBUTIONS.md` and README prose, and MUST NOT appear in searchable manifest keywords or `interface` metadata in a way that reads as affiliation.
 
 ---
 
@@ -947,7 +964,7 @@ The following product decisions are accepted for platform analysis:
 | Default reader | Capable adult unfamiliar with the topic |
 | Core quality standard | Smallest complete solution |
 | YAGNI | Required, evidence-based, bounded by correctness and completeness |
-| Public capability surface | Core, Review, Explain |
+| Public capability surface | Core and Explain in v1; Review deferred to v1.1 |
 | Default activation | Explicit, session-persistent where supported |
 | Default global always-on | No |
 | Runtime instruction language | English |
@@ -978,8 +995,9 @@ The following product decisions are accepted for platform analysis:
 | Windows behavior | Validate paths, shells, trust prompts, and scripts |
 | Evaluation runner | Design only after platform interfaces are known |
 | TTAK license | Resolve source-license and copied-content implications |
-| Anthropic `eli5` license | Resolve manifest-versus-root-license ambiguity |
 | Character image | Produce under a separate visual design specification |
+
+Several rows above were resolved by the v0.2 amendment; its §4 records the closures and its §5 records the issues that remain or were newly opened. That register is the current status of these items.
 
 ---
 
@@ -988,7 +1006,7 @@ The following product decisions are accepted for platform analysis:
 This candidate is ready for platform feasibility analysis when:
 
 - the English and Korean requirement-ID sets match;
-- all four source repositories are pinned and attributed;
+- the three upstream source repositories and `SRC-LEANCLARITY` are pinned and attributed;
 - the adversarial review records no unresolved critical product contradiction;
 - the license ambiguity is explicitly open rather than silently assumed;
 - implementation details remain platform-dependent.
@@ -1006,3 +1024,4 @@ Recommended gate verdict:
 | Version | Date | Status | Summary |
 |---|---|---|---|
 | 0.1 | 2026-09-04 | Candidate | Initial consolidated product, persona, capability, scope, source, and evaluation definition |
+| 0.2 | 2026-09-04 | Candidate | Applied `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md` in full. Retired `SRC-006` and `LIC-004`; added `[TTAK-TRACK-008]` and `[TTAK-TRIM-009]`; amended twelve requirements; removed `SRC-ANTHROPIC-ELI5` and added the pinned `SRC-LEANCLARITY` row; deferred `TTAK Review` to v1.1; moved a cross-host evaluation runner and a single logo into v1 scope; added the delivered-precedence obligation and the derivation, notice, and license-string obligations |
