@@ -137,3 +137,11 @@ test('a state path that is a directory is unavailable and is not repairable', ()
     assert.strictEqual(ttak.writeState(true).ok, false);
   });
 });
+
+test('a leaf that is a file, not a directory, is unavailable and is not repairable', () => {
+  withData((leaf) => {
+    fs.writeFileSync(leaf, 'not a directory');
+    assert.strictEqual(ttak.readState().status, 'unavailable');
+    assert.strictEqual(ttak.writeState(true).ok, false);
+  });
+});
