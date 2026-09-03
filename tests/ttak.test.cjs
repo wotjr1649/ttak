@@ -77,3 +77,63 @@ test('every declared license string is MIT', () => {
   const { licenseMismatch } = checkHygiene(ROOT);
   assert.deepStrictEqual(licenseMismatch, []);
 });
+
+function withData(fn) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ttak-'));
+  const prev = process.env.PLUGIN_DATA;
+  process.env.PLUGIN_DATA = path.join(dir, 'ttak-ttak');
+  try { return fn(path.join(dir, 'ttak-ttak'), dir); }
+  finally {
+    if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+const ttak = require('../hooks/ttak.cjs');
+
+test('absent state reads as absent, and lifecycle reads create nothing', () => {
+  withData((leaf) => {
+    assert.strictEqual(ttak.readState().status, 'absent');
+    assert.strictEqual(fs.existsSync(leaf), false);
+  });
+});
+
+test('a write creates the leaf directory and round-trips', () => {
+  withData((leaf) => {
+    assert.strictEqual(ttak.writeState(true).ok, true);
+    assert.strictEqual(fs.existsSync(leaf), true);
+    assert.strictEqual(ttak.readState().status, 'on');
+    assert.strictEqual(ttak.writeState(false).ok, true);
+    assert.strictEqual(ttak.readState().status, 'off');
+  });
+});
+
+test('a missing parent is unavailable and is never created', () => {
+  const prev = process.env.PLUGIN_DATA;
+  process.env.PLUGIN_DATA = path.join(os.tmpdir(), 'ttak-no-such-parent-xyz', 'ttak-ttak');
+  try {
+    assert.strictEqual(ttak.readState().status, 'unavailable');
+    assert.strictEqual(ttak.writeState(true).ok, false);
+    assert.strictEqual(fs.existsSync(path.join(os.tmpdir(), 'ttak-no-such-parent-xyz')), false);
+  } finally {
+    if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
+  }
+});
+
+test('corrupt but readable state is invalid, never guessed, and is repairable by a write', () => {
+  withData((leaf) => {
+    fs.mkdirSync(leaf, { recursive: true });
+    fs.writeFileSync(path.join(leaf, 'state.json'), '{not json');
+    assert.strictEqual(ttak.readState().status, 'invalid');
+    assert.strictEqual(ttak.writeState(true).ok, true);
+    assert.strictEqual(ttak.readState().status, 'on');
+  });
+});
+
+test('a state path that is a directory is unavailable and is not repairable', () => {
+  withData((leaf) => {
+    fs.mkdirSync(path.join(leaf, 'state.json'), { recursive: true });
+    assert.strictEqual(ttak.readState().status, 'unavailable');
+    assert.strictEqual(ttak.writeState(true).ok, false);
+  });
+});
