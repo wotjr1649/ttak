@@ -151,3 +151,20 @@ test('a leaf that is a file, not a directory, is unavailable and is not repairab
     assert.strictEqual(res.refused, true);
   });
 });
+
+test('neither PLUGIN_DATA nor CLAUDE_PLUGIN_DATA set is unavailable, and writeState refuses without throwing', () => {
+  const prevPlugin = process.env.PLUGIN_DATA;
+  const prevClaude = process.env.CLAUDE_PLUGIN_DATA;
+  delete process.env.PLUGIN_DATA;
+  delete process.env.CLAUDE_PLUGIN_DATA;
+  try {
+    assert.strictEqual(ttak.readState().status, 'unavailable');
+    let res;
+    assert.doesNotThrow(() => { res = ttak.writeState(true); });
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.refused, true);
+  } finally {
+    if (prevPlugin === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prevPlugin;
+    if (prevClaude === undefined) delete process.env.CLAUDE_PLUGIN_DATA; else process.env.CLAUDE_PLUGIN_DATA = prevClaude;
+  }
+});
