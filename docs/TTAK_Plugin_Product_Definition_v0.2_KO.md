@@ -152,7 +152,7 @@ TTAK의 성공은 사용자가 다음 조건을 만족하는 **가장 작은 완
 | `SRC-DREAMBIG-ELI5` | [DreambigOu/ELI5](https://github.com/DreambigOu/ELI5) | [`a766623`](https://github.com/DreambigOu/ELI5/commit/a766623b062331fdde53467001379b4ddf3acc2f), 2026-03-18 | [Core skill](https://github.com/DreambigOu/ELI5/blob/a766623b062331fdde53467001379b4ddf3acc2f/skills/eli5/SKILL.md), [README 및 평가 설명](https://github.com/DreambigOu/ELI5/blob/a766623b062331fdde53467001379b4ddf3acc2f/README.md) | [MIT LICENSE](https://github.com/DreambigOu/ELI5/blob/a766623b062331fdde53467001379b4ddf3acc2f/LICENSE) |
 | `SRC-LEANCLARITY` | [wotjr1649/leanclarity](https://github.com/wotjr1649/leanclarity) | [`7dfe5b2`](https://github.com/wotjr1649/leanclarity/commit/7dfe5b2e25166e91069034038ac59121f771e844), 2026-08-31 | [`policies/guidance.md`](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/policies/guidance.md), [`policies/engineering.md`](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/policies/engineering.md), [측정 근거 기록](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/docs/evidence/LeanClarity_v1.0_GO_EVIDENCE.md) | [MIT LICENSE](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/LICENSE) |
 
-`SRC-LEANCLARITY`는 TTAK이 대체하는 저자 본인의 이전 플러그인이다(Manifest 버전 `1.0.2`). 고정 커밋은 이 명세가 인용하는 측정값을 담고 있는 커밋이다. 공개된 `v1.0.2` 태그는 수정된 안전 수치보다 앞서므로 고정 커밋으로 사용하지 않는다. 이 원본에서 파생한 산출물은 다음으로 한정하여 열거한다.
+`SRC-LEANCLARITY`는 TTAK이 대체하는 저자 본인의 이전 플러그인이다. 고정 커밋은 `v1.0.3` 태그 이후의 커밋이며, 이 명세가 인용하는 측정값을 담고 있는 커밋이다. 해당 커밋의 Manifest는 여전히 버전 `1.0.2`로 선언하므로 이 버전 문자열만으로는 출처 기준을 식별할 수 없고, 인용 기준으로 사용하지 않는다. `v1.0.2` 태그 자체는 수정된 안전 수치보다 앞선다. 그 수치는 24회 중 13회에서 24회 중 8회로 낮춘 공개 정정이며 `v1.0.3` 태그가 가리키는 커밋에서 반영되었다. 따라서 태그를 인용하면 해당 수치가 없는 릴리스를 인용하게 된다. 이 원본에서 파생한 산출물은 다음으로 한정하여 열거한다.
 
 - `[TTAK-TRACK-008]`과 `[TTAK-TRIM-009]`. `SRC-IHAVEADHD`에서 이 원본으로 전달된 규칙을 여기서 복원한 것이다.
 - `[SRC-002]`, `[AC-005]`, `[AC-009]` 요구사항이 인용하는 측정 근거.
@@ -233,6 +233,7 @@ TTAK의 정책 문구는 이 원본의 정책 파일이 아니라 상위 `SKILL.
 - 사전지식이 없는 사용자를 위한 설명 경로;
 - 큰 개념 우선 설명;
 - 사용자가 주제에 익숙하지 않을 때 낮은 정보 밀도;
+- 복잡성이 이해를 방해할 때 한 번에 하나의 개념 설명;
 - 의사결정자에게 영향과 위험, 엔지니어에게 구조와 트레이드오프를 설명하는 역할 기반 관점;
 - 코드와 시스템 설명에서 작동 방법보다 목적 우선;
 - assertion 기반 A/B 평가 방식을 평가 패턴으로 채택.
@@ -257,7 +258,6 @@ TTAK의 정책 문구는 이 원본의 정책 파일이 아니라 상위 `SKILL.
 다음은 원본 기능을 그대로 가져온 것이 아니라 TTAK이 독자적으로 확정한 제품 결정이다.
 
 - 딱따구리 페르소나와 한글 브랜드 의미;
-- 복잡성이 이해를 방해할 때 한 번에 하나의 개념 설명;
 - 공식 `Track · Trim · Adapt · Keep` 운영 모델;
 - 하나의 페르소나가 수행하는 범용 역할 전환;
 - **가장 작은 완전한 해결책** 기준;
@@ -267,7 +267,7 @@ TTAK의 정책 문구는 이 원본의 정책 파일이 아니라 상위 `SKILL.
 - 영문 기준 원문과 한글 공식 번역 정책;
 - 캐릭터와 유머를 정확성과 작업 성능보다 낮은 우선순위에 두는 원칙.
 
-**원본 제거 기록(v0.2).** `SRC-ANTHROPIC-ELI5`는 이 명세에서 완전히 제거했다. 기존 §5.5 절은 삭제했고 그 뒤 절 번호를 하나씩 앞당겼다. 해당 절이 채택 항목으로 열거하던 네 항목은 버리지 않고 출처를 다시 지정해 유지한다. 사전지식이 없는 사용자를 위한 설명 경로, 큰 개념 우선 설명, 낮은 정보 밀도는 `SRC-DREAMBIG-ELI5`(§5.5)로 옮겼고, 한 번에 하나의 개념 설명은 위에 TTAK 고유 통합 설계로 기록했다. 네 항목 모두 제거한 원본에는 없다는 사실을 설계 검토에서 확인했다.
+**원본 제거 기록(v0.2).** `SRC-ANTHROPIC-ELI5`는 이 명세에서 완전히 제거했다. 기존 §5.5 절은 삭제했고 그 뒤 절 번호를 하나씩 앞당겼다. 해당 절이 채택 항목으로 열거하던 네 항목은 버리지 않고 모두 `SRC-DREAMBIG-ELI5`(§5.5)로 출처를 다시 지정해 유지한다. 근거로 네 항목 모두를 그 원본의 고정 커밋 `a766623` 시점 `skills/eli5/SKILL.md`에서 직접 확인했다. 사전지식이 없는 사용자를 위한 설명 경로는 26행과 74행("avoid jargon entirely", "No jargon. Zero."), 큰 개념 우선 설명은 66행("Start with the “what” — one sentence that captures the essence"), 낮은 정보 밀도와 한 번에 하나의 개념 설명은 75~76행("One idea per sentence", "Concrete over abstract")에 있다. 뒤의 두 항목은 같은 두 행에서 나오므로 하나의 고유 요소가 아니라 하나의 원본에서 온 것으로 처리한다. 네 항목 모두 제거한 원본에는 없다.
 
 ---
 
@@ -449,7 +449,7 @@ TTAK은 하나의 페르소나를 유지하면서 작업에 가장 적합한 역
 - 일반적인 설명;
 - 검증 및 투명한 결과 보고.
 
-오류 진단은 Core에 포함하며 v0.1에서 별도 사용자 기능으로 만들지 않는다.
+오류 진단은 Core에 포함하며 v1에서 별도 사용자 기능으로 만들지 않는다.
 
 ### 9.2 TTAK Review
 
@@ -602,7 +602,7 @@ TTAK은 다음을 조정한다.
 - [RESP-004] 곁가지는 억제하거나 핵심 작업 뒤에 명확하게 분리하는 것을 권장한다.
 - [RESP-005] 대안은 일반적으로 결정에 실제 영향을 주는 항목으로 제한하며 보통 2~3개로 둔다.
 - [RESP-006] 추천이 가능하면 하나를 추천하고 결정 이유를 제시하는 것을 권장한다.
-- [RESP-007] 다음 행동은 사용자에게 남은 작업이 있을 때만 하나의 구체적인 행동으로 제시하는 것을 권장한다.
+- [RESP-007] 사용자에게 남은 작업이 있으면 하나의 구체적인 다음 행동을 반드시 제시한다.
 - [RESP-008] 시간 추정을 의무화해서는 안 되며 유용하고 근거가 있고 적절한 조건을 명시할 수 있을 때만 제공할 수 있다.
 - [RESP-009] 장시간 작업은 전체 계획을 매번 반복하지 않고 현재 진행, 완료 결과 및 남은 차단 요소를 표시하는 것을 권장한다.
 - [RESP-010] 요약은 인지 부담을 줄이거나 결정 기록을 보존할 때만 사용하는 것을 권장한다.

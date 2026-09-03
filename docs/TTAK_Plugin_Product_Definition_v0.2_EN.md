@@ -152,7 +152,7 @@ The source analysis for this candidate was verified on **2026-09-04** against th
 | `SRC-DREAMBIG-ELI5` | [DreambigOu/ELI5](https://github.com/DreambigOu/ELI5) | [`a766623`](https://github.com/DreambigOu/ELI5/commit/a766623b062331fdde53467001379b4ddf3acc2f), 2026-03-18 | [Core skill](https://github.com/DreambigOu/ELI5/blob/a766623b062331fdde53467001379b4ddf3acc2f/skills/eli5/SKILL.md), [README and evaluation description](https://github.com/DreambigOu/ELI5/blob/a766623b062331fdde53467001379b4ddf3acc2f/README.md) | [MIT LICENSE](https://github.com/DreambigOu/ELI5/blob/a766623b062331fdde53467001379b4ddf3acc2f/LICENSE) |
 | `SRC-LEANCLARITY` | [wotjr1649/leanclarity](https://github.com/wotjr1649/leanclarity) | [`7dfe5b2`](https://github.com/wotjr1649/leanclarity/commit/7dfe5b2e25166e91069034038ac59121f771e844), 2026-08-31 | [`policies/guidance.md`](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/policies/guidance.md), [`policies/engineering.md`](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/policies/engineering.md), [evidence record](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/docs/evidence/LeanClarity_v1.0_GO_EVIDENCE.md) | [MIT LICENSE](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/LICENSE) |
 
-`SRC-LEANCLARITY` is the author's own prior plugin (manifest version `1.0.2`), which TTAK supersedes. The pin is the commit carrying the measurements this specification cites; the published `v1.0.2` tag predates the corrected safety figure and is therefore not the pin. The artifacts derived from this source are enumerated and limited to:
+`SRC-LEANCLARITY` is the author's own prior plugin, which TTAK supersedes. The pin is a commit past the `v1.0.3` tag, and it is the commit that carries the measurements this specification cites; its manifest still declares version `1.0.2`, so that version string alone does not identify the source basis and is not used as the citation. The `v1.0.2` tag itself predates the corrected safety figure — that figure is a published correction, from thirteen of twenty-four runs down to eight of twenty-four, landed at the commit tagged `v1.0.3` — so citing the tag would cite a release that does not contain the number. The artifacts derived from this source are enumerated and limited to:
 
 - `[TTAK-TRACK-008]` and `[TTAK-TRIM-009]`, rules restored here that reached this source from `SRC-IHAVEADHD`;
 - the measured evidence cited in the `[SRC-002]`, `[AC-005]`, and `[AC-009]` requirements;
@@ -233,6 +233,7 @@ TTAK's policy text is derived from the upstream `SKILL.md` files directly, not f
 - a no-prior-knowledge explanation path;
 - big-picture-first explanation;
 - low information density when the reader is unfamiliar with the subject;
+- one idea at a time where complexity would otherwise overwhelm the explanation;
 - role-specific explanation, such as impact and risk for decision-makers or architecture and trade-offs for engineers;
 - purpose before mechanism when explaining code or systems;
 - assertion-based A/B evaluation as an evaluation pattern.
@@ -257,7 +258,6 @@ TTAK's policy text is derived from the upstream `SKILL.md` files directly, not f
 The following elements are original TTAK product decisions rather than direct source features:
 
 - the woodpecker persona and Korean brand meaning;
-- one idea at a time where complexity would otherwise overwhelm the explanation;
 - the official `Track · Trim · Adapt · Keep` operating model;
 - cross-domain role routing under one persona;
 - the **smallest complete solution** standard;
@@ -267,7 +267,7 @@ The following elements are original TTAK product decisions rather than direct so
 - English Source of Truth with a synchronized Korean translation;
 - character and humor placed below correctness and task performance.
 
-**Source removal note (v0.2).** `SRC-ANTHROPIC-ELI5` is removed from this specification entirely; its former §5.5 subsection is gone and the subsections after it were renumbered. The four items that subsection listed as adopted are retained and reattributed rather than dropped: the no-prior-knowledge path, big-picture-first explanation, and low information density move to `SRC-DREAMBIG-ELI5` (§5.5); one idea at a time is recorded above as TTAK synthesis. The design review verified that none of the four appears in the removed source.
+**Source removal note (v0.2).** `SRC-ANTHROPIC-ELI5` is removed from this specification entirely; its former §5.5 subsection is gone and the subsections after it were renumbered. All four items that subsection listed as adopted are retained and reattributed to `SRC-DREAMBIG-ELI5` (§5.5) rather than dropped, because all four were read in that source's `skills/eli5/SKILL.md` at the pinned commit `a766623`: the no-prior-knowledge path at lines 26 and 74 ("avoid jargon entirely"; "No jargon. Zero."), big-picture-first at line 66 ("Start with the “what” — one sentence that captures the essence"), and low information density together with one idea at a time at lines 75–76 ("One idea per sentence"; "Concrete over abstract"). The last two derive from the same line pair and are treated as one source rather than as one original. None of the four appears in the removed source.
 
 ---
 
@@ -449,7 +449,7 @@ It covers:
 - ordinary explanations;
 - verification and transparent reporting.
 
-Error diagnosis is part of Core and is not a separate user-facing capability in v0.1.
+Error diagnosis is part of Core and is not a separate user-facing capability in v1.
 
 ### 9.2 TTAK Review
 
@@ -602,7 +602,7 @@ TTAK adapts:
 - [RESP-004] Tangents SHOULD be suppressed or clearly separated after the primary task.
 - [RESP-005] Alternatives SHOULD normally be limited to those that materially change the decision, usually two or three.
 - [RESP-006] When a recommendation is possible, TTAK SHOULD recommend one option and state the deciding reason.
-- [RESP-007] TTAK SHOULD give one concrete next action only when work remains for the user.
+- [RESP-007] When work remains for the user, TTAK MUST give one concrete next action.
 - [RESP-008] TTAK MUST NOT require a time estimate; estimates MAY be given only when useful, evidence-based, and properly qualified.
 - [RESP-009] Long-running work SHOULD expose current progress, completed results, and remaining blockers without repeating the full plan on every turn.
 - [RESP-010] Recaps SHOULD be used only when they reduce cognitive load or preserve a decision record.

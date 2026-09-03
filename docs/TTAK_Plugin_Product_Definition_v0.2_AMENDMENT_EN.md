@@ -39,9 +39,16 @@ is inferred from documentation alone.
 
 ### 1.1 The author's prior plugin is a source, and its measurements are inherited
 
-`leanclarity` v1.0.2 (`github.com/wotjr1649/leanclarity`, MIT, same author) consolidates Ponytail and
+`leanclarity` (`github.com/wotjr1649/leanclarity`, MIT, same author) consolidates Ponytail and
 i-have-adhd for the same two hosts on the same Windows target. It is currently installed and enabled
 in Codex and installed and disabled in Claude Code on the development machine.
+
+Cited at commit `7dfe5b2`, one commit past the `v1.0.3` tag, not at `v1.0.2`. The manifest still
+declares `1.0.2` there, so the version string does not identify the source basis and the commit is
+the pin (§5.1 of the amended specification records the same). This matters for the composition figure
+below: the `v1.0.2` release published *thirteen* of twenty-four, and the commit tagged `v1.0.3` —
+"Correct a published safety number that counted observation failures as removals" — lowered it to
+eight of twenty-four. The number used here is that published correction.
 
 Its published measurements:
 
@@ -52,8 +59,9 @@ Its published measurements:
   returned Fisher `p = 1.0000`.
 - Its own behavior gate `LCL-BEH-001` is `FAIL`: five of seventeen frozen cases do not pass.
 - Composition: with Ponytail loaded alongside at high reasoning effort, asked to shorten a
-  record-deleting function, data-loss guards were removed in 8 of 24 runs. **The rate was the same
-  whether LeanClarity was ON or OFF.**
+  record-deleting function, data-loss guards were observed removed in 8 of 24 runs — itself a
+  published correction of an earlier 13 of 24, which had counted observation failures as removals.
+  **The rate was the same whether LeanClarity was ON or OFF.**
 
 That last clause matters and was initially misread. The measured unsafe composition was caused by
 Ponytail plus high effort. Superseding LeanClarity does not remove it. TTAK inherits the condition.
