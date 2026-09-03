@@ -69,3 +69,22 @@ function writeState(enabled) {
 }
 
 module.exports = { dataRoot, statePath, readState, writeState };
+
+const POLICY_DIR = path.join(__dirname, '..', 'policy');
+const SCOPES = { main: ['precedence', 'invariants', 'contract'], subagent: ['precedence', 'invariants'] };
+
+function compose(scope) {
+  const names = SCOPES[scope];
+  if (!names) return null;
+  const parts = [];
+  for (const n of names) {
+    let text;
+    try { text = fs.readFileSync(path.join(POLICY_DIR, `${n}.md`), 'utf8').replace(/^\uFEFF/, '').trim(); }
+    catch { return null; }
+    if (!text) return null;
+    parts.push(text);
+  }
+  return parts.join('\n\n');
+}
+
+module.exports.compose = compose;

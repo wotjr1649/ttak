@@ -168,3 +168,33 @@ test('neither PLUGIN_DATA nor CLAUDE_PLUGIN_DATA set is unavailable, and writeSt
     if (prevClaude === undefined) delete process.env.CLAUDE_PLUGIN_DATA; else process.env.CLAUDE_PLUGIN_DATA = prevClaude;
   }
 });
+
+test('main composition carries all three policy files, subagent carries two', () => {
+  const main = ttak.compose('main');
+  const sub = ttak.compose('subagent');
+  assert.ok(main.includes('Precedence') && main.includes('Invariants') && main.includes('Response contract'));
+  assert.ok(sub.includes('Precedence') && sub.includes('Invariants'));
+  assert.ok(!sub.includes('Response contract'));
+});
+
+test('composition states the ranking to the model, not only to the specification', () => {
+  const main = ttak.compose('main');
+  assert.match(main, /yields to/i);
+  assert.match(main, /not a guard/i);
+});
+
+test('policy text names every protected noun verbatim', () => {
+  const main = ttak.compose('main');
+  for (const noun of ['standard library', 'trust-boundary validation', 'data-loss prevention',
+                      'accessibility', 'explicit output formats']) {
+    assert.ok(main.includes(noun), `missing protected noun: ${noun}`);
+  }
+});
+
+test('composition is all-or-nothing when a policy file is unreadable', () => {
+  const orig = path.join(ROOT, 'policy', 'invariants.md');
+  const bak = orig + '.bak';
+  fs.renameSync(orig, bak);
+  try { assert.strictEqual(ttak.compose('main'), null); }
+  finally { fs.renameSync(bak, orig); }
+});
