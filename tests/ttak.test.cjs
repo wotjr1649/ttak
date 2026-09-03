@@ -191,10 +191,42 @@ test('policy text names every protected noun verbatim', () => {
   }
 });
 
-test('composition is all-or-nothing when a policy file is unreadable', () => {
-  const orig = path.join(ROOT, 'policy', 'invariants.md');
-  const bak = orig + '.bak';
-  fs.renameSync(orig, bak);
-  try { assert.strictEqual(ttak.compose('main'), null); }
-  finally { fs.renameSync(bak, orig); }
+function withPolicyCopy(mutate) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ttak-policy-'));
+  for (const n of ['precedence', 'invariants', 'contract']) {
+    fs.copyFileSync(path.join(ROOT, 'policy', `${n}.md`), path.join(dir, `${n}.md`));
+  }
+  try { mutate(dir); }
+  finally { fs.rmSync(dir, { recursive: true, force: true }); }
+}
+
+test('composition is all-or-nothing when a required policy file is missing, for every file in every scope', () => {
+  const scopeFiles = { main: ['precedence', 'invariants', 'contract'], subagent: ['precedence', 'invariants'] };
+  for (const [scope, names] of Object.entries(scopeFiles)) {
+    for (const missing of names) {
+      withPolicyCopy((dir) => {
+        fs.unlinkSync(path.join(dir, `${missing}.md`));
+        assert.strictEqual(ttak.compose(scope, dir), null, `${scope} should be null when ${missing}.md is missing`);
+      });
+    }
+  }
+});
+
+test('composition is all-or-nothing when a required policy file is empty', () => {
+  withPolicyCopy((dir) => {
+    fs.writeFileSync(path.join(dir, 'precedence.md'), '');
+    assert.strictEqual(ttak.compose('main', dir), null);
+    assert.strictEqual(ttak.compose('subagent', dir), null);
+  });
+});
+
+test('an inherited Object.prototype key never reaches compose as a valid scope', () => {
+  for (const scope of ['constructor', 'hasOwnProperty', '__proto__', 'toString']) {
+    assert.strictEqual(ttak.compose(scope), null, `scope=${scope} should compose to null, not throw`);
+  }
+});
+
+test('the provider-neutral scan finds nothing to flag in shipped policy text', () => {
+  const { providerLeaks } = checkHygiene(ROOT);
+  assert.deepStrictEqual(providerLeaks, []);
 });

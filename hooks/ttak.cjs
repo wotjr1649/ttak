@@ -71,15 +71,18 @@ function writeState(enabled) {
 module.exports = { dataRoot, statePath, readState, writeState };
 
 const POLICY_DIR = path.join(__dirname, '..', 'policy');
-const SCOPES = { main: ['precedence', 'invariants', 'contract'], subagent: ['precedence', 'invariants'] };
+// Null prototype: SCOPES[scope] must be undefined for any inherited Object.prototype
+// key (constructor, hasOwnProperty, __proto__, ...), never an inherited function/object
+// that would pass `if (!names)` and then blow up as non-iterable.
+const SCOPES = { __proto__: null, main: ['precedence', 'invariants', 'contract'], subagent: ['precedence', 'invariants'] };
 
-function compose(scope) {
+function compose(scope, dir = POLICY_DIR) {
   const names = SCOPES[scope];
   if (!names) return null;
   const parts = [];
   for (const n of names) {
     let text;
-    try { text = fs.readFileSync(path.join(POLICY_DIR, `${n}.md`), 'utf8').replace(/^\uFEFF/, '').trim(); }
+    try { text = fs.readFileSync(path.join(dir, `${n}.md`), 'utf8').replace(/^\uFEFF/, '').trim(); }
     catch { return null; }
     if (!text) return null;
     parts.push(text);
