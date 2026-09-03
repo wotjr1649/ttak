@@ -43,17 +43,22 @@ function readState() {
 
 function writeState(enabled) {
   const p = statePath();
-  if (!p) return { ok: false };
+  if (!p) return { ok: false, refused: true };
   const leaf = path.dirname(p);
   try {
     if (!fs.existsSync(leaf)) {
       // Only create the leaf, and only when its parent already exists.
-      if (!fs.statSync(path.dirname(leaf)).isDirectory()) return { ok: false };
+      // statSync throws when the parent is missing entirely (ENOENT); that is
+      // a refusal too, not an unexpected crash, so it is caught here rather
+      // than left to fall through to the catch-all below.
+      let parentIsDir = false;
+      try { parentIsDir = fs.statSync(path.dirname(leaf)).isDirectory(); } catch { parentIsDir = false; }
+      if (!parentIsDir) return { ok: false, refused: true };
       fs.mkdirSync(leaf);
     } else if (!fs.statSync(leaf).isDirectory()) {
-      return { ok: false };
+      return { ok: false, refused: true };
     }
-    if (fs.existsSync(p) && !fs.statSync(p).isFile()) return { ok: false };
+    if (fs.existsSync(p) && !fs.statSync(p).isFile()) return { ok: false, refused: true };
 
     const tmp = path.join(leaf, `.state.${process.pid}.tmp`);
     fs.writeFileSync(tmp, JSON.stringify({ enabled }) + '\n', 'utf8');

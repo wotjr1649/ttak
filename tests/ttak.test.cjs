@@ -113,7 +113,9 @@ test('a missing parent is unavailable and is never created', () => {
   process.env.PLUGIN_DATA = path.join(os.tmpdir(), 'ttak-no-such-parent-xyz', 'ttak-ttak');
   try {
     assert.strictEqual(ttak.readState().status, 'unavailable');
-    assert.strictEqual(ttak.writeState(true).ok, false);
+    const res = ttak.writeState(true);
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.refused, true);
     assert.strictEqual(fs.existsSync(path.join(os.tmpdir(), 'ttak-no-such-parent-xyz')), false);
   } finally {
     if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
@@ -134,7 +136,9 @@ test('a state path that is a directory is unavailable and is not repairable', ()
   withData((leaf) => {
     fs.mkdirSync(path.join(leaf, 'state.json'), { recursive: true });
     assert.strictEqual(ttak.readState().status, 'unavailable');
-    assert.strictEqual(ttak.writeState(true).ok, false);
+    const res = ttak.writeState(true);
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.refused, true);
   });
 });
 
@@ -142,6 +146,8 @@ test('a leaf that is a file, not a directory, is unavailable and is not repairab
   withData((leaf) => {
     fs.writeFileSync(leaf, 'not a directory');
     assert.strictEqual(ttak.readState().status, 'unavailable');
-    assert.strictEqual(ttak.writeState(true).ok, false);
+    const res = ttak.writeState(true);
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.refused, true);
   });
 });
