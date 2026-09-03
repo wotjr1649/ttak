@@ -65,3 +65,15 @@ test('deleting one requirement definition fails the check', () => {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+const { checkHygiene } = require('./lint/check-hygiene.cjs');
+
+test('no shipped file contains a CR byte', () => {
+  const { crFiles } = checkHygiene(ROOT);
+  assert.deepStrictEqual(crFiles, []);
+});
+
+test('every declared license string is MIT', () => {
+  const { licenseMismatch } = checkHygiene(ROOT);
+  assert.deepStrictEqual(licenseMismatch, []);
+});
