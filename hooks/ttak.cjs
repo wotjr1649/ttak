@@ -122,13 +122,20 @@ function handle(input) {
     if (event === 'UserPromptSubmit') {
       const cmd = parseControl(input.prompt);
       if (!cmd) return NOOP;
-      if (cmd === 'status') {
-        const s = readState();
-        if (s.status === 'unavailable' || s.status === 'invalid') return block(ERR);
-        return block(`TTAK saved setting: ${s.status === 'on' ? 'ON' : 'OFF'}. It applies from the next clean session boundary; resumed or compacted contexts may retain earlier text.`);
-      }
-      const ok = writeState(cmd === 'on').ok;
-      return block(ok ? `TTAK saved setting: ${cmd === 'on' ? 'ON' : 'OFF'}.` : ERR);
+      // Own containment: a recognised control prompt must stay blocked even
+      // if readState/writeState were to throw (they don't today, by design —
+      // this is defense against a future regression, not a live path). The
+      // outer catch below is for the lifecycle side and must stay fail-open;
+      // this one must stay fail-closed.
+      try {
+        if (cmd === 'status') {
+          const s = readState();
+          if (s.status === 'unavailable' || s.status === 'invalid') return block(ERR);
+          return block(`TTAK saved setting: ${s.status === 'on' ? 'ON' : 'OFF'}. It applies from the next clean session boundary; resumed or compacted contexts may retain earlier text.`);
+        }
+        const ok = writeState(cmd === 'on').ok;
+        return block(ok ? `TTAK saved setting: ${cmd === 'on' ? 'ON' : 'OFF'}.` : ERR);
+      } catch { return block(ERR); }
     }
 
     if (event !== 'SessionStart' && event !== 'SubagentStart') return NOOP;
@@ -141,7 +148,22 @@ function handle(input) {
       if (event !== 'SessionStart' || s.status !== 'absent') return NOOP;
       const flag = noticeFlagPath();
       if (!flag || fs.existsSync(flag)) return NOOP;
-      try { fs.writeFileSync(flag, ''); } catch { return NOOP; }
+      const leaf = path.dirname(flag);
+      try {
+        // Some hosts never pre-create the leaf directory on a fresh profile
+        // (design §4.1): absent state can mean "leaf missing, parent
+        // exists". The notice is a deliberate one-time write, exempt from
+        // "reads never create" — it may create the leaf, following the same
+        // rule writeState uses: only when the parent exists, never when it
+        // is missing (a missing parent throws here and is caught below).
+        if (!fs.existsSync(leaf)) {
+          if (!fs.statSync(path.dirname(leaf)).isDirectory()) return NOOP;
+          fs.mkdirSync(leaf);
+        } else if (!fs.statSync(leaf).isDirectory()) {
+          return NOOP;
+        }
+        fs.writeFileSync(flag, '');
+      } catch { return NOOP; }
       return emit(event, NOTICE);
     }
 

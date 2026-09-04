@@ -296,6 +296,7 @@ test('SubagentStart injects the reduced composition', () => {
   withData(() => {
     ttak.writeState(true);
     const o = JSON.parse(runHook({ hook_event_name: 'SubagentStart' }).stdout);
+    assert.strictEqual(o.hookSpecificOutput.hookEventName, 'SubagentStart');
     assert.ok(!o.hookSpecificOutput.additionalContext.includes('Response contract'));
     assert.ok(o.hookSpecificOutput.additionalContext.includes('Invariants'));
   });
@@ -340,4 +341,113 @@ test('a control prompt is blocked even when state cannot be written', () => {
   } finally {
     if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
   }
+});
+
+// --- fix round 1: reviewer findings C1, C2, I3, I4, I5, I6, M2 ---
+
+test('the first-session notice fires even when the host never pre-created the leaf directory', () => {
+  withData((leaf) => {
+    // Leaf intentionally NOT created: the fresh-profile shape some hosts
+    // leave behind (design §4.1) — parent exists, leaf does not, so
+    // readState() reports 'absent'. C1: the notice used to require the leaf
+    // to already exist and silently died here forever.
+    assert.strictEqual(fs.existsSync(leaf), false, 'fixture must start truly absent, not pre-created');
+    const r = runHook({ hook_event_name: 'SessionStart', source: 'startup' });
+    const o = JSON.parse(r.stdout);
+    assert.match(o.hookSpecificOutput.additionalContext, /ttak on/);
+    assert.strictEqual(fs.existsSync(path.join(leaf, '.notified')), true);
+  });
+});
+
+test('the notice never creates a leaf directory whose parent is also missing', () => {
+  const prev = process.env.PLUGIN_DATA;
+  const noParent = path.join(os.tmpdir(), 'ttak-notice-no-parent-xyz');
+  process.env.PLUGIN_DATA = path.join(noParent, 'ttak-ttak');
+  try {
+    const r = runHook({ hook_event_name: 'SessionStart', source: 'startup' });
+    assert.strictEqual(r.stdout, '');
+    assert.strictEqual(r.exit, 0);
+    assert.strictEqual(fs.existsSync(noParent), false);
+  } finally {
+    if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
+  }
+});
+
+test('the status control prompt reports the saved setting without changing it', () => {
+  withData(() => {
+    ttak.writeState(true);
+    const o = JSON.parse(runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'ttak' }).stdout);
+    assert.strictEqual(o.decision, 'block');
+    assert.match(o.reason, /ON/);
+    assert.strictEqual(ttak.readState().status, 'on');
+  });
+});
+
+test('ttak off is blocked and saves the setting to off', () => {
+  withData(() => {
+    ttak.writeState(true);
+    const o = JSON.parse(runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'ttak off' }).stdout);
+    assert.strictEqual(o.decision, 'block');
+    assert.match(o.reason, /OFF/);
+    assert.strictEqual(ttak.readState().status, 'off');
+  });
+});
+
+test('an unrelated lifecycle event is a no-op', () => {
+  withData(() => {
+    ttak.writeState(true);
+    const r = runHook({ hook_event_name: 'PreToolUse' });
+    assert.strictEqual(r.stdout, '');
+    assert.strictEqual(r.exit, 0);
+  });
+});
+
+test('handle never injects a partial composition when policy is incomplete', () => {
+  // M2: handle()'s compose() call is hardwired to POLICY_DIR (__dirname-
+  // derived), so an incomplete policy/ can only be reached by isolating a
+  // fresh copy of the module beside a deliberately incomplete policy/ — the
+  // real repository is never touched, and an interrupted run cannot delete
+  // shipped policy.
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ttak-isolated-policy-'));
+  const hooksDir = path.join(tmp, 'hooks');
+  fs.mkdirSync(hooksDir);
+  fs.copyFileSync(path.join(ROOT, 'hooks', 'ttak.cjs'), path.join(hooksDir, 'ttak.cjs'));
+  fs.mkdirSync(path.join(tmp, 'policy'));
+  fs.copyFileSync(path.join(ROOT, 'policy', 'invariants.md'), path.join(tmp, 'policy', 'invariants.md'));
+  // precedence.md and contract.md deliberately omitted: compose('main') must be null.
+  fs.mkdirSync(path.join(tmp, 'data'));
+  const prev = process.env.PLUGIN_DATA;
+  process.env.PLUGIN_DATA = path.join(tmp, 'data', 'ttak-ttak');
+  try {
+    const isolated = require(path.join(hooksDir, 'ttak.cjs'));
+    assert.strictEqual(isolated.compose('main'), null, 'fixture is not actually incomplete');
+    assert.strictEqual(isolated.writeState(true).ok, true);
+    const r = isolated.handle({ hook_event_name: 'SessionStart', source: 'startup' });
+    assert.strictEqual(r.stdout, '');
+    assert.strictEqual(r.exit, 0);
+  } finally {
+    if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+// --- fix round 1: enumerate-every-branch sweep found two more real gaps ---
+
+test('the status control prompt never claims ON or OFF when the saved setting is unreadable', () => {
+  withData((leaf) => {
+    fs.mkdirSync(leaf, { recursive: true });
+    fs.writeFileSync(path.join(leaf, 'state.json'), '{not json');
+    const o = JSON.parse(runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'ttak' }).stdout);
+    assert.strictEqual(o.decision, 'block');
+    assert.ok(!/\bON\b|\bOFF\b/.test(o.reason), `must not guess ON/OFF for invalid state: ${o.reason}`);
+  });
+});
+
+test('SubagentStart does not receive the first-session notice even while absent', () => {
+  withData((leaf) => {
+    fs.mkdirSync(leaf, { recursive: true }); // leaf exists, state.json absent -> status 'absent'
+    const r = runHook({ hook_event_name: 'SubagentStart' });
+    assert.strictEqual(r.stdout, '');
+    assert.strictEqual(r.exit, 0);
+  });
 });
