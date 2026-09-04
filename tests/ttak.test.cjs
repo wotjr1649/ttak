@@ -337,6 +337,10 @@ test('a control prompt is blocked even when state cannot be written', () => {
   try {
     const o = JSON.parse(runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'ttak on' }).stdout);
     assert.strictEqual(o.decision, 'block');
+    // Exact text, not just "no leaked path": a regression that reports
+    // success ("TTAK saved setting: ON.") when nothing was written would
+    // still pass a decision-only/no-leak check.
+    assert.strictEqual(o.reason, 'TTAK could not read or write its saved setting. Nothing was changed.');
     assert.ok(!/ENOENT|[A-Za-z]:\\|\/tmp/.test(o.reason));
   } finally {
     if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
@@ -434,13 +438,27 @@ test('handle never injects a partial composition when policy is incomplete', () 
 // --- fix round 1: enumerate-every-branch sweep found two more real gaps ---
 
 test('the status control prompt never claims ON or OFF when the saved setting is unreadable', () => {
+  const ERR_TEXT = 'TTAK could not read or write its saved setting. Nothing was changed.';
+
+  // invalid: leaf exists, state.json exists but is not parseable JSON.
   withData((leaf) => {
     fs.mkdirSync(leaf, { recursive: true });
     fs.writeFileSync(path.join(leaf, 'state.json'), '{not json');
     const o = JSON.parse(runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'ttak' }).stdout);
     assert.strictEqual(o.decision, 'block');
-    assert.ok(!/\bON\b|\bOFF\b/.test(o.reason), `must not guess ON/OFF for invalid state: ${o.reason}`);
+    assert.strictEqual(o.reason, ERR_TEXT, `invalid state must report the bounded error, not guess ON/OFF: ${o.reason}`);
   });
+
+  // unavailable: parent directory of PLUGIN_DATA does not exist at all.
+  const prev = process.env.PLUGIN_DATA;
+  process.env.PLUGIN_DATA = path.join(os.tmpdir(), 'ttak-no-parent-abc', 'ttak-ttak');
+  try {
+    const o = JSON.parse(runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'ttak' }).stdout);
+    assert.strictEqual(o.decision, 'block');
+    assert.strictEqual(o.reason, ERR_TEXT, `unavailable state must report the bounded error, not guess ON/OFF: ${o.reason}`);
+  } finally {
+    if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
+  }
 });
 
 test('SubagentStart does not receive the first-session notice even while absent', () => {
