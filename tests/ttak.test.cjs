@@ -720,3 +720,98 @@ test('the listing logo meets the minimum size for a real marketplace listing',
     assert.ok(width >= 128 && height >= 128,
       `assets/logo.png is ${width}x${height}, below the 128x128 listing floor`);
   });
+
+test('attributions reproduce each upstream notice as published', () => {
+  const a = fs.readFileSync(path.join(ROOT, 'ATTRIBUTIONS.md'), 'utf8');
+  for (const url of ['github.com/DietrichGebert/ponytail', 'github.com/ayghri/i-have-adhd',
+                     'github.com/DreambigOu/ELI5', 'github.com/wotjr1649/leanclarity']) {
+    assert.ok(a.includes(url), `missing source: ${url}`);
+  }
+  // Verified by reading the file: this LICENSE names no copyright holder.
+  assert.match(a, /Copyright \(c\) 2026\s*$/m);
+  assert.ok(!/Copyright \(c\) 2026 DreambigOu/.test(a),
+    'inventing a copyright holder is a false attribution statement');
+  assert.strictEqual((a.match(/Permission is hereby granted/g) || []).length, 4);
+});
+
+test('the README warns about the measured composition finding', () => {
+  const r = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
+  assert.match(r, /not a guard/i);
+  assert.match(r, /ponytail/i);
+});
+
+test('every attributed source carries its pinned revision and the artifacts derived from it', () => {
+  const a = fs.readFileSync(path.join(ROOT, 'ATTRIBUTIONS.md'), 'utf8');
+  for (const [pin, artifact] of [
+    ['2ed6c52c9d7e5e56942508591085fd45dea277d3', 'policy/invariants.md'],
+    ['58494af57962b2d7a996b4d419474380a299af5e', 'policy/contract.md'],
+    ['a766623b062331fdde53467001379b4ddf3acc2f', 'skills/ttak-explain/SKILL.md'],
+    ['7dfe5b2e25166e91069034038ac59121f771e844', 'README.md'],
+  ]) {
+    assert.ok(a.includes(pin), `missing pinned revision: ${pin}`);
+    assert.ok(a.includes(artifact), `missing derived artifact: ${artifact}`);
+  }
+  // One source has two pins. Both belong in the record, per section 19.3.
+  assert.ok(a.includes('cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c'),
+    "the predecessor's own i-have-adhd pin belongs in the record");
+});
+
+// The inherited figures are all negative or null. Nothing can assert that the
+// README's prose is honest; these assert that the numbers a reader would need
+// in order to judge it for themselves are on the page, in both languages.
+test('both READMEs publish the inherited measurements, including the negative ones', () => {
+  for (const name of ['README.md', 'README.ko.md']) {
+    const r = fs.readFileSync(path.join(ROOT, name), 'utf8');
+    assert.match(r, /p = 1\.0000/, `${name}: the null behaviour result is not stated`);
+    assert.match(r, /5 of 17|17개 중 5개/, `${name}: the failed behaviour gate is not stated`);
+    assert.match(r, /8 of 24|24회 중 8회/, `${name}: the composition figure is not stated`);
+    assert.match(r, /13 of 24|24회 중 13회/,
+      `${name}: that figure is a published correction; the number it replaced belongs with it`);
+    // /ponytail/ against the whole file is satisfied by the attribution list
+    // alone: verified by mutation, removing the name from the warning itself
+    // left the suite green. Scope the check to the section carrying the figure.
+    const measured = r.split(/\n## /).find((s) => /8 of 24|24회 중 8회/.test(s));
+    assert.ok(measured, `${name}: no section carries the composition figure`);
+    assert.match(measured, /ponytail/i,
+      `${name}: the composition warning does not name the competing plugin`);
+    assert.match(measured, /not recommended|권장하지 않습니다/,
+      `${name}: the warning does not advise against running the two together`);
+    assert.match(r, /\/hooks/, `${name}: the Codex hook trust-review step is not named`);
+    assert.ok(r.includes('/ttak:ttak-explain') && r.includes('$ttak:ttak-explain'),
+      `${name}: both host invocation strings are required`);
+    assert.match(r, /not a guard|가드가 아닙니다/i, `${name}: the not-a-guard statement is missing`);
+  }
+});
+
+test('the copied-text inventory tracks both i-have-adhd pins and the reproduced-expression rows', () => {
+  const inv = fs.readFileSync(path.join(ROOT, 'docs', 'COPIED_TEXT_INVENTORY.md'), 'utf8');
+  // One source, two pins: the record must say which chain applies and why.
+  assert.ok(inv.includes('58494af57962b2d7a996b4d419474380a299af5e'), 'the 5.1 pin is missing');
+  assert.ok(inv.includes('cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c'), "the predecessor's pin is missing");
+  // The two places where wording deliberately tracks upstream.
+  const reproduced = (inv.match(/Reproduced expression/g) || []).length;
+  assert.ok(reproduced >= 2, `expected at least 2 reproduced-expression rows, found ${reproduced}`);
+  assert.match(inv, /reuse[- ]order/i, 'the reuse-order chain is not recorded');
+  assert.match(inv, /protected noun/i, 'the protected-noun list is not recorded');
+  assert.match(inv, /ponytail-review/, 'Review material must be recorded even when not carried');
+  for (const f of ['policy/precedence.md', 'policy/invariants.md', 'policy/contract.md',
+                   'skills/ttak-explain/SKILL.md']) {
+    assert.ok(inv.includes(f), `not inventoried: ${f}`);
+  }
+});
+
+// Section 19.3: attribution lives in ATTRIBUTIONS.md and README prose only. A
+// project name in a manifest reads as affiliation and is searchable. The whole
+// file is scanned rather than the two named fields, because no manifest field
+// has a legitimate reason to carry an upstream project name.
+test('no upstream project is named anywhere in the shipped manifests', () => {
+  const forbidden = [/ponytail/i, /i-have-adhd/i, /eli5/i, /leanclarity/i,
+                     /DietrichGebert/i, /ayghri/i, /DreambigOu/i];
+  for (const rel of ['.claude-plugin/plugin.json', '.codex-plugin/plugin.json',
+                     '.claude-plugin/marketplace.json', '.agents/plugins/marketplace.json']) {
+    const raw = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+    for (const n of forbidden) {
+      assert.ok(!n.test(raw), `${rel} names an upstream project: ${n}`);
+    }
+  }
+});
