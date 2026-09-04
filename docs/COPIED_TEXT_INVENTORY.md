@@ -5,8 +5,52 @@ not satisfy that requirement; this is the tracking file. `[LIC-007]` (choose the
 after the copied-content review) and `[AC-012]` (close the licence and attribution review before
 redistribution) are blocked until the review this file feeds has been performed by a human.
 
-**This file records what was measured. It does not close `[AC-012]`.** It carries one finding a
-reviewer must rule on before the gate can close; see *Findings* at the end.
+**This file records what was measured. It does not close `[AC-012]`.** See *Findings* at the end.
+
+## Controller ruling: v0.2 §19.3 is not satisfied, and is not being fixed by rewriting
+
+Recorded on the face of this file rather than buried in a finding, because a normative MUST that the
+shipped product breaks is not something to leave implied.
+
+**The deviation.** v0.2 §19.3 requires that policy text be derived from the upstream `SKILL.md` files
+directly, not from `SRC-LEANCLARITY`'s policy files, so that the attribution chain is one step.
+`policy/invariants.md` and `policy/contract.md` do not meet that. They reproduce
+`SRC-LEANCLARITY`'s `policies/engineering.md` and `policies/guidance.md` at `7dfe5b2`, bullet for
+bullet, with shared runs reaching 18 words. Measured evidence is in F1. **§19.3 as written is not
+satisfied for those two files.**
+
+**The chain those two files actually have, stated in full:**
+
+```
+ponytail   @ 2ed6c52  ─┐
+                       ├─→  leanclarity policies/*.md @ 7dfe5b2  ─→  TTAK policy/invariants.md
+i-have-adhd @ cbe69fb8 ─┘                                            TTAK policy/contract.md
+```
+
+Two steps, not one. Both `i-have-adhd` pins are therefore live for `policy/contract.md`:
+`cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c`, the commit the predecessor's own
+`THIRD_PARTY_NOTICES.md` records for the text it derived, and
+`58494af57962b2d7a996b4d419474380a299af5e`, the v0.2 §5.1 pin against which this inventory's upstream
+line citations were read. `ATTRIBUTIONS.md` records the same pair, in the shape the predecessor's
+notice file uses for its own sources.
+
+`policy/precedence.md` and `skills/ttak-explain/SKILL.md` are **not** affected: both were derived as
+§19.3 requires, and both measure at a three-word longest shared run against any source.
+
+**The ruling: amend, do not rewrite.** §19.3 had two purposes. The first — restoring the units the
+predecessor deliberately dropped, above all the precedence clause — is achieved, and the three-word
+figure for `precedence.md` makes it measurable rather than asserted. The second — a one-step chain —
+is not. Re-deriving the two files now would discard text a reviewer verified character-identical to
+its specification, and would run straight at a failure this project has already documented: the
+predecessor's own compression rewrote these bullets and broke 14 of 19 deterministic assertions by
+dropping the enumerated nouns. Trading verified text for a cleaner provenance line is a bad trade
+when every party in the chain is the same author under the same licence.
+
+**What this ruling does not do.** It does not make the artifact conform. **A v0.3 amendment must
+reconcile §19.3 with the artifact** — either by scoping the direct-derivation requirement to the
+files that meet it and recording the two-step chain for the other two, or by some other wording the
+shipped text actually satisfies. Until that amendment lands, this project ships a product that breaks
+one of its own MUSTs, and that fact belongs to `[AC-012]`, which stays open.
 
 ## Scope
 
@@ -69,7 +113,18 @@ Two instruments, both reproducible:
 | **Original** | No source. TTAK-only. |
 
 Verdicts: `OK` — no obligation beyond the notices already reproduced. `DEFECT` — reproduced
-expression that also breaches a normative obligation of this specification; a human must rule on it.
+expression that also breaches a normative obligation of this specification; ruled on above.
+
+### The three places where wording deliberately tracks upstream
+
+The plan named two. Reading found a third. All three are listed together here so the set is stated
+once and in full:
+
+| Row | What tracks | Why it is deliberate |
+|---|---|---|
+| I4 | The reuse-order chain | The order is the product decision; the wording carries it. `standard library` is a `[SRC-002]` protected noun |
+| I7 | The protected-noun list | `[SRC-002]` exempts these nouns from paraphrase, and the predecessor's evidence records that rewording this line breaks 14 of 19 deterministic assertions |
+| I8 | `ponytail`'s "a branch, a loop, a parser, a money/security path" enumeration | Not anticipated by the plan; found by measurement. A short functional enumeration, reproduced with one connective changed. See F3 |
 
 ---
 
@@ -171,7 +226,9 @@ sentence is reproduced. Classification: independent re-expression. Verdict: OK.
 ### F1 — `policy/invariants.md` and `policy/contract.md` reproduce the predecessor's policy files rather than deriving from the upstream `SKILL.md` files
 
 **This is a normative conformance defect, not a licence violation.** It is the reason this file does
-not close `[AC-012]` by itself.
+not close `[AC-012]` by itself. **Ruled on in fix round 1: amend, do not rewrite** — the ruling, the
+two-step chain and the v0.3 requirement are recorded at the top of this file. What follows is the
+measurement the ruling rests on.
 
 v0.2 section 19.3 states: "Policy text MUST be derived from the upstream `SKILL.md` files directly,
 not from `SRC-LEANCLARITY`'s policy files", with the stated purpose that "direct derivation makes the
@@ -199,12 +256,10 @@ Consequences, separated:
 - **Provenance accuracy.** The two-step chain also means both `i-have-adhd` pins apply to
   `policy/contract.md`, not `58494af...` alone. Recorded above.
 
-Not remediated here. Rewriting `policy/*.md` would rewrite another task's shipped artifact and
-invalidate its frozen assertions, and one affected unit (I7) is a line the predecessor's own evidence
-records as breaking 14 of 19 deterministic assertions when reworded. The choice — accept the two-step
-chain and amend section 19.3, or re-derive the two files from the upstream `SKILL.md` files and
-re-run the frozen checks — is a specification decision and belongs to the reviewer `[AC-010]` and
-`[AC-012]` name, not to this file.
+**Resolution.** Not remediated by rewriting. The controller ruled to accept the two-step chain,
+record it, and reconcile the requirement in a v0.3 amendment; see the ruling at the top of this file
+for the reasoning and for what the amendment must still do. `[AC-012]` stays open until that
+amendment lands and a human closes the review.
 
 ### F2 — Two shipped rules have no upstream `SKILL.md` source at all
 
@@ -214,10 +269,21 @@ re-run the frozen checks — is a specification decision and belongs to the revi
 `[TTAK-TRIM-009]` as "rules restored here that reached this source from `SRC-IHAVEADHD`". For
 `[TTAK-TRACK-008]` (C8) that is accurate: `i-have-adhd` SKILL L123 is the source. For
 `[TTAK-TRIM-009]` it is not — reading `i-have-adhd` SKILL at `58494af...` in full finds no
-analysis-only rule, and the nearest, L121, is about explanation length. C5 likewise originates with
-the predecessor. Both are therefore `SRC-LEANCLARITY`-only derivations, and section 5.1's sentence
-over-attributes one of them upstream. Correct this in the specification or in the attribution record;
-do not correct it by inventing an upstream line.
+analysis-only rule, and the nearest, L121, is about explanation length.
+
+**Confirmed against the predecessor's own decomposition**, which was written to answer exactly this
+question. `docs/evidence/LeanClarity_v1.0_UPSTREAM_DECOMPOSITION.md` at `7dfe5b2` marks both rules as
+having no upstream source at all:
+
+- L84, row `E2` (the analysis-only rule, TTAK's I2): source recorded as
+  `원본 없음 — LeanClarity 신규` — "no original; new in LeanClarity".
+- L97, row `G7` (the verification-honesty clause, TTAK's C5): the same,
+  `원본 없음 — LeanClarity 신규`.
+
+So both rules originate with the predecessor and neither reaches TTAK from `SRC-IHAVEADHD`. v0.2
+section 5.1 over-attributes one of them upstream. **The controller has accepted this and the
+specification correction is pending**; it is not corrected in this file, and it must not be corrected
+by inventing an upstream line.
 
 ### F3 — A third place where wording deliberately tracks upstream
 
@@ -249,6 +315,8 @@ and is escalated rather than decided here.
 | `[LIC-003]` Apache-2.0 handling | Not applicable, no Apache-2.0 material |
 | `[LIC-005]` complete third-party attribution file | Satisfied by `ATTRIBUTIONS.md` |
 | `[LIC-006]` no implied endorsement | Satisfied: attribution appears only in `ATTRIBUTIONS.md` and README prose, and no manifest names an upstream project (asserted by test) |
-| `[LIC-007]` final licence chosen after review | **Open** — the review has its input now, but F1 and F4 are unruled |
+| v0.2 section 19.3 direct derivation | **Not satisfied** for `policy/invariants.md` and `policy/contract.md`. Ruled: amend, do not rewrite. A v0.3 amendment must reconcile it |
+| v0.2 section 5.1 upstream attribution of `[TTAK-TRIM-009]` | **Incorrect.** Specification correction pending with the controller (F2) |
+| `[LIC-007]` final licence chosen after review | **Open** — the review has its input now; F1 is ruled, F4 is not |
 | `[LIC-008]` escalate unresolved interpretation | F4 escalated |
-| `[AC-012]` licence and attribution review closed | **Open** — needs a human ruling on F1 and F4 |
+| `[AC-012]` licence and attribution review closed | **Open** — needs the v0.3 amendment and a human ruling on F4 |

@@ -23,6 +23,11 @@ unusual; it is reproduced anyway, and the reason is stated in that section.
   `LICENSE`
 - TTAK artifacts derived from it: `policy/invariants.md`, `policy/precedence.md`,
   `policy/contract.md`
+- **Route.** `policy/precedence.md` derives from this source directly. `policy/invariants.md` and
+  `policy/contract.md` reach it through `wotjr1649/leanclarity` at
+  `7dfe5b2e25166e91069034038ac59121f771e844`, listed below — a two-step chain, recorded here because
+  the commit each artifact passed through is part of the record. The measurement behind that
+  statement is in `docs/COPIED_TEXT_INVENTORY.md`.
 - `skills/ponytail-review/SKILL.md` is listed because it was read, not because material was carried:
   no Review material ships in v1 (`TTAK Review` is deferred to v1.1). If v1.1 carries any, this entry
   becomes a derivation source for it.
@@ -61,10 +66,13 @@ SOFTWARE.
 - Files read at that revision: `skills/i-have-adhd/SKILL.md`, `LICENSE`
 - TTAK artifacts derived from it: `policy/contract.md`, `policy/precedence.md`,
   `skills/ttak-explain/SKILL.md`
-- **Second pin.** `wotjr1649/leanclarity`, listed below, pins this same project at
-  `cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c`. Where TTAK text reaches this project through that
-  intermediate rather than directly, both pins are part of the chain; the inventory records which
-  units those are. The notice text is identical at both revisions.
+- **Second pin, and the route.** `wotjr1649/leanclarity`, listed below, pins this same project at
+  `cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c`. `policy/precedence.md` and
+  `skills/ttak-explain/SKILL.md` derive from this source directly, so `58494af...` is their chain.
+  `policy/contract.md` reaches it through that intermediate at
+  `7dfe5b2e25166e91069034038ac59121f771e844`, so **both pins are live for it**:
+  `cbe69fb8...` for the upstream text as the predecessor read it, and `58494af...` for the revision
+  this project's line citations were read against. The notice text is identical at both revisions.
 - Notice, reproduced verbatim from `LICENSE` at revision `58494af57962b2d7a996b4d419474380a299af5e`:
 
 ```

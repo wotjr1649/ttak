@@ -182,8 +182,14 @@ TTAK은 MIT 라이선스입니다(`LICENSE` 참조).
 `[LIC-007]`은 최종 라이선스를 가정이 아니라 복사 텍스트 검토를 거쳐 확정하도록 요구합니다. 그 검토의
 입력은 이제 존재합니다 —
 [`docs/COPIED_TEXT_INVENTORY.md`](docs/COPIED_TEXT_INVENTORY.md)가 배포되는 지침 텍스트의 모든 문단을
-상위 파일과 고정 리비전까지 추적합니다 — 그리고 그 문서는 사람이 아직 판단하지 않은 항목 두 개를
+그것이 유래한 파일과 고정 리비전까지 추적합니다 — 그리고 그 문서는 아직 종결되지 않은 항목들을
 기록하고 있습니다. MIT는 예상되는 결과이지 종결된 결정이 아닙니다.
+
+**유래가 전부 한 단계인 것은 아닙니다.** `policy/precedence.md`와 설명기 스킬은 상위 소스에서 직접
+작성되었습니다. `policy/invariants.md`와 `policy/contract.md`는 이전 플러그인의 정책 파일을 재현한
+것이고, 그 파일들이 다시 상위 소스에서 유래합니다 — 두 단계이며, 측정되어 기록되어 있고, 이 프로젝트가
+스스로 정한 요구사항에서 벗어난 것입니다. 인벤토리는 텍스트가 가진 것보다 깔끔한 계보를 암시하는 대신
+이 사실을 그대로 적습니다.
 
 상위 프로젝트의 고지문 원문은 [`ATTRIBUTIONS.md`](ATTRIBUTIONS.md)에 있으며,
 `DietrichGebert/ponytail`, `ayghri/i-have-adhd`, `DreambigOu/ELI5`, `wotjr1649/leanclarity`를

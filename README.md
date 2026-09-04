@@ -185,9 +185,14 @@ TTAK is under the MIT licence (see `LICENSE`).
 
 `[LIC-007]` requires that the final licence be confirmed by a copied-content review rather than
 assumed. That review's input now exists — [`docs/COPIED_TEXT_INVENTORY.md`](docs/COPIED_TEXT_INVENTORY.md)
-tracks every paragraph of shipped instruction text to its upstream file and pinned revision — and it
-records two items that a human has not yet ruled on. MIT is the expected outcome, not a closed
-decision.
+tracks every paragraph of shipped instruction text to the file and pinned revision it derives from —
+and it records items that are not yet closed. MIT is the expected outcome, not a closed decision.
+
+**The derivation is not one step for all of it.** `policy/precedence.md` and the explainer skill are
+written from the upstream sources directly. `policy/invariants.md` and `policy/contract.md` reproduce
+the predecessor's policy files, which in turn derive from those upstreams — two steps, measured and
+recorded, and a deviation from a requirement this project set itself. The inventory states it plainly
+rather than implying a cleaner lineage than the text has.
 
 Verbatim upstream notices are in [`ATTRIBUTIONS.md`](ATTRIBUTIONS.md), covering
 `DietrichGebert/ponytail`, `ayghri/i-have-adhd`, `DreambigOu/ELI5` and `wotjr1649/leanclarity`. Those
