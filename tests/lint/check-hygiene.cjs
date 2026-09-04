@@ -40,7 +40,7 @@ function checkHygiene(root) {
     }
     if (rel.endsWith('SKILL.md')) {
       const fm = text.match(/^---\n([\s\S]*?)\n---/);
-      if (fm && /^license:/m.test(fm[1]) && !/^license:\s*MIT\s*$/m.test(fm[1])) {
+      if (fm && !/^license:\s*MIT\s*$/m.test(fm[1])) {
         licenseMismatch.push(`${rel}: frontmatter license`);
       }
     }

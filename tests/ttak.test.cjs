@@ -621,8 +621,11 @@ test('the explainer frontmatter is safe for both hosts', () => {
   const fm = raw.match(/^---\n([\s\S]*?)\n---\n/);
   assert.ok(fm, 'frontmatter must parse');
   assert.match(fm[1], /^name: ttak-explain$/m);
-  // Quoted or block scalar: #80890 silently skips CRLF + unquoted description with ": "
-  assert.match(fm[1], /^description: ["'>|]/m);
+  // fix round 1, M1: the previous check only looked at the opening
+  // delimiter, so stripping just the closing quote left an unterminated
+  // YAML scalar -- which both hosts fail to parse -- and still passed.
+  // Require a complete quoted scalar, or the start of a block scalar.
+  assert.match(fm[1], /^description: ("[^"]*"|'[^']*'|[>|].*)$/m);
   assert.ok(!/disable-model-invocation/.test(fm[1]),
     'the Codex publish validator rejects this field set to true');
   assert.ok(fm[1].length < 1400, 'description budget');
@@ -630,12 +633,40 @@ test('the explainer frontmatter is safe for both hosts', () => {
 
 test('the explainer is self-contained', () => {
   const body = fs.readFileSync(path.join(ROOT, 'skills', 'ttak-explain', 'SKILL.md'), 'utf8');
-  // Task 7 brief note: Step 1 specified /accurate/i, but the verbatim skill
-  // text this task must not rewrite restates the invariant as "Accuracy is
-  // not traded for simplicity" (the task dispatch context repeats it the
-  // same way), never the word "accurate". The brief is self-contradictory;
-  // corrected the regex -- the non-protected side -- to the word the spec
-  // text actually uses. Content is untouched. See task-7-report.md.
-  assert.match(body, /accuracy/i);
+  const flat = body.replace(/\s+/g, ' ');
+  // fix round 1, I2: /accurate/i, and this task's own round-1 replacement
+  // /accuracy/i, pin a word rather than the claim it stands for --
+  // "Accuracy is traded for simplicity whenever the reader is a beginner."
+  // keeps the word and would have passed either one. Pin the sentence.
+  assert.ok(flat.includes('Accuracy is not traded for simplicity at any level'));
+  // fix round 1, I2: the second invariant this test's own name promises
+  // (self-contained -> both invariants restated) had no check at all;
+  // deleting the whole paragraph stayed green at 46/46.
+  assert.ok(flat.includes(
+    'Never infer age, diagnosis, education, intelligence, or a relationship from insufficient evidence'));
   assert.ok(!/\/ttak|\$ttak/.test(body), 'host invocation syntax belongs in the README');
+});
+
+test('the explainer content is pinned by sentence, not by word', () => {
+  const body = fs.readFileSync(path.join(ROOT, 'skills', 'ttak-explain', 'SKILL.md'), 'utf8');
+  const flat = body.replace(/\s+/g, ' ');
+  // fix round 1, I2: the adult default is the market position; reversing it
+  // to a five-year-old stayed green with no claim pinned against it.
+  assert.ok(flat.includes(
+    'When none is stated, assume a capable adult who may be unfamiliar with the subject'));
+  // fix round 1, I2: all four profile rows, by content -- not just table
+  // presence -- so a deleted table or a deleted row both fail here.
+  for (const row of [
+    'Beginner | Plain vocabulary, the core idea, one short concrete example',
+    'Practitioner | Purpose, operating flow, where it is applied, common failure points',
+    'Expert | Internal mechanics, edge cases, performance, trade-offs',
+    'Decision-maker | Outcome, cost, risk, scope, alternatives, the decision required',
+  ]) {
+    assert.ok(flat.includes(row), `missing profile row: ${row}`);
+  }
+  // fix round 1, I3, added to the skill body on the coordinator's authority:
+  // the text-first market position rested on the body never mentioning an
+  // artifact, which is silence, not a specification.
+  assert.ok(flat.includes(
+    'Deliver the explanation in the conversation. Produce no file, artifact, or document unless the user asks for one.'));
 });
