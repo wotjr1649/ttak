@@ -479,31 +479,104 @@ function spawnHook(payload, { closeStdin = true } = {}) {
     let out = '';
     p.stdout.on('data', (d) => { out += d; });
     p.on('close', (code) => resolve({ out, code }));
-    p.stdin.write(JSON.stringify(payload));
+    p.stdin.write(typeof payload === 'string' ? payload : JSON.stringify(payload));
     if (closeStdin) p.stdin.end();
   });
 }
 
 // withData() from Task 2 is synchronous: its finally block deletes the temp
 // directory before an async callback resolves. Set up inline here instead.
+//
+// --- fix round 1 (coordinator review): C1 -- both PLUGIN_DATA and
+// CLAUDE_PLUGIN_DATA must be isolated here, not just PLUGIN_DATA. dataRoot()
+// falls back to CLAUDE_PLUGIN_DATA, and on a host where that already points
+// at a real plugin's data dir, the unisolated test wrote a real .notified
+// flag there. ---
 test('the entry point emits handle() output and exits 0', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ttak-'));
-  const prev = process.env.PLUGIN_DATA;
+  const prevPD = process.env.PLUGIN_DATA;
+  const prevCPD = process.env.CLAUDE_PLUGIN_DATA;
   process.env.PLUGIN_DATA = path.join(dir, 'ttak-ttak');
+  delete process.env.CLAUDE_PLUGIN_DATA;
   try {
     ttak.writeState(true);
     const r = await spawnHook({ hook_event_name: 'SessionStart', source: 'startup' });
     assert.strictEqual(r.code, 0);
     assert.ok(JSON.parse(r.out).hookSpecificOutput);
   } finally {
-    if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
+    if (prevPD === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prevPD;
+    if (prevCPD === undefined) delete process.env.CLAUDE_PLUGIN_DATA; else process.env.CLAUDE_PLUGIN_DATA = prevCPD;
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
 
+// --- fix round 1: I1 -- this only asserted exit code and elapsed time, so
+// swapping the timer's callback for () => process.exit(0) (no parsing, no
+// handle(), no output) still passed. State is now ON and the output is
+// asserted, so the fallback has to actually run handle(). ---
 test('stdin without EOF still exits 0 within the fallback window', async () => {
-  const started = Date.now();
-  const r = await spawnHook({ hook_event_name: 'SessionStart', source: 'startup' }, { closeStdin: false });
-  assert.strictEqual(r.code, 0);
-  assert.ok(Date.now() - started < 3000, 'hook must not hang the session');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ttak-'));
+  const prevPD = process.env.PLUGIN_DATA;
+  const prevCPD = process.env.CLAUDE_PLUGIN_DATA;
+  process.env.PLUGIN_DATA = path.join(dir, 'ttak-ttak');
+  delete process.env.CLAUDE_PLUGIN_DATA;
+  try {
+    ttak.writeState(true);
+    const started = Date.now();
+    const r = await spawnHook({ hook_event_name: 'SessionStart', source: 'startup' }, { closeStdin: false });
+    assert.strictEqual(r.code, 0);
+    assert.ok(Date.now() - started < 3000, 'hook must not hang the session');
+    assert.ok(JSON.parse(r.out).hookSpecificOutput, 'the fallback must still run handle(), not just exit');
+  } finally {
+    if (prevPD === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prevPD;
+    if (prevCPD === undefined) delete process.env.CLAUDE_PLUGIN_DATA; else process.env.CLAUDE_PLUGIN_DATA = prevCPD;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// --- fix round 1: I2 -- 'error' is a presence-or-absence guard; half-mutating
+// its body proved nothing. A write-only fd passed as the child's fd 0 fails
+// on read with a genuine EBADF, deterministically. ---
+test('a genuine stdin read error still exits 0 instead of crashing the process', async () => {
+  const prevPD = process.env.PLUGIN_DATA;
+  const prevCPD = process.env.CLAUDE_PLUGIN_DATA;
+  delete process.env.PLUGIN_DATA;
+  delete process.env.CLAUDE_PLUGIN_DATA;
+  const wfd = fs.openSync(os.devNull, 'w');
+  try {
+    const r = await new Promise((resolve) => {
+      const p = spawn(process.execPath, [path.join(ROOT, 'hooks', 'ttak.cjs')],
+        { env: { ...process.env }, stdio: [wfd, 'pipe', 'pipe'] });
+      let err = '';
+      p.stderr.on('data', (d) => { err += d; });
+      p.on('close', (code) => resolve({ code, err }));
+    });
+    assert.strictEqual(r.code, 0, `a stdin read error must fail open, not crash: ${r.err}`);
+  } finally {
+    fs.closeSync(wfd);
+    if (prevPD === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prevPD;
+    if (prevCPD === undefined) delete process.env.CLAUDE_PLUGIN_DATA; else process.env.CLAUDE_PLUGIN_DATA = prevCPD;
+  }
+});
+
+// --- fix round 1: M2 -- same PowerShell host, same failure class as the
+// timer; left out of Task 6 only because it was outside the brief's verbatim
+// scope. ---
+test('a BOM-prefixed stdin payload still parses', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ttak-'));
+  const prevPD = process.env.PLUGIN_DATA;
+  const prevCPD = process.env.CLAUDE_PLUGIN_DATA;
+  process.env.PLUGIN_DATA = path.join(dir, 'ttak-ttak');
+  delete process.env.CLAUDE_PLUGIN_DATA;
+  try {
+    ttak.writeState(true);
+    const payload = '\uFEFF' + JSON.stringify({ hook_event_name: 'SessionStart', source: 'startup' });
+    const r = await spawnHook(payload);
+    assert.strictEqual(r.code, 0);
+    assert.ok(JSON.parse(r.out).hookSpecificOutput);
+  } finally {
+    if (prevPD === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prevPD;
+    if (prevCPD === undefined) delete process.env.CLAUDE_PLUGIN_DATA; else process.env.CLAUDE_PLUGIN_DATA = prevCPD;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });

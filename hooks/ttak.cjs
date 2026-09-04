@@ -184,7 +184,7 @@ if (require.main === module) {
     try { input = JSON.parse(buf.replace(/^\uFEFF/, '')); } catch { input = null; }
     let r = { stdout: '', exit: 0 };
     try { r = handle(input); } catch { /* fail open */ }
-    try { if (r.stdout) process.stdout.write(r.stdout + '\n'); } catch { /* EPIPE at exit is not a failure */ }
+    if (r.stdout) process.stdout.write(r.stdout + '\n');
     process.exit(r.exit);
   };
   process.stdin.setEncoding('utf8');
