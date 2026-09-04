@@ -614,3 +614,28 @@ test('readState strips a BOM from state.json the same way the stdin fallback doe
     assert.deepStrictEqual(ttak.readState(), { status: 'on' });
   });
 });
+
+test('the explainer frontmatter is safe for both hosts', () => {
+  const p = path.join(ROOT, 'skills', 'ttak-explain', 'SKILL.md');
+  const raw = fs.readFileSync(p, 'utf8');
+  const fm = raw.match(/^---\n([\s\S]*?)\n---\n/);
+  assert.ok(fm, 'frontmatter must parse');
+  assert.match(fm[1], /^name: ttak-explain$/m);
+  // Quoted or block scalar: #80890 silently skips CRLF + unquoted description with ": "
+  assert.match(fm[1], /^description: ["'>|]/m);
+  assert.ok(!/disable-model-invocation/.test(fm[1]),
+    'the Codex publish validator rejects this field set to true');
+  assert.ok(fm[1].length < 1400, 'description budget');
+});
+
+test('the explainer is self-contained', () => {
+  const body = fs.readFileSync(path.join(ROOT, 'skills', 'ttak-explain', 'SKILL.md'), 'utf8');
+  // Task 7 brief note: Step 1 specified /accurate/i, but the verbatim skill
+  // text this task must not rewrite restates the invariant as "Accuracy is
+  // not traded for simplicity" (the task dispatch context repeats it the
+  // same way), never the word "accurate". The brief is self-contradictory;
+  // corrected the regex -- the non-protected side -- to the word the spec
+  // text actually uses. Content is untouched. See task-7-report.md.
+  assert.match(body, /accuracy/i);
+  assert.ok(!/\/ttak|\$ttak/.test(body), 'host invocation syntax belongs in the README');
+});
