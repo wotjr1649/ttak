@@ -205,6 +205,12 @@ Anything else is an ordinary prompt. `/ttak`, `ttak status`, trailing punctuatio
 internal newlines, and any mention inside a sentence are ordinary prompts. A recognized control prompt
 is blocked from reaching the model with `decision: "block"`; the display text goes in `reason` only.
 
+**Unverified:** the `{"decision":"block"}` shape is documented for the Codex hook contract. Claude
+Code's documented blocking route for `UserPromptSubmit` is exit code 2 with stderr, or its own JSON
+shape — this is the one place the two hosts may diverge, and it is not settled by reading. Task 5
+implements the Codex-documented shape only and does not add a second shape speculatively; Task 12's
+host-integration checklist records the observed shape on each live host before this is relied upon.
+
 `ttak` reports the saved setting and the boundaries at which it applies. It does not claim the current
 conversation is exactly ON or OFF, because a saved-setting change is not retroactive: `startup` and
 `clear` are clean boundaries; `resume`, `compact` and `fork` are inherited.

@@ -270,3 +270,74 @@ test('a non-string prompt never reaches parseControl as valid, not even a null-p
     assert.strictEqual(ttak.parseControl(prompt), null, `prompt=${label} should parse to null, not throw`);
   }
 });
+
+function runHook(input) { return ttak.handle(input); }
+
+test('nothing is injected while off', () => {
+  withData(() => {
+    ttak.writeState(false);
+    const r = runHook({ hook_event_name: 'SessionStart', source: 'startup' });
+    assert.strictEqual(r.stdout, '');
+    assert.strictEqual(r.exit, 0);
+  });
+});
+
+test('SessionStart injects the main composition while on', () => {
+  withData(() => {
+    ttak.writeState(true);
+    const r = runHook({ hook_event_name: 'SessionStart', source: 'startup' });
+    const o = JSON.parse(r.stdout);
+    assert.strictEqual(o.hookSpecificOutput.hookEventName, 'SessionStart');
+    assert.ok(o.hookSpecificOutput.additionalContext.includes('Response contract'));
+  });
+});
+
+test('SubagentStart injects the reduced composition', () => {
+  withData(() => {
+    ttak.writeState(true);
+    const o = JSON.parse(runHook({ hook_event_name: 'SubagentStart' }).stdout);
+    assert.ok(!o.hookSpecificOutput.additionalContext.includes('Response contract'));
+    assert.ok(o.hookSpecificOutput.additionalContext.includes('Invariants'));
+  });
+});
+
+test('the first-session notice fires once and only while off', () => {
+  withData((leaf) => {
+    fs.mkdirSync(leaf, { recursive: true });
+    const a = runHook({ hook_event_name: 'SessionStart', source: 'startup' });
+    assert.match(JSON.parse(a.stdout).hookSpecificOutput.additionalContext, /ttak on/);
+    const b = runHook({ hook_event_name: 'SessionStart', source: 'startup' });
+    assert.strictEqual(b.stdout, '');
+  });
+});
+
+test('a control prompt is blocked and never reaches the model', () => {
+  withData(() => {
+    const r = runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'ttak on' });
+    const o = JSON.parse(r.stdout);
+    assert.strictEqual(o.decision, 'block');
+    assert.strictEqual(ttak.readState().status, 'on');
+    assert.ok(!JSON.stringify(o).includes('state.json'));
+  });
+});
+
+test('an ordinary prompt is a no-op and fails open', () => {
+  withData(() => {
+    ttak.writeState(true);
+    const r = runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'refactor this function' });
+    assert.strictEqual(r.stdout, '');
+    assert.strictEqual(r.exit, 0);
+  });
+});
+
+test('a control prompt is blocked even when state cannot be written', () => {
+  const prev = process.env.PLUGIN_DATA;
+  process.env.PLUGIN_DATA = path.join(os.tmpdir(), 'ttak-no-parent-abc', 'ttak-ttak');
+  try {
+    const o = JSON.parse(runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'ttak on' }).stdout);
+    assert.strictEqual(o.decision, 'block');
+    assert.ok(!/ENOENT|[A-Za-z]:\\|\/tmp/.test(o.reason));
+  } finally {
+    if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
+  }
+});

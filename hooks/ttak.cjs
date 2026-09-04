@@ -101,3 +101,53 @@ function parseControl(prompt) {
 }
 
 module.exports.parseControl = parseControl;
+
+const NOTICE = 'TTAK is installed and off. Send the prompt "ttak on" to turn it on for this host, "ttak off" to turn it off.';
+const ERR = 'TTAK could not read or write its saved setting. Nothing was changed.';
+
+function noticeFlagPath() {
+  const root = dataRoot();
+  return root ? path.join(root, '.notified') : null;
+}
+
+function emit(event, text) {
+  return { stdout: JSON.stringify({ hookSpecificOutput: { hookEventName: event, additionalContext: text } }), exit: 0 };
+}
+function block(reason) { return { stdout: JSON.stringify({ decision: 'block', reason }), exit: 0 }; }
+const NOOP = { stdout: '', exit: 0 };
+
+function handle(input) {
+  try {
+    const event = input && input.hook_event_name;
+    if (event === 'UserPromptSubmit') {
+      const cmd = parseControl(input.prompt);
+      if (!cmd) return NOOP;
+      if (cmd === 'status') {
+        const s = readState();
+        if (s.status === 'unavailable' || s.status === 'invalid') return block(ERR);
+        return block(`TTAK saved setting: ${s.status === 'on' ? 'ON' : 'OFF'}. It applies from the next clean session boundary; resumed or compacted contexts may retain earlier text.`);
+      }
+      const ok = writeState(cmd === 'on').ok;
+      return block(ok ? `TTAK saved setting: ${cmd === 'on' ? 'ON' : 'OFF'}.` : ERR);
+    }
+
+    if (event !== 'SessionStart' && event !== 'SubagentStart') return NOOP;
+
+    const s = readState();
+    if (s.status !== 'on') {
+      // Notice is for genuinely absent state only (design §4.4). 'off' is an
+      // explicit user choice and 'invalid'/'unavailable' are failures; none
+      // of those should nag the user with an activation hint.
+      if (event !== 'SessionStart' || s.status !== 'absent') return NOOP;
+      const flag = noticeFlagPath();
+      if (!flag || fs.existsSync(flag)) return NOOP;
+      try { fs.writeFileSync(flag, ''); } catch { return NOOP; }
+      return emit(event, NOTICE);
+    }
+
+    const text = compose(event === 'SubagentStart' ? 'subagent' : 'main');
+    return text ? emit(event, text) : NOOP;
+  } catch { return NOOP; }
+}
+
+module.exports.handle = handle;
