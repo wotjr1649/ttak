@@ -693,6 +693,30 @@ test('the codex manifest has no hooks field and a complete interface block', () 
   assert.ok(codex.interface && typeof codex.interface === 'object', 'interface block is required');
   for (const key of ['displayName', 'shortDescription', 'longDescription', 'developerName',
     'category', 'capabilities', 'defaultPrompt', 'logo']) {
-    assert.ok(codex.interface[key], `interface.${key} is required and must be non-empty`);
+    const v = codex.interface[key];
+    // capabilities/defaultPrompt are arrays: [] is truthy, so a bare
+    // truthiness test would pass on an empty list despite the message
+    // below claiming "non-empty". Length is the right instrument for those;
+    // truthiness (which also rejects '') is right for the string fields.
+    const nonEmpty = Array.isArray(v) ? v.length > 0 : Boolean(v);
+    assert.ok(nonEmpty, `interface.${key} is required and must be non-empty`);
   }
 });
+
+// The Codex interface.logo doubles as the marketplace listing image, and
+// assets/logo.png is currently the authorised Task 8 placeholder (68 bytes,
+// 1x1 -- see task-8-report.md). A missing/zero-byte file is already caught
+// above; the realistic failure is shipping the placeholder itself, which
+// nothing else catches. Skipped rather than left failing, with the exact
+// unskip condition named, so a submission-time run still shows a named
+// "skipped" line instead of silently omitting the check.
+test('the listing logo meets the minimum size for a real marketplace listing',
+  { skip: 'assets/logo.png is still the Task 8 68-byte 1x1 placeholder -- remove this skip once ' +
+    'it is replaced with a real >=128x128 mark (see task-8-report.md, fix round 1, finding 4)' },
+  () => {
+    const b = fs.readFileSync(path.join(ROOT, 'assets', 'logo.png'));
+    const width = b.readUInt32BE(16);
+    const height = b.readUInt32BE(20);
+    assert.ok(width >= 128 && height >= 128,
+      `assets/logo.png is ${width}x${height}, below the 128x128 listing floor`);
+  });

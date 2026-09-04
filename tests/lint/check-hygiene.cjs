@@ -76,8 +76,11 @@ function checkManifests(root) {
   if (!entry(aMkt)) mismatches.push('agents marketplace has no entry for the plugin');
 
   const a = entry(aMkt);
-  if (a && (!a.policy || !a.policy.installation || !a.policy.authentication || !a.category)) {
-    mismatches.push('agents marketplace entry is missing required policy/category fields');
+  if (a) {
+    if (!a.source) mismatches.push('agents marketplace entry missing field: source');
+    if (!a.policy || !a.policy.installation) mismatches.push('agents marketplace entry missing field: policy.installation');
+    if (!a.policy || !a.policy.authentication) mismatches.push('agents marketplace entry missing field: policy.authentication');
+    if (!a.category) mismatches.push('agents marketplace entry missing field: category');
   }
   return { mismatches };
 }
