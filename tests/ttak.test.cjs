@@ -230,3 +230,17 @@ test('the provider-neutral scan finds nothing to flag in shipped policy text', (
   const { providerLeaks } = checkHygiene(ROOT);
   assert.deepStrictEqual(providerLeaks, []);
 });
+
+test('a non-string scope never reaches compose as valid, not even a null-prototype object or a symbol', () => {
+  const cases = [
+    ['null-prototype object', Object.create(null)],
+    ['symbol', Symbol('x')],
+    ['null', null],
+    ['undefined', undefined],
+    ['number', 42],
+    ['plain object', {}],
+  ];
+  for (const [label, scope] of cases) {
+    assert.strictEqual(ttak.compose(scope), null, `scope=${label} should compose to null, not throw`);
+  }
+});

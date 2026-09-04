@@ -77,6 +77,7 @@ const POLICY_DIR = path.join(__dirname, '..', 'policy');
 const SCOPES = { __proto__: null, main: ['precedence', 'invariants', 'contract'], subagent: ['precedence', 'invariants'] };
 
 function compose(scope, dir = POLICY_DIR) {
+  if (typeof scope !== 'string') return null;
   const names = SCOPES[scope];
   if (!names) return null;
   const parts = [];
