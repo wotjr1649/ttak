@@ -469,3 +469,41 @@ test('SubagentStart does not receive the first-session notice even while absent'
     assert.strictEqual(r.exit, 0);
   });
 });
+
+const { spawn } = require('node:child_process');
+
+function spawnHook(payload, { closeStdin = true } = {}) {
+  return new Promise((resolve) => {
+    const p = spawn(process.execPath, [path.join(ROOT, 'hooks', 'ttak.cjs')],
+      { env: { ...process.env } });
+    let out = '';
+    p.stdout.on('data', (d) => { out += d; });
+    p.on('close', (code) => resolve({ out, code }));
+    p.stdin.write(JSON.stringify(payload));
+    if (closeStdin) p.stdin.end();
+  });
+}
+
+// withData() from Task 2 is synchronous: its finally block deletes the temp
+// directory before an async callback resolves. Set up inline here instead.
+test('the entry point emits handle() output and exits 0', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ttak-'));
+  const prev = process.env.PLUGIN_DATA;
+  process.env.PLUGIN_DATA = path.join(dir, 'ttak-ttak');
+  try {
+    ttak.writeState(true);
+    const r = await spawnHook({ hook_event_name: 'SessionStart', source: 'startup' });
+    assert.strictEqual(r.code, 0);
+    assert.ok(JSON.parse(r.out).hookSpecificOutput);
+  } finally {
+    if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('stdin without EOF still exits 0 within the fallback window', async () => {
+  const started = Date.now();
+  const r = await spawnHook({ hook_event_name: 'SessionStart', source: 'startup' }, { closeStdin: false });
+  assert.strictEqual(r.code, 0);
+  assert.ok(Date.now() - started < 3000, 'hook must not hang the session');
+});

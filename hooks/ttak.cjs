@@ -173,3 +173,23 @@ function handle(input) {
 }
 
 module.exports.handle = handle;
+
+if (require.main === module) {
+  let buf = '';
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    let input = null;
+    try { input = JSON.parse(buf.replace(/^\uFEFF/, '')); } catch { input = null; }
+    let r = { stdout: '', exit: 0 };
+    try { r = handle(input); } catch { /* fail open */ }
+    try { if (r.stdout) process.stdout.write(r.stdout + '\n'); } catch { /* EPIPE at exit is not a failure */ }
+    process.exit(r.exit);
+  };
+  process.stdin.setEncoding('utf8');
+  process.stdin.on('data', (c) => { buf += c; });
+  process.stdin.on('end', finish);
+  process.stdin.on('error', finish);
+  setTimeout(finish, 1000).unref();
+}
