@@ -670,3 +670,29 @@ test('the explainer content is pinned by sentence, not by word', () => {
   assert.ok(flat.includes(
     'Deliver the explanation in the conversation. Produce no file, artifact, or document unless the user asks for one.'));
 });
+
+const { checkManifests } = require('./lint/check-hygiene.cjs');
+
+test('all four manifests agree on name, version and license', () => {
+  assert.deepStrictEqual(checkManifests(ROOT).mismatches, []);
+});
+
+test('the listing logo exists, is non-empty, and is referenced by the codex interface', () => {
+  const logo = path.join(ROOT, 'assets', 'logo.png');
+  assert.ok(fs.statSync(logo).size > 0, 'assets/logo.png is missing or zero bytes');
+  const codex = JSON.parse(fs.readFileSync(path.join(ROOT, '.codex-plugin', 'plugin.json'), 'utf8'));
+  assert.strictEqual(codex.interface.logo, './assets/logo.png');
+  assert.strictEqual(codex.interface.composerIcon, './assets/logo.png');
+});
+
+test('the codex manifest has no hooks field and a complete interface block', () => {
+  const codex = JSON.parse(fs.readFileSync(path.join(ROOT, '.codex-plugin', 'plugin.json'), 'utf8'));
+  // The Codex publish validator rejects a top-level `hooks` field even though
+  // the runtime supports one; hooks/hooks.json is discovered by default instead.
+  assert.ok(!('hooks' in codex), 'the codex publish validator rejects a top-level hooks field');
+  assert.ok(codex.interface && typeof codex.interface === 'object', 'interface block is required');
+  for (const key of ['displayName', 'shortDescription', 'longDescription', 'developerName',
+    'category', 'capabilities', 'defaultPrompt', 'logo']) {
+    assert.ok(codex.interface[key], `interface.${key} is required and must be non-empty`);
+  }
+});

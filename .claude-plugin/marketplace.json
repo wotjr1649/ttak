@@ -1,0 +1,13 @@
+{
+  "name": "ttak",
+  "owner": { "name": "Kim Jae Seok", "url": "https://github.com/wotjr1649" },
+  "description": "Opt-in operating discipline plus an audience-adaptive explainer. Turn it on with the prompt \"ttak on\".",
+  "plugins": [
+    {
+      "name": "ttak",
+      "source": "./",
+      "description": "Opt-in operating discipline plus an audience-adaptive explainer. Turn it on with the prompt \"ttak on\".",
+      "category": "productivity"
+    }
+  ]
+}

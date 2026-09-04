@@ -1,0 +1,11 @@
+{
+  "name": "ttak",
+  "displayName": "TTAK — Track · Trim · Adapt · Keep",
+  "version": "0.1.0",
+  "description": "Opt-in operating discipline plus an audience-adaptive explainer. Turn it on with the prompt \"ttak on\".",
+  "author": { "name": "Kim Jae Seok", "url": "https://github.com/wotjr1649" },
+  "homepage": "https://github.com/wotjr1649/ttak",
+  "repository": "https://github.com/wotjr1649/ttak",
+  "license": "MIT",
+  "keywords": ["yagni", "explain", "audience", "discipline", "productivity"]
+}

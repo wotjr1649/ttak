@@ -1,0 +1,22 @@
+{
+  "name": "ttak",
+  "version": "0.1.0",
+  "description": "Opt-in operating discipline plus an audience-adaptive explainer. Turn it on with the prompt \"ttak on\".",
+  "author": { "name": "Kim Jae Seok", "url": "https://github.com/wotjr1649" },
+  "homepage": "https://github.com/wotjr1649/ttak",
+  "repository": "https://github.com/wotjr1649/ttak",
+  "license": "MIT",
+  "keywords": ["yagni", "explain", "audience", "discipline", "productivity"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "TTAK — Track · Trim · Adapt · Keep",
+    "shortDescription": "Opt-in operating discipline plus an audience-adaptive explainer.",
+    "longDescription": "Opt-in operating discipline plus an audience-adaptive explainer. Turn it on with the prompt \"ttak on\", off with \"ttak off\". The explainer adapts to a beginner, practitioner, expert, or decision-maker audience without trading accuracy for simplicity.",
+    "developerName": "Kim Jae Seok",
+    "category": "Productivity",
+    "capabilities": ["Instructions", "Lifecycle hooks"],
+    "defaultPrompt": ["ttak on", "ttak off", "Explain this for a beginner."],
+    "logo": "./assets/logo.png",
+    "composerIcon": "./assets/logo.png"
+  }
+}
