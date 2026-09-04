@@ -189,6 +189,17 @@ When state is absent and a `<PLUGIN_DATA>/.notified` flag does not exist, `Sessi
 short line naming the activation prompt, then writes the flag. It never repeats. If the flag cannot be
 written, the notice is skipped rather than repeated — a nag is worse than a missed hint.
 
+**The notice may create its own leaf directory, under the same rule `writeState` follows: only when
+the parent exists, never a missing parent.** §4.1's "lifecycle reads never create" governs reads. The
+notice is a deliberate one-time write and is exempt.
+
+This is not a detail. Task 5's review found that without the exemption the notice never fires at all
+on a fresh profile of the host that does not pre-create the leaf — `readState` correctly reports
+`absent`, the notice branch is entered, the flag write throws because the directory is missing, and
+the handler returns silently, every session forever. The plugin ships off and this notice is its only
+discovery path, so that user never learns it is installed or what prompt turns it on. It is the same
+failure the predecessor shipped three candidates to escape, reached from the opposite direction.
+
 This is the ponytail statusline-nudge pattern, which is already shipped and proven.
 
 ### 4.5 Control prompts
