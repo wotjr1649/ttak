@@ -244,3 +244,29 @@ test('a non-string scope never reaches compose as valid, not even a null-prototy
     assert.strictEqual(ttak.compose(scope), null, `scope=${label} should compose to null, not throw`);
   }
 });
+
+test('exactly three control prompts are recognized', () => {
+  assert.strictEqual(ttak.parseControl('ttak'), 'status');
+  assert.strictEqual(ttak.parseControl('  TTAK ON '), 'on');
+  assert.strictEqual(ttak.parseControl('ttak off'), 'off');
+});
+
+test('near misses are ordinary prompts', () => {
+  for (const p of ['/ttak', 'ttak status', 'ttak on please', 'ttak.', 'ttak\non',
+                   'is ttak on?', 'ttakon', '$ttak', 'ttak  on']) {
+    assert.strictEqual(ttak.parseControl(p), null, `should be ordinary: ${JSON.stringify(p)}`);
+  }
+});
+
+test('a non-string prompt never reaches parseControl as valid, not even a null-prototype object or a symbol', () => {
+  const cases = [
+    ['null-prototype object', Object.create(null)],
+    ['symbol', Symbol('x')],
+    ['array', ['ttak']],
+    ['object whose toString throws', { toString() { throw new Error('boom'); } }],
+    ['undefined', undefined],
+  ];
+  for (const [label, prompt] of cases) {
+    assert.strictEqual(ttak.parseControl(prompt), null, `prompt=${label} should parse to null, not throw`);
+  }
+});

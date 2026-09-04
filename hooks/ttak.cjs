@@ -92,3 +92,12 @@ function compose(scope, dir = POLICY_DIR) {
 }
 
 module.exports.compose = compose;
+
+const CONTROLS = new Map([['ttak', 'status'], ['ttak on', 'on'], ['ttak off', 'off']]);
+
+function parseControl(prompt) {
+  if (typeof prompt !== 'string') return null;
+  return CONTROLS.get(prompt.trim().toLowerCase()) || null;
+}
+
+module.exports.parseControl = parseControl;
