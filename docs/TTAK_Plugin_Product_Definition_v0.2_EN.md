@@ -154,7 +154,8 @@ The source analysis for this candidate was verified on **2026-09-04** against th
 
 `SRC-LEANCLARITY` is the author's own prior plugin, which TTAK supersedes. The pin is a commit past the `v1.0.3` tag, and it is the commit that carries the measurements this specification cites; its manifest still declares version `1.0.2`, so that version string alone does not identify the source basis and is not used as the citation. The `v1.0.2` tag itself predates the corrected safety figure — that figure is a published correction, from thirteen of twenty-four runs down to eight of twenty-four, landed at the commit tagged `v1.0.3` — so citing the tag would cite a release that does not contain the number. The artifacts derived from this source are enumerated and limited to:
 
-- `[TTAK-TRACK-008]` and `[TTAK-TRIM-009]`, rules restored here that reached this source from `SRC-IHAVEADHD`;
+- `[TTAK-TRACK-008]`, restored here, which reached this source from `SRC-IHAVEADHD` as its debug-spiral exception;
+- `[TTAK-TRIM-009]`, which this source classifies in its own upstream decomposition as having no upstream origin — it originates with this source, not with `SRC-IHAVEADHD`, and an earlier draft of this section credited it to that project in error;
 - the measured evidence cited in the `[SRC-002]`, `[AC-005]`, and `[AC-009]` requirements;
 - the inherited limitations published under §17.
 
