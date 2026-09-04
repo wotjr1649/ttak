@@ -472,13 +472,28 @@ test('SubagentStart does not receive the first-session notice even while absent'
 
 const { spawn } = require('node:child_process');
 
+// --- fix round 2 (coordinator review): the env isolation used to live only
+// in each test's six lines of save/set/restore boilerplate, which protects
+// only the tests that remember to repeat it -- a new assertion that just
+// calls spawnHook() with no isolation of its own inherits a real
+// CLAUDE_PLUGIN_DATA and can write into another plugin's data directory.
+// Moved the structural guard here so every caller is safe by default; the
+// per-test isolation stays too (belt and braces), since it also isolates
+// PLUGIN_DATA, which this function deliberately leaves alone so a test that
+// sets it still propagates. This also gives the call its own bound: node:test
+// has no default per-test timeout, so a broken/removed fallback must not be
+// able to hang the suite. A killed child resolves instead of hanging, with a
+// `killed` marker the assertions can check. ---
 function spawnHook(payload, { closeStdin = true } = {}) {
   return new Promise((resolve) => {
-    const p = spawn(process.execPath, [path.join(ROOT, 'hooks', 'ttak.cjs')],
-      { env: { ...process.env } });
+    const env = { ...process.env };
+    delete env.CLAUDE_PLUGIN_DATA;
+    const p = spawn(process.execPath, [path.join(ROOT, 'hooks', 'ttak.cjs')], { env });
     let out = '';
+    let killed = false;
+    const bound = setTimeout(() => { killed = true; p.kill(); }, 5000);
     p.stdout.on('data', (d) => { out += d; });
-    p.on('close', (code) => resolve({ out, code }));
+    p.on('close', (code) => { clearTimeout(bound); resolve({ out, code, killed }); });
     p.stdin.write(typeof payload === 'string' ? payload : JSON.stringify(payload));
     if (closeStdin) p.stdin.end();
   });
@@ -524,6 +539,12 @@ test('stdin without EOF still exits 0 within the fallback window', async () => {
     ttak.writeState(true);
     const started = Date.now();
     const r = await spawnHook({ hook_event_name: 'SessionStart', source: 'startup' }, { closeStdin: false });
+    // fix round 2: this line only runs once the promise resolves, so on a
+    // real hang it was never reached -- it caught slow-but-terminating, not
+    // fast-but-broken. spawnHook()'s own bound (see above) now resolves a
+    // hung child instead of never resolving, so this assertion is reachable
+    // and the `killed` marker names the failure precisely.
+    assert.strictEqual(r.killed, false, 'spawnHook had to force-kill the child; the fallback did not exit on its own');
     assert.strictEqual(r.code, 0);
     assert.ok(Date.now() - started < 3000, 'hook must not hang the session');
     assert.ok(JSON.parse(r.out).hookSpecificOutput, 'the fallback must still run handle(), not just exit');
@@ -579,4 +600,17 @@ test('a BOM-prefixed stdin payload still parses', async () => {
     if (prevCPD === undefined) delete process.env.CLAUDE_PLUGIN_DATA; else process.env.CLAUDE_PLUGIN_DATA = prevCPD;
     fs.rmSync(dir, { recursive: true, force: true });
   }
+});
+
+// --- fix round 2: I3's mirror -- readState() strips a BOM from state.json
+// too, not just the stdin fallback, but nothing asserted it. Mutating that
+// strip away survives the suite silently: a BOM-prefixed state.json reads as
+// 'invalid' instead of the real state. Same host, same failure class as the
+// stdin BOM assertion above. ---
+test('readState strips a BOM from state.json the same way the stdin fallback does', () => {
+  withData((leaf) => {
+    fs.mkdirSync(leaf, { recursive: true });
+    fs.writeFileSync(path.join(leaf, 'state.json'), '\uFEFF' + JSON.stringify({ enabled: true }));
+    assert.deepStrictEqual(ttak.readState(), { status: 'on' });
+  });
 });
