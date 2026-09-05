@@ -964,20 +964,36 @@ test('injected size is reported for both scopes and the subagent scope is smalle
   assert.ok(m.subagent.bytes < m.main.bytes);
 });
 
-// Controller addendum 1 (task 10): the README publishes these byte counts as
-// facts about the shipped artifact. Pin them to the measurement script's own
-// output, so an edit to policy/*.md that changes what is composed makes a
-// stale table fail here instead of only being wrong on the page.
+// Controller addendum 1 (task 10), fix round 1: the README publishes these
+// byte counts as facts about the shipped artifact. Comparing them only to
+// scripts/measure-injection.cjs's own stdout would make the script the sole
+// witness to its own correctness -- change the script to report text.length
+// instead of Buffer.byteLength and update the README to match, and a
+// spawn-and-compare check agrees while the published claim quietly changes
+// meaning. Compute the true figure in the test, from the same compose() the
+// script and the hook both call, and tie the README and the script to it
+// separately so each is checked against the composition, not against
+// each other.
 function readmeByteColumn(text, rowStart) {
   const row = text.split('\n').find((l) => l.startsWith(rowStart));
   assert.ok(row, `no table row starting with "${rowStart}"`);
   return Number(row.split('|')[2].trim().replace(/,/g, ''));
 }
 
-test('both READMEs publish the byte figures the measurement script prints', () => {
+test('both READMEs and the measurement script report bytes that match the composition', () => {
+  const expected = {
+    main: Buffer.byteLength(ttak.compose('main'), 'utf8'),
+    subagent: Buffer.byteLength(ttak.compose('subagent'), 'utf8'),
+  };
+
   const out = execFileSync(process.execPath,
     [path.join(ROOT, 'scripts', 'measure-injection.cjs')], { cwd: ROOT, encoding: 'utf8' });
   const m = JSON.parse(out);
+  assert.strictEqual(m.main.bytes, expected.main,
+    'scripts/measure-injection.cjs reports a stale main-scope byte count');
+  assert.strictEqual(m.subagent.bytes, expected.subagent,
+    'scripts/measure-injection.cjs reports a stale subagent-scope byte count');
+
   const rows = {
     'README.md': ['| Session start (precedence + invariants + contract) |',
                   '| Subagent start (precedence + invariants) |'],
@@ -986,10 +1002,10 @@ test('both READMEs publish the byte figures the measurement script prints', () =
   };
   for (const [name, [mainRow, subRow]] of Object.entries(rows)) {
     const text = fs.readFileSync(path.join(ROOT, name), 'utf8');
-    assert.strictEqual(readmeByteColumn(text, mainRow), m.main.bytes,
-      `${name}: published main-scope byte figure is stale against scripts/measure-injection.cjs`);
-    assert.strictEqual(readmeByteColumn(text, subRow), m.subagent.bytes,
-      `${name}: published subagent-scope byte figure is stale against scripts/measure-injection.cjs`);
+    assert.strictEqual(readmeByteColumn(text, mainRow), expected.main,
+      `${name}: published main-scope byte figure is stale against compose('main')`);
+    assert.strictEqual(readmeByteColumn(text, subRow), expected.subagent,
+      `${name}: published subagent-scope byte figure is stale against compose('subagent')`);
   }
 });
 
