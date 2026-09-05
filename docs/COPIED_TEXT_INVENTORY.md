@@ -16,7 +16,8 @@ shipped product breaks is not something to leave implied.
 directly, not from `SRC-LEANCLARITY`'s policy files, so that the attribution chain is one step.
 `policy/invariants.md` and `policy/contract.md` do not meet that. They reproduce
 `SRC-LEANCLARITY`'s `policies/engineering.md` and `policies/guidance.md` at `7dfe5b2`, bullet for
-bullet, with shared runs reaching 18 words. Measured evidence is in F1. **§19.3 as written is not
+bullet, with a longest shared run of **29 words** measured file-wide. Measured evidence, and the
+distinction between the file-wide and per-unit metrics, is in F1. **§19.3 as written is not
 satisfied for those two files.**
 
 **The chain those two files actually have, stated in full:**
@@ -35,16 +36,47 @@ line citations were read. `ATTRIBUTIONS.md` records the same pair, in the shape 
 notice file uses for its own sources.
 
 `policy/precedence.md` and `skills/ttak-explain/SKILL.md` are **not** affected: both were derived as
-§19.3 requires, and both measure at a three-word longest shared run against any source.
+§19.3 requires, and both measure at a three-word longest shared run against any source **file-wide**,
+the same metric that gives the two defect files 29 and 12 (`skills/ttak-explain/SKILL.md` reaches
+four words in its frontmatter alone; see F1).
 
-**The ruling: amend, do not rewrite.** §19.3 had two purposes. The first — restoring the units the
-predecessor deliberately dropped, above all the precedence clause — is achieved, and the three-word
-figure for `precedence.md` makes it measurable rather than asserted. The second — a one-step chain —
-is not. Re-deriving the two files now would discard text a reviewer verified character-identical to
-its specification, and would run straight at a failure this project has already documented: the
-predecessor's own compression rewrote these bullets and broke 14 of 19 deterministic assertions by
-dropping the enumerated nouns. Trading verified text for a cleaner provenance line is a bad trade
-when every party in the chain is the same author under the same licence.
+**The ruling: amend, do not rewrite.** §19.3 had two purposes, and neither is fully met.
+
+**The first — restoring the units the predecessor deliberately dropped — is met for two of the three
+units §19.3 names.** It names "the persona, the precedence clause, and the user-authority clause".
+The precedence clause ships as `policy/precedence.md`, and the user-authority clause ships as the
+second sentence of `policy/invariants.md` I7; the three-word file-wide figure for `precedence.md`
+makes the first measurable rather than asserted. **No persona text ships anywhere.** That is a design
+decision, not an implementation gap: design §5.3 rules that "Persona prose does not appear in the
+injected text until the three-arm ablation (`OPEN-12`) shows a user-experience effect. Until then the
+brand lives in the name, the logo, the README, and the marketplace `interface` block, which cost no
+runtime tokens." The brand does ship in exactly those places —
+`displayName: "TTAK — Track · Trim · Adapt · Keep"` in all three manifests. Spec §19.3 and design
+§5.4 therefore contradict design §5.3, which is the governing decision and the one this file follows.
+§5.3's own first sentence is inaccurate too: the operating frame does not appear as section headings,
+which are `# Precedence`, `# Invariants` and `# Response contract`. **Reconciling those three
+sentences is a v0.3 amendment item alongside the derivation requirement below. No persona text is to
+be added in order to make §19.3's sentence true.**
+
+**The second — a one-step chain — is not met, and for two units it cannot be.**
+`policy/invariants.md` I2 (`[TTAK-TRIM-009]`) and `policy/contract.md` C5 (the verification-honesty
+clause) have **no upstream `SKILL.md` source at all**, confirmed by the predecessor's own
+decomposition at `docs/evidence/LeanClarity_v1.0_UPSTREAM_DECOMPOSITION.md` L84 and L97, both
+`원본 없음 — LeanClarity 신규` (F2). For those two units §19.3's direct-derivation MUST is
+**unsatisfiable**, not merely unmet: there is no upstream line to derive from. That is what makes
+amendment unavoidable rather than merely prudent — no rewriting produces a one-step chain for text
+whose only source is the intermediate.
+
+**A middle route existed and was not taken.** Three of the reproduced units could have been
+re-derived from the upstream directly at a fraction of the anchor-loss risk: I4's reuse ladder is
+`ponytail` SKILL L37-42, C7's rule is `i-have-adhd` SKILL L57-59, and I8's enumeration already
+reaches `ponytail` directly. That would have left I7 and C5 untouched under the `[SRC-002]`
+preservation exemption. It was not taken because re-deriving text a reviewer verified
+character-identical to its specification runs straight at the failure mode this project has already
+documented: the predecessor's own `L3` compression rewrote these bullets and broke 14 of 19
+deterministic assertions by dropping the enumerated nouns. Trading verified text for a cleaner
+provenance line is a bad trade when every party in the chain is the same author under the same
+licence — but the option was real, and it is recorded here as declined rather than left unmentioned.
 
 **What this ruling does not do.** It does not make the artifact conform. **A v0.3 amendment must
 reconcile §19.3 with the artifact** — either by scoping the direct-derivation requirement to the
@@ -98,11 +130,22 @@ Two instruments, both reproducible:
 1. **Reading.** Each source file was read in full at its pinned revision before any provenance claim
    below was written. (An earlier task in this project asserted a provenance without reading the
    source; the correction was to cite line numbers. Every row here cites lines.)
-2. **Longest shared word run.** Each TTAK unit was compared against each candidate source by longest
-   contiguous common word sequence, case-folded and punctuation-stripped. The figure in the
-   *Longest run* column is that length in words, with the matched text quoted where it is material.
-   It is evidence, not a verdict: a long run of ordinary words can be coincidence and a short run can
-   still be reproduction. It is reported because "this is my own wording" is otherwise unfalsifiable.
+2. **Longest shared word run.** Longest contiguous common word sequence, case-folded and
+   punctuation-stripped. It is evidence, not a verdict: a long run of ordinary words can be
+   coincidence and a short run can still be reproduction. It is reported because "this is my own
+   wording" is otherwise unfalsifiable.
+
+**Two metrics, and they are not interchangeable.** Every figure below says which one it is.
+
+- **Per-unit** — one TTAK bullet or paragraph against one source file. This is the *Longest run*
+  column in every table. It shows where the reproduced material sits.
+- **File-wide** — the whole TTAK file against the whole source file, so a run that continues across
+  a bullet boundary is counted rather than truncated at it. This is the larger figure and the honest
+  headline. F1 reports it for all four shipped files.
+
+An earlier revision of this file headlined a per-unit figure for the two defect files and a
+file-wide figure for the two control files. That understated the defect; both metrics are now
+reported for all four.
 
 ## Classification key
 
@@ -123,7 +166,7 @@ once and in full:
 | Row | What tracks | Why it is deliberate |
 |---|---|---|
 | I4 | The reuse-order chain | The order is the product decision; the wording carries it. `standard library` is a `[SRC-002]` protected noun |
-| I7 | The protected-noun list | `[SRC-002]` exempts these nouns from paraphrase, and the predecessor's evidence records that rewording this line breaks 14 of 19 deterministic assertions |
+| I7 | The protected-noun list | `[SRC-002]` exempts these nouns from paraphrase, and the predecessor's evidence records that its `L3` compression, which dropped these nouns across the whole policy, broke 14 of 19 deterministic assertions |
 | I8 | `ponytail`'s "a branch, a loop, a parser, a money/security path" enumeration | Not anticipated by the plan; found by measurement. A short functional enumeration, reproduced with one connective changed. See F3 |
 
 ---
@@ -139,8 +182,8 @@ Composed into every injection, main and subagent.
 | P3 | "Simplicity never outranks correctness, safety, completeness, or an explicit requirement..." | Concept from `ponytail` SKILL L92-95 ("Never simplify away... anything explicitly requested"); the quality hierarchy is v0.2 section 3.4, TTAK-original | 2 w | Independent re-expression | OK |
 
 `precedence.md` is the file the design calls the substantive difference from every predecessor, and
-the measurement supports that claim: its longest shared run against any of the five candidate source
-files is three words. Nothing in it is reproduced from anywhere.
+the measurement supports that claim: its longest shared run against any of the six candidate source
+files is three words **file-wide**, not only per unit. Nothing in it is reproduced from anywhere.
 
 ---
 
@@ -154,7 +197,7 @@ files is three words. Nothing in it is reproduced from anywhere.
 | I4 | **The reuse-order chain.** "Prefer, in order: existing project code, the standard library, native platform features, an already-installed dependency, then the smallest new implementation..." | `SRC-LEANCLARITY` `policies/engineering.md` L6, which itself carries `ponytail` SKILL L37-L42 (ladder rungs 2-7) in the same order. Restated as v0.2 section 8.3 | **18 w** vs leanclarity: "prefer in order existing project code the standard library native platform features an already installed dependency then the" | **Reproduced expression** — deliberate; the order is the product decision and the wording tracks it | DEFECT, see F1 |
 | I5 | "Do not add a single-use abstraction, future-only configuration, wrapper, factory, or file split without a present reason." | `SRC-LEANCLARITY` `policies/engineering.md` L7 (one-use to single-use, "provider" dropped, need to reason); upstream idea in `ponytail` SKILL L58 | 7 w vs leanclarity: "factory or file split without a present" | Reproduced expression (intermediate) | DEFECT, see F1 |
 | I6 | "Fix the smallest shared root cause rather than patching the reported symptom. Optimize for the smallest correct change, not the shortest-looking diff." | `SRC-LEANCLARITY` `policies/engineering.md` L8; upstream idea in `ponytail` SKILL L50-54. The second sentence deliberately **contradicts** `ponytail` SKILL L61 ("Shortest working diff wins"), per v0.2 section 5.3 Adapt | **14 w** vs leanclarity: "the reported symptom optimize for the smallest correct change not the shortest looking diff" | **Reproduced expression** | DEFECT, see F1 |
-| I7 | **The protected-noun list.** "Never simplify away trust-boundary validation, security controls, correctness guards, data-loss prevention, accessibility, or the failure handling that protects the result. Never simplify away anything the user explicitly asked for..." | `SRC-LEANCLARITY` `policies/engineering.md` L9 for the noun list; the second sentence comes from `ponytail` SKILL L92-95 ("anything explicitly requested. User insists on the full version, build it, no re-arguing"), which `SRC-LEANCLARITY` had dropped | **15 w** vs leanclarity: "never simplify away trust boundary validation security controls correctness guards data loss prevention accessibility or"; 5 w vs `ponytail`: "the user explicitly asked for" | **Reproduced expression** — deliberate and mandated: `[SRC-002]` exempts `standard library`, `trust-boundary validation`, `data-loss prevention`, `accessibility` and `explicit output formats` from paraphrase, and the predecessor's own evidence records that rewriting this line breaks 14 of 19 deterministic assertions | DEFECT, see F1. The *preservation* is required; the *route* is not |
+| I7 | **The protected-noun list.** "Never simplify away trust-boundary validation, security controls, correctness guards, data-loss prevention, accessibility, or the failure handling that protects the result. Never simplify away anything the user explicitly asked for..." | `SRC-LEANCLARITY` `policies/engineering.md` L9 for the noun list; the second sentence comes from `ponytail` SKILL L92-95 ("anything explicitly requested. User insists on the full version, build it, no re-arguing"), which `SRC-LEANCLARITY` had dropped | **15 w** vs leanclarity: "never simplify away trust boundary validation security controls correctness guards data loss prevention accessibility or"; 5 w vs `ponytail`: "the user explicitly asked for" | **Reproduced expression** — deliberate and mandated: `[SRC-002]` exempts `standard library`, `trust-boundary validation`, `data-loss prevention`, `accessibility` and `explicit output formats` from paraphrase, and the predecessor's own evidence (L556) records that its `L3` compression, which dropped these nouns across the whole policy, broke 14 of 19 deterministic assertions — the 14 are attributed to that compression, not to this line alone | DEFECT, see F1. The *preservation* is required; the *route* is not |
 | I8 | "For a non-trivial change — a branch, a loop, a parser, a money or security path — leave the smallest runnable check that would fail if the behavior regressed." | `SRC-LEANCLARITY` `policies/engineering.md` L10 for the clause; the enumeration comes from `ponytail` SKILL L107-108 ("Non-trivial logic (a branch, a loop, a parser, a money/security path) leaves ONE runnable check behind") | **13 w** vs leanclarity: "path leave the smallest runnable check that would fail if the behavior regressed"; **8 w** vs `ponytail`: "a branch a loop a parser a money" | **Reproduced expression** — from two sources at once; the 8-word enumeration is `ponytail`'s, reproduced with one connective changed | DEFECT, see F1 and F3 |
 
 ---
@@ -192,8 +235,10 @@ files is three words. Nothing in it is reproduced from anywhere.
 | E11 | "Deliver the explanation in the conversation. Produce no file, artifact, or document unless the user asks for one." | No source. Product boundary; v0.2 section 18.1 records that the HTML and picture-artifact convention this excludes is no longer traced to a retained TTAK source | 2 w | Original | OK |
 | E12 | "Answer in the user's language unless the subject matter requires another." | No source. v0.2 section 0.3 bilingual policy | 3 w | Original | OK |
 
-**The explainer is clean.** Its longest shared run with any candidate source, anywhere in the body,
-is three words. Every substantive relationship to `SRC-DREAMBIG-ELI5` is an inversion of it.
+**The explainer is clean.** Measured file-wide, its longest shared run with any candidate source is
+three words in the body and four in the frontmatter ("use when the user", "user asks to explain" —
+the ordinary vocabulary of a skill description). Every substantive relationship to
+`SRC-DREAMBIG-ELI5` is an inversion of it.
 
 ---
 
@@ -236,13 +281,32 @@ attribution chain one step instead of two." The design document repeats it at se
 
 Measured, the shipped text does not meet that. `policy/invariants.md` aligns bullet-for-bullet, in
 the same order, with `SRC-LEANCLARITY` `policies/engineering.md` at `7dfe5b2` — 8 of 8 bullets — and
-`policy/contract.md` aligns with `policies/guidance.md` for 8 of its 9. Longest shared runs against
-the predecessor reach **18, 15, 14, 13 and 12 words**. Against the upstream `SKILL.md` files the
-longest run anywhere in either file is **8 words**, and most are 2 to 4.
+`policy/contract.md` aligns with `policies/guidance.md` for 8 of its 9. **Per unit**, the longest
+shared runs against the predecessor reach **18, 15, 14, 13 and 12 words**. Against the upstream
+`SKILL.md` files the longest per-unit run anywhere in either file is **8 words**, and most are 2 to 4.
 
-For contrast, measured the same way: `policy/precedence.md` tops out at 3 words against any source
-and `skills/ttak-explain/SKILL.md` at 3 words in the body. Both of those were derived as section 19.3
-requires. The defect is specific to the two files, not to the project's method.
+**File-wide, measured the same way for all four shipped files** — the metric that counts a run
+continuing across a bullet boundary instead of truncating it there:
+
+| TTAK file | File-wide longest run | Against | Largest per-unit figure in its table |
+|---|---|---|---|
+| `policy/invariants.md` | **29 w** | `SRC-LEANCLARITY` `policies/engineering.md` | 18 w (I4) |
+| `policy/contract.md` | **12 w** | `SRC-LEANCLARITY` `policies/guidance.md` | 12 w (C7) |
+| `policy/precedence.md` | 3 w | `SRC-IHAVEADHD` and `SRC-DREAMBIG-ELI5` `SKILL.md` | 3 w (P1, P2) |
+| `skills/ttak-explain/SKILL.md` | 3 w body, 4 w frontmatter | body `SRC-DREAMBIG-ELI5`; frontmatter `SRC-IHAVEADHD` and `SRC-PONYTAIL` `skills/ponytail-review/SKILL.md` | 4 w (E1) |
+
+**29 words is the headline figure for `policy/invariants.md`**, and it exceeds every per-unit figure
+because I6's 14-word run continues unbroken into I7's 15-word run: both files keep the same bullet
+order, so the boundary between those two bullets is not a boundary in the text.
+
+> the reported symptom optimize for the smallest correct change not the shortest looking diff never
+> simplify away trust boundary validation security controls correctness guards data loss prevention
+> accessibility or
+
+The two control files survive the file-wide measurement with their conclusion unchanged:
+`policy/precedence.md` stays at 3 words and `skills/ttak-explain/SKILL.md` at 3 in the body, 4 in
+the frontmatter. Both were derived as section 19.3 requires. The defect is specific to the two files,
+not to the project's method — but it is a 29-word defect, not an 18-word one.
 
 Consequences, separated:
 
@@ -299,7 +363,9 @@ matches the list someone expected.
 
 `DreambigOu/ELI5`'s `LICENSE` at `a766623...` reads `Copyright (c) 2026` with no holder, and its
 `skills/eli5/SKILL.md` carries no `license` key in its frontmatter, so that skill file's licence
-coverage rests entirely on the repository `LICENSE`. `ATTRIBUTIONS.md` reproduces the notice exactly
+coverage rests entirely on the repository `LICENSE`. The repository `README.md` at the same revision
+was read for a holder and names none either: its `## License` section, L144-146, is the single word
+`MIT`. `ATTRIBUTIONS.md` reproduces the notice exactly
 as published and states the fact; it does not repair it, because naming a holder the file does not
 name would be a false attribution statement. TTAK ships no reproduced expression from this source
 (every `skills/ttak-explain/SKILL.md` row above is re-expression or original, longest body run three

@@ -727,56 +727,138 @@ test('attributions reproduce each upstream notice as published', () => {
                      'github.com/DreambigOu/ELI5', 'github.com/wotjr1649/leanclarity']) {
     assert.ok(a.includes(url), `missing source: ${url}`);
   }
-  // Verified by reading the file: this LICENSE names no copyright holder.
-  assert.match(a, /Copyright \(c\) 2026\s*$/m);
-  assert.ok(!/Copyright \(c\) 2026 DreambigOu/.test(a),
+  // Verified by reading the file at the pin: this LICENSE names no holder.
+  //
+  // fix round 2, F-L: both checks below ran against the whole file, where the
+  // holder-less line had exactly one match. A second holder-less line added
+  // anywhere would have let a repair of the ELI5 notice pass unnoticed, and
+  // the negative check named only one invented holder. Scope both to that
+  // source's own section and reject any holder, not just `DreambigOu`.
+  const eli5 = sections(a).get('DreambigOu/ELI5');
+  assert.ok(eli5, 'no DreambigOu/ELI5 section');
+  assert.match(eli5, /^Copyright \(c\) 2026\s*$/m,
+    'the ELI5 notice must be reproduced with no copyright holder, exactly as published');
+  assert.ok(!/Copyright \(c\) 2026 \S/.test(eli5),
     'inventing a copyright holder is a false attribution statement');
   assert.strictEqual((a.match(/Permission is hereby granted/g) || []).length, 4);
 });
 
-test('the README warns about the measured composition finding', () => {
-  const r = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
-  assert.match(r, /not a guard/i);
-  assert.match(r, /ponytail/i);
-});
+// fix round 2 removed 'the README warns about the measured composition
+// finding'. Its two assertions were /not a guard/i and /ponytail/i against the
+// whole of README.md; the second is the exact defect F-B names, since the
+// attribution list alone satisfies it. Both claims are now pinned as contiguous
+// per-language sentences in README_PINS below, so the test measured nothing the
+// surviving one does not measure more strictly.
+
+function sections(text) {
+  return new Map(text.split(/\n## /).slice(1)
+    .map((s) => [s.split('\n')[0].trim(), s]));
+}
 
 test('every attributed source carries its pinned revision and the artifacts derived from it', () => {
   const a = fs.readFileSync(path.join(ROOT, 'ATTRIBUTIONS.md'), 'utf8');
-  for (const [pin, artifact] of [
-    ['2ed6c52c9d7e5e56942508591085fd45dea277d3', 'policy/invariants.md'],
-    ['58494af57962b2d7a996b4d419474380a299af5e', 'policy/contract.md'],
-    ['a766623b062331fdde53467001379b4ddf3acc2f', 'skills/ttak-explain/SKILL.md'],
-    ['7dfe5b2e25166e91069034038ac59121f771e844', 'README.md'],
+  // fix round 2, F-G: pins and artifacts used to be checked independently
+  // against the whole file. `policy/contract.md` appears 5 times in it and
+  // `7dfe5b2...` 3 times, so nothing tied an artifact to the source it is
+  // claimed to derive from -- a wrong pairing would still have passed. Both
+  // are now read out of the source's own `##` section, and the pin out of that
+  // section's own `Pinned revision` bullet.
+  const bySource = sections(a);
+  for (const [source, pin, artifacts] of [
+    ['DietrichGebert/ponytail', '2ed6c52c9d7e5e56942508591085fd45dea277d3',
+      ['policy/invariants.md', 'policy/precedence.md', 'policy/contract.md']],
+    ['ayghri/i-have-adhd', '58494af57962b2d7a996b4d419474380a299af5e',
+      ['policy/contract.md', 'policy/precedence.md', 'skills/ttak-explain/SKILL.md']],
+    ['DreambigOu/ELI5', 'a766623b062331fdde53467001379b4ddf3acc2f',
+      ['skills/ttak-explain/SKILL.md']],
+    ['wotjr1649/leanclarity', '7dfe5b2e25166e91069034038ac59121f771e844',
+      ['policy/invariants.md', 'policy/contract.md', 'README.md', 'README.ko.md']],
   ]) {
-    assert.ok(a.includes(pin), `missing pinned revision: ${pin}`);
-    assert.ok(a.includes(artifact), `missing derived artifact: ${artifact}`);
+    const s = bySource.get(source);
+    assert.ok(s, `no attribution section for source: ${source}`);
+    assert.ok(s.includes(`github.com/${source}`), `${source}: its section does not carry its URL`);
+    const pinned = s.match(/- Pinned revision: `([0-9a-f]{40})`/);
+    assert.ok(pinned, `${source}: no pinned-revision bullet in its own section`);
+    assert.strictEqual(pinned[1], pin, `${source}: pinned revision does not match the record`);
+    const derived = s.match(/- TTAK artifacts derived from it:([\s\S]*?)\n- /);
+    assert.ok(derived, `${source}: no derived-artifact bullet in its own section`);
+    for (const artifact of artifacts) {
+      assert.ok(derived[1].includes(artifact),
+        `${source}: ${artifact} is not listed among the artifacts derived from it`);
+    }
   }
-  // One source has two pins. Both belong in the record, per section 19.3.
-  assert.ok(a.includes('cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c'),
-    "the predecessor's own i-have-adhd pin belongs in the record");
+  // One source has two pins. Both belong in the record, per section 19.3, and
+  // the second belongs in that source's section rather than merely in the file.
+  assert.ok(bySource.get('ayghri/i-have-adhd').includes('cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c'),
+    "the predecessor's own i-have-adhd pin belongs in that source's record");
 });
 
 // The inherited figures are all negative or null. Nothing can assert that the
 // README's prose is honest; these assert that the numbers a reader would need
 // in order to judge it for themselves are on the page, in both languages.
+//
+// fix round 2: five claims below are pinned as contiguous per-language
+// sentences rather than as tokens or as presence checks inside a section.
+// Every one of them had a mutation that removed the claim a reader relies on
+// while leaving the token that was being checked. A token shared with unrelated
+// text is not a pin, and neither is presence inside a section that holds five
+// other copies of it. Whitespace is normalised before matching so that
+// re-wrapping a paragraph does not fail a pin.
+const README_PINS = {
+  'README.md': {
+    // F-A: /\/hooks/ also matched require('./hooks/ttak.cjs') in the size
+    // command, so deleting the whole 395-character trust-review paragraph
+    // left the suite green.
+    trustReview: "trust the plugin's hooks through `/hooks` before any of them run",
+    // F-B: the section carrying "8 of 24" holds five of the six file-wide
+    // `ponytail` occurrences, so a section-scoped /ponytail/i survived
+    // replacing the advice sentence with one that drops the plugin's name.
+    advice: 'Running TTAK alongside `ponytail` is not recommended',
+    // F-C: "6 of 6 across two hosts and two candidates" merged two distinct
+    // measurements into a figure true of neither denominator. Both halves of
+    // the argument are pinned, not only the corrected number.
+    gateCause: 'It failed 6 of 6 across both hosts on the frozen candidate, and 6 of 6 again on '
+      + 'Claude after a revision built specifically to fix it',
+    // F-I: the evidence qualifies this figure at Claude Opus 5 rates.
+    cost: '$0.002 per session at Claude Opus 5 rates',
+    // F-K: the open-gate list omitted the gate the README states twice
+    // elsewhere is inherited and un-rerun.
+    openGate: 'the inherited `LCL-BEH-001` behaviour gate (not re-run)',
+  },
+  'README.ko.md': {
+    trustReview: '통해 플러그인 훅을 검토하고 신뢰하도록 요구합니다',
+    advice: 'TTAK을 `ponytail`과 함께 사용하는 것은 권장하지 않습니다',
+    gateCause: '게이트에 동결된 후보에서 두 호스트 모두 6회 중 6회 실패했으며, 이를 고치려고 만든 '
+      + '개정판도 Claude에서 다시 6회 중 6회 실패했습니다',
+    cost: 'Claude Opus 5 요금 기준으로 세션당 대략 $0.002',
+    openGate: '다시 돌리지 않은 물려받은 행동 게이트 `LCL-BEH-001`',
+  },
+};
+
 test('both READMEs publish the inherited measurements, including the negative ones', () => {
   for (const name of ['README.md', 'README.ko.md']) {
     const r = fs.readFileSync(path.join(ROOT, name), 'utf8');
+    const flat = r.replace(/\s+/g, ' ');
+    const pin = README_PINS[name];
     assert.match(r, /p = 1\.0000/, `${name}: the null behaviour result is not stated`);
     assert.match(r, /5 of 17|17개 중 5개/, `${name}: the failed behaviour gate is not stated`);
     assert.match(r, /8 of 24|24회 중 8회/, `${name}: the composition figure is not stated`);
     assert.match(r, /13 of 24|24회 중 13회/,
       `${name}: that figure is a published correction; the number it replaced belongs with it`);
-    // /ponytail/ against the whole file is satisfied by the attribution list
-    // alone: verified by mutation, removing the name from the warning itself
-    // left the suite green. Scope the check to the section carrying the figure.
-    const measured = r.split(/\n## /).find((s) => /8 of 24|24회 중 8회/.test(s));
+    const measured = flat.split(/ ## /).find((s) => /8 of 24|24회 중 8회/.test(s));
     assert.ok(measured, `${name}: no section carries the composition figure`);
-    assert.match(measured, /ponytail/i,
-      `${name}: the composition warning does not name the competing plugin`);
-    assert.match(measured, /not recommended|권장하지 않습니다/,
-      `${name}: the warning does not advise against running the two together`);
-    assert.match(r, /\/hooks/, `${name}: the Codex hook trust-review step is not named`);
+    assert.ok(measured.includes(pin.advice),
+      `${name}: the section carrying the composition figure must advise, in one sentence that names `
+      + `the plugin, against running the two together: "${pin.advice}"`);
+    assert.ok(flat.includes(pin.trustReview),
+      `${name}: the Codex hook trust-review sentence is missing: "${pin.trustReview}"`);
+    assert.ok(flat.includes(pin.gateCause),
+      `${name}: the behaviour-gate cause must name the denominator each 6 of 6 belongs to, and `
+      + `that the revision built to fix it also failed: "${pin.gateCause}"`);
+    assert.ok(flat.includes(pin.cost),
+      `${name}: the per-session cost figure must carry the rate it was computed at`);
+    assert.ok(flat.includes(pin.openGate),
+      `${name}: the un-rerun behaviour gate belongs in the open-gate list`);
     assert.ok(r.includes('/ttak:ttak-explain') && r.includes('$ttak:ttak-explain'),
       `${name}: both host invocation strings are required`);
     assert.match(r, /not a guard|가드가 아닙니다/i, `${name}: the not-a-guard statement is missing`);
@@ -789,8 +871,22 @@ test('the copied-text inventory tracks both i-have-adhd pins and the reproduced-
   assert.ok(inv.includes('58494af57962b2d7a996b4d419474380a299af5e'), 'the 5.1 pin is missing');
   assert.ok(inv.includes('cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c'), "the predecessor's pin is missing");
   // The two places where wording deliberately tracks upstream.
-  const reproduced = (inv.match(/Reproduced expression/g) || []).length;
-  assert.ok(reproduced >= 2, `expected at least 2 reproduced-expression rows, found ${reproduced}`);
+  //
+  // fix round 2, F-F: the old check counted `Reproduced expression` file-wide
+  // (15 occurrences) against a threshold of 2, so downgrading both mandated
+  // rows to `Independent re-expression` -- the exact misclassification this
+  // inventory exists to prevent -- left the suite green. A count is not a
+  // classification. Pin each mandated row's own verdict cell, scoped to the
+  // `policy/invariants.md` section so the identically numbered rows in the
+  // deliberate-tracking table above cannot satisfy it.
+  const invariants = sections(inv).get('`policy/invariants.md`');
+  assert.ok(invariants, 'no policy/invariants.md section in the inventory');
+  for (const [id, what] of [['I4', 'the reuse-order chain'], ['I7', 'the protected-noun list']]) {
+    const row = invariants.split('\n').find((l) => l.startsWith(`| ${id} |`));
+    assert.ok(row, `${id}: no row in the policy/invariants.md section`);
+    assert.match(row, /\| \*\*Reproduced expression\*\*/,
+      `${id} (${what}) must stay classified as a reproduced expression, not downgraded`);
+  }
   assert.match(inv, /reuse[- ]order/i, 'the reuse-order chain is not recorded');
   assert.match(inv, /protected noun/i, 'the protected-noun list is not recorded');
   assert.match(inv, /ponytail-review/, 'Review material must be recorded even when not carried');

@@ -113,18 +113,19 @@ including the ones that did not go its way. All figures below are from its evide
   carried. This is the reason the top of this file does not claim better output.
 - **The predecessor's own behaviour gate failed.** `LCL-BEH-001`: **5 of 17** frozen cases did not
   pass over 102 runs. Release was recorded as `NOT VERIFIED` and complete sign-off was never granted.
-  One of the five has a recorded cause — a prohibition appended to a rule the upstream did not have,
-  which failed 6 of 6 across two hosts and two candidates; TTAK drops that clause. A second failed
-  24 of 24 at every compression level and is classified in the same evidence as a constraint that
-  opposes the model's defaults, which published work measures failing regardless of how it is worded.
-  TTAK has not re-run the gate, so it inherits the failure until it does.
+  One of the five has a recorded cause — a prohibition appended to a rule the upstream did not have.
+  It failed 6 of 6 across both hosts on the frozen candidate, and 6 of 6 again on Claude after a
+  revision built specifically to fix it; TTAK drops that clause. A second failed 24 of 24 at every
+  compression level and is classified in the same evidence as a constraint that opposes the model's
+  defaults, which published work measures failing regardless of how it is worded. TTAK has not
+  re-run the gate, so it inherits the failure until it does.
 - **Instrument noise is large.** Run-to-run reproducibility was about 0.96, which puts the 95% upper
   bound on the true failure rate at 39.3%. Part of the 5 is noise. That cuts both ways: it is also
   why a single-run improvement would not be evidence of one.
 - **Context size, the one reproducible positive.** 11,584 characters of upstream guidance were
   consolidated to 2,486. Its own evidence puts that in proportion: roughly 620 tokens, about 0.06% of
-  a 1M-token context window, on the order of $0.002 per session. The percentage saved is large; the
-  base is negligible.
+  a 1M-token context window, on the order of $0.002 per session at Claude Opus 5 rates. The
+  percentage saved is large; the base is negligible.
 
 ### Guidance does not compose safely, and TTAK does not fix that
 
@@ -200,6 +201,6 @@ projects are named there and here as factual attribution. **None of their author
 
 ## Status
 
-Pre-release. The gates still open are the copied-content review, host-integration verification on
-both live hosts, the cross-host conformance run, and the required human adversarial review of the
-English policy text.
+Pre-release. The gates still open are the copied-content review, the inherited `LCL-BEH-001`
+behaviour gate (not re-run), host-integration verification on both live hosts, the cross-host
+conformance run, and the required human adversarial review of the English policy text.

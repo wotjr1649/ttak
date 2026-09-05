@@ -110,9 +110,10 @@ SOFTWARE.
 - **This notice names no copyright holder.** The upstream `LICENSE` at the pinned revision carries
   the year and nothing after it. It is reproduced below exactly as published. Inserting a name would
   be a false attribution statement, so none is inserted. `skills/eli5/SKILL.md` at that revision also
-  carries no `license` key in its frontmatter, so its licence coverage rests on this file alone. This
-  is recorded as an unresolved licence question under `[LIC-008]` in the inventory, and is escalated
-  rather than decided here.
+  carries no `license` key in its frontmatter, so its licence coverage rests on this file alone. The
+  repository `README.md` was read at the same revision for a holder and names none either: its
+  `## License` section, L144-146, is the single word `MIT`. This is recorded as an unresolved licence
+  question under `[LIC-008]` in the inventory, and is escalated rather than decided here.
 - Notice, reproduced verbatim from `LICENSE` at that revision:
 
 ```
