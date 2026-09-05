@@ -740,7 +740,29 @@ test('attributions reproduce each upstream notice as published', () => {
     'the ELI5 notice must be reproduced with no copyright holder, exactly as published');
   assert.ok(!/Copyright \(c\) 2026 \S/.test(eli5),
     'inventing a copyright holder is a false attribution statement');
-  assert.strictEqual((a.match(/Permission is hereby granted/g) || []).length, 4);
+
+  // fix round 4: a file-wide count of four `Permission is hereby granted`
+  // lines was F-L's defect one marker down -- it cannot tell a complete
+  // notice from a truncated one, so deleting a warranty paragraph passed.
+  // Require every structural part of an MIT notice inside each fenced block,
+  // per block rather than per file. This catches truncation, which is the
+  // realistic failure, and it runs offline. It does not catch a mid-paragraph
+  // alteration: byte-equality against `git cat-file blob <pin>:LICENSE` is the
+  // check for that, it needs the upstream clones, and a hash recorded here
+  // would be a magic number CI could not regenerate or falsify.
+  const notices = a.match(/^```\n[\s\S]*?^```$/gm) || [];
+  assert.strictEqual(notices.length, 4, 'expected four reproduced notice blocks');
+  notices.forEach((block, i) => {
+    for (const part of [
+      /^Copyright \(c\) 2026/m,
+      /^Permission is hereby granted/m,
+      /^The above copyright notice and this permission notice shall be included/m,
+      /^THE SOFTWARE IS PROVIDED "AS IS"/m,
+      /IN NO EVENT SHALL/,
+    ]) {
+      assert.match(block, part, `notice block ${i + 1} is truncated: ${part} is missing`);
+    }
+  });
 });
 
 // fix round 2 removed 'the README warns about the measured composition
@@ -925,12 +947,16 @@ test('the copied-text inventory tracks both i-have-adhd pins and the reproduced-
   assert.ok(normalise(inv).includes(RUN_29),
     'the inventory no longer quotes the 29-word run it headlines');
 
-  // fix round 3, C4: this file exists to hold two licence gates open, and
-  // nothing stopped a future edit from closing them in the Status table.
-  const ac012 = inv.split('\n').find((l) => l.startsWith('| `[AC-012]`'));
-  assert.ok(ac012, 'no [AC-012] row in the inventory Status table');
-  assert.match(ac012, /\*\*Open\*\*/,
-    '[AC-012] is closed only by a human ruling, not by editing this table');
+  // fix round 3, C4, widened in round 4: this file exists to hold two licence
+  // gates open, and nothing stopped a future edit from closing them in the
+  // Status table. Round 3 pinned the one gate that had been named by
+  // instance; both belong here, because the class is what matters.
+  for (const id of ['[LIC-007]', '[AC-012]']) {
+    const row = inv.split('\n').find((l) => l.startsWith(`| \`${id}\``));
+    assert.ok(row, `no ${id} row in the inventory Status table`);
+    assert.match(row, /\*\*Open\*\*/,
+      `${id} is closed only by a human ruling, not by editing this table`);
+  }
   for (const f of ['policy/precedence.md', 'policy/invariants.md', 'policy/contract.md',
                    'skills/ttak-explain/SKILL.md']) {
     assert.ok(inv.includes(f), `not inventoried: ${f}`);
