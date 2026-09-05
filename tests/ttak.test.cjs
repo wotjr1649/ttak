@@ -183,29 +183,86 @@ test('composition states the ranking to the model, not only to the specification
   assert.match(main, /not a guard/i);
 });
 
-test('policy text names every protected noun verbatim', () => {
-  const main = ttak.compose('main');
-  for (const noun of ['standard library', 'trust-boundary validation', 'data-loss prevention',
-                      'accessibility', 'explicit output formats']) {
-    assert.ok(main.includes(noun), `missing protected noun: ${noun}`);
+// D2 (fix round 2, High): both checks below used to read only
+// ttak.compose('main'). That is blind to *which file* a bullet lives in --
+// moving the `standard library` bullet from policy/invariants.md (read by
+// both scopes) to policy/contract.md (main-only) leaves main's byte total
+// and both old checks green while the bullet silently vanishes from the
+// subagent injection. Bind every noun and its sentence to its own source
+// file and to every scope that file actually reaches. `explicit output
+// formats` is main-only by design (policy/contract.md is not in the
+// subagent SCOPES entry in hooks/ttak.cjs); the other four belong in both.
+const PROTECTED_BULLETS = [
+  {
+    file: 'invariants.md',
+    scopes: ['main', 'subagent'],
+    nouns: ['standard library'],
+    bullet: '- Prefer, in order: existing project code, the standard library, native platform features, an already-installed dependency, then the smallest new implementation that fully satisfies the requirement.',
+  },
+  {
+    file: 'invariants.md',
+    scopes: ['main', 'subagent'],
+    nouns: ['trust-boundary validation', 'data-loss prevention', 'accessibility'],
+    bullet: '- Never simplify away trust-boundary validation, security controls, correctness guards, data-loss prevention, accessibility, or the failure handling that protects the result. Never simplify away anything the user explicitly asked for; if they want the larger version, build it without re-arguing.',
+  },
+  {
+    file: 'contract.md',
+    scopes: ['main'],
+    nouns: ['explicit output formats'],
+    bullet: '- Honor explicit output formats. When detail, a walkthrough or an exhaustive review is asked for, give it in full without an arbitrary brevity or list limit.',
+  },
+];
+
+test('policy text names every protected noun verbatim, in its own file and every scope it reaches', () => {
+  const composed = { main: ttak.compose('main'), subagent: ttak.compose('subagent') };
+  for (const { file, scopes, nouns } of PROTECTED_BULLETS) {
+    const source = fs.readFileSync(path.join(ROOT, 'policy', file), 'utf8');
+    for (const noun of nouns) {
+      assert.ok(source.includes(noun), `missing protected noun in policy/${file}: ${noun}`);
+      for (const scope of scopes) {
+        assert.ok(composed[scope].includes(noun), `missing protected noun in ${scope} scope: ${noun}`);
+      }
+    }
   }
 });
 
-// Controller addendum 2 (task 10, carried from task 9): the loop above only
-// checks that each noun occurs somewhere in the composed policy. `accessibility`
-// is an ordinary word, so a bullet that starts using it in another sense could
-// satisfy the loop while no longer carrying the protected noun in its own
-// sentence. Pin the three enclosing bullets verbatim, as they stand in their
-// source files, so both the per-noun loop and this sentence-level pin must hold.
-test('the sentences carrying the five protected nouns are pinned verbatim, not just the nouns', () => {
-  const main = ttak.compose('main');
-  const bullets = [
-    '- Prefer, in order: existing project code, the standard library, native platform features, an already-installed dependency, then the smallest new implementation that fully satisfies the requirement.',
-    '- Never simplify away trust-boundary validation, security controls, correctness guards, data-loss prevention, accessibility, or the failure handling that protects the result. Never simplify away anything the user explicitly asked for; if they want the larger version, build it without re-arguing.',
-    '- Honor explicit output formats. When detail, a walkthrough or an exhaustive review is asked for, give it in full without an arbitrary brevity or list limit.',
-  ];
-  for (const bullet of bullets) {
-    assert.ok(main.includes(bullet), `bullet no longer present verbatim in the composed policy: "${bullet}"`);
+// Controller addendum 2 (task 10, carried from task 9): the noun loop above
+// only checks that each noun occurs somewhere. `accessibility` is an ordinary
+// word, so a bullet that starts using it in another sense could satisfy the
+// loop while no longer carrying the protected noun in its own sentence. Pin
+// the three enclosing bullets verbatim, as they stand in their source files,
+// so both the per-noun loop and this sentence-level pin must hold.
+test('the sentences carrying the five protected nouns are pinned verbatim, in their own file and every scope, not just the nouns', () => {
+  const composed = { main: ttak.compose('main'), subagent: ttak.compose('subagent') };
+  for (const { file, scopes, bullet } of PROTECTED_BULLETS) {
+    const source = fs.readFileSync(path.join(ROOT, 'policy', file), 'utf8');
+    assert.ok(source.includes(bullet), `bullet no longer present verbatim in policy/${file}: "${bullet}"`);
+    for (const scope of scopes) {
+      assert.ok(composed[scope].includes(bullet), `bullet no longer present verbatim in ${scope} scope: "${bullet}"`);
+    }
+  }
+});
+
+// D5 (fix round 2, Low, pre-existing but now in scope because the pins above
+// assume it): a space-to-newline edit inside a policy line is byte-neutral,
+// so the byte pin can't see it, and a wrapped continuation line breaks any
+// contiguous-string pin that happens to cross the wrap point. Every
+// non-blank, non-heading line must be self-contained: it either starts a
+// bullet ('- ') or the line before it is blank/a heading. This covers
+// policy/precedence.md's un-bulleted paragraph lines too -- each of its
+// three paragraphs is its own isolated line today.
+test('no policy bullet or paragraph is hard-wrapped across lines', () => {
+  for (const file of ['precedence.md', 'invariants.md', 'contract.md']) {
+    const lines = fs.readFileSync(path.join(ROOT, 'policy', file), 'utf8').split('\n');
+    let prevIsContent = false;
+    lines.forEach((line, i) => {
+      const isBlank = line.trim() === '';
+      const isHeading = line.startsWith('#');
+      if (isBlank || isHeading) { prevIsContent = false; return; }
+      assert.ok(!prevIsContent || line.startsWith('- '),
+        `policy/${file}:${i + 1} looks like a wrapped continuation line: "${line}"`);
+      prevIsContent = true;
+    });
   }
 });
 
@@ -820,9 +877,18 @@ test('attributions reproduce each upstream notice as published', () => {
 // per-language sentences in README_PINS below, so the test measured nothing the
 // surviving one does not measure more strictly.
 
+// D4 (fix round 2, Low): a Map silently lets a later ## heading of the same
+// name overwrite an earlier one, so a duplicate section could corrupt any of
+// this helper's four callers green. Fix it once, here, rather than at each
+// call site.
 function sections(text) {
-  return new Map(text.split(/\n## /).slice(1)
-    .map((s) => [s.split('\n')[0].trim(), s]));
+  const entries = text.split(/\n## /).slice(1).map((s) => [s.split('\n')[0].trim(), s]);
+  const seen = new Set();
+  for (const [heading] of entries) {
+    assert.ok(!seen.has(heading), `duplicate "## ${heading}" section: sections() would silently return the last one`);
+    seen.add(heading);
+  }
+  return new Map(entries);
 }
 
 test('every attributed source carries its pinned revision and the artifacts derived from it', () => {
@@ -974,38 +1040,89 @@ test('injected size is reported for both scopes and the subagent scope is smalle
 // script and the hook both call, and tie the README and the script to it
 // separately so each is checked against the composition, not against
 // each other.
-function readmeByteColumn(text, rowStart) {
+//
+// D1 (fix round 2, High): fix round 1 closed this circle for bytes only.
+// approxTokens had no witness at all -- changing the script's divisor to /3
+// and the README's token column to match passed green, the same circularity
+// one column to the right. Extend `expected` with the same
+// Math.ceil(length / 4) the script and the README claim to report, and check
+// both against it.
+function readmeColumn(text, rowStart, colIndex) {
   const row = text.split('\n').find((l) => l.startsWith(rowStart));
   assert.ok(row, `no table row starting with "${rowStart}"`);
-  return Number(row.split('|')[2].trim().replace(/,/g, ''));
+  return Number(row.split('|')[colIndex].trim().replace(/,/g, ''));
 }
 
-test('both READMEs and the measurement script report bytes that match the composition', () => {
-  const expected = {
-    main: Buffer.byteLength(ttak.compose('main'), 'utf8'),
-    subagent: Buffer.byteLength(ttak.compose('subagent'), 'utf8'),
-  };
+test('both READMEs and the measurement script report bytes and tokens that match the composition', () => {
+  const expected = {};
+  for (const scope of ['main', 'subagent']) {
+    const text = ttak.compose(scope);
+    expected[scope] = { bytes: Buffer.byteLength(text, 'utf8'), tokens: Math.ceil(text.length / 4) };
+  }
 
   const out = execFileSync(process.execPath,
     [path.join(ROOT, 'scripts', 'measure-injection.cjs')], { cwd: ROOT, encoding: 'utf8' });
   const m = JSON.parse(out);
-  assert.strictEqual(m.main.bytes, expected.main,
-    'scripts/measure-injection.cjs reports a stale main-scope byte count');
-  assert.strictEqual(m.subagent.bytes, expected.subagent,
-    'scripts/measure-injection.cjs reports a stale subagent-scope byte count');
+  for (const scope of ['main', 'subagent']) {
+    assert.strictEqual(m[scope].bytes, expected[scope].bytes,
+      `scripts/measure-injection.cjs reports a stale ${scope}-scope byte count`);
+    assert.strictEqual(m[scope].approxTokens, expected[scope].tokens,
+      `scripts/measure-injection.cjs reports a stale ${scope}-scope token approximation`);
+  }
 
-  const rows = {
-    'README.md': ['| Session start (precedence + invariants + contract) |',
-                  '| Subagent start (precedence + invariants) |'],
-    'README.ko.md': ['| 세션 시작 (precedence + invariants + contract) |',
-                     '| 서브에이전트 시작 (precedence + invariants) |'],
+  const rowStarts = {
+    'README.md': {
+      main: '| Session start (precedence + invariants + contract) |',
+      subagent: '| Subagent start (precedence + invariants) |',
+    },
+    'README.ko.md': {
+      main: '| 세션 시작 (precedence + invariants + contract) |',
+      subagent: '| 서브에이전트 시작 (precedence + invariants) |',
+    },
   };
-  for (const [name, [mainRow, subRow]] of Object.entries(rows)) {
+  for (const [name, byScope] of Object.entries(rowStarts)) {
     const text = fs.readFileSync(path.join(ROOT, name), 'utf8');
-    assert.strictEqual(readmeByteColumn(text, mainRow), expected.main,
-      `${name}: published main-scope byte figure is stale against compose('main')`);
-    assert.strictEqual(readmeByteColumn(text, subRow), expected.subagent,
-      `${name}: published subagent-scope byte figure is stale against compose('subagent')`);
+    for (const [scope, rowStart] of Object.entries(byScope)) {
+      assert.strictEqual(readmeColumn(text, rowStart, 2), expected[scope].bytes,
+        `${name}: published ${scope}-scope byte figure is stale against compose('${scope}')`);
+      assert.strictEqual(readmeColumn(text, rowStart, 3), expected[scope].tokens,
+        `${name}: published ${scope}-scope token figure is stale against compose('${scope}')`);
+    }
+  }
+});
+
+// D3 (fix round 2, Medium): the byte/token numbers can no longer be false,
+// but every sentence that makes them interpretable was still free -- the
+// reproduction command, the four-characters-per-token ratio, the "not exact"
+// disclaimer, and the column header's own approximation label could each be
+// deleted or changed with the suite green. Pin them too.
+const SIZE_SECTION_PINS = {
+  'README.md': {
+    header: '| Scope | Bytes | Approx. tokens (~4 chars/token) |',
+    command: 'node scripts/measure-injection.cjs',
+    ratio: 'a token approximation at four characters per token',
+    disclaimer: 'an estimate, not an exact token count',
+    pinStatement: 'These figures fail the suite if the policy files or the README drift from what '
+      + 'that command prints',
+  },
+  'README.ko.md': {
+    header: '| 범위 | 바이트 | 근사 토큰 수 (~4자/토큰) |',
+    command: 'node scripts/measure-injection.cjs',
+    ratio: '4자당 1토큰으로 계산한 토큰',
+    disclaimer: '추정치이며 정확한 토큰 수가 아닙니다',
+    pinStatement: '정책 파일이나 README가 그 명령의 출력과 어긋나면 이 수치들은 테스트 스위트에서 실패합니다',
+  },
+};
+
+test('the size section still explains how to reproduce the figures and that the token column is approximate', () => {
+  for (const [name, pin] of Object.entries(SIZE_SECTION_PINS)) {
+    const text = fs.readFileSync(path.join(ROOT, name), 'utf8');
+    const flat = text.replace(/\s+/g, ' ');
+    assert.ok(text.includes(pin.header), `${name}: table header no longer labels the token column as an approximation`);
+    assert.ok(text.includes(pin.command), `${name}: reproduction command is missing or changed`);
+    assert.ok(flat.includes(pin.ratio), `${name}: the four-characters-per-token ratio is missing`);
+    assert.ok(flat.includes(pin.disclaimer), `${name}: the "not exact" disclaimer is missing`);
+    assert.ok(flat.includes(pin.pinStatement), `${name}: the sentence stating the figures are pinned to the composition is missing`);
   }
 });
 
@@ -1092,8 +1209,14 @@ test('the copied-text inventory tracks both i-have-adhd pins and the reproduced-
 // definition can be deleted with the suite green, and unlike the ruling block and
 // the persona paragraph it is not disclosed anywhere as unguarded. Every per-unit
 // and file-wide figure in this document is only interpretable given this
-// definition, so pin it, scoped to the Method section so the F1 table's own
-// "file-wide" column header cannot satisfy it by accident.
+// definition, so pin it, scoped to the Method section -- not because a shorter
+// string elsewhere (the F1 table's "file-wide" column header, say) could ever
+// satisfy a full-sentence pin by accident, but because the check should stay
+// bound to the section that actually defines these metrics, per the brief's
+// "row-scoped" instruction.
+// (fix round 2: corrected this comment. It previously claimed the scoping
+// exists to stop the F1 header from accidentally matching; a short header
+// could never satisfy a pin this specific, so that was not the real reason.)
 test('the copied-text inventory Method section still defines its two metrics', () => {
   const inv = fs.readFileSync(path.join(ROOT, 'docs', 'COPIED_TEXT_INVENTORY.md'), 'utf8');
   const method = sections(inv).get('Method');
