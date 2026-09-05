@@ -153,17 +153,15 @@ TTAK은 같은 저자가 같은 두 호스트를 위해 만든 이전 플러그�
 
 배포되는 `policy/*.md` 파일에서 직접 측정:
 
-| 범위 | 바이트 |
-|---|---|
-| 세션 시작 (precedence + invariants + contract) | 2,981 |
-| 서브에이전트 시작 (precedence + invariants) | 2,000 |
+| 범위 | 바이트 | 근사 토큰 수 (~4자/토큰) |
+|---|---|---|
+| 세션 시작 (precedence + invariants + contract) | 2,981 | 745 |
+| 서브에이전트 시작 (precedence + invariants) | 2,000 | 499 |
 
-**잠정치입니다.** 훅이 수행하는 합성 방식 그대로 배포 파일에서 얻은 바이트 수이며, 다음으로 재현할 수
-있습니다.
-`node -e "const t=require('./hooks/ttak.cjs');for(const s of ['main','subagent'])console.log(s,Buffer.byteLength(t.compose(s)))"`
-프로젝트 자체 측정 스크립트와 그에 딸린 토큰 근사치는 아직 트리에 없습니다. 추가되면 이 표의 수치는 그
-스크립트 출력으로 대체됩니다. 호스트 도구를 쓰지 않는 이유는 `claude plugin details`가 훅으로 주입된
-내용을 계산하지 않기 때문입니다.
+**잠정치입니다.** 훅이 수행하는 합성 방식 그대로 배포 파일에서 얻은 바이트 수이며, 4자당 1토큰으로
+계산한 토큰 근사치를 더했습니다 — 추정치이며 정확한 토큰 수가 아닙니다. 둘 다
+`node scripts/measure-injection.cjs`로 재현할 수 있습니다. 호스트 도구를 쓰지 않는 이유는
+`claude plugin details`가 훅으로 주입된 내용을 계산하지 않기 때문입니다.
 
 ## v1이 주장하는 것과 주장하지 않는 것
 

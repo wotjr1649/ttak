@@ -155,17 +155,15 @@ none of these instruction sets is a guard.
 
 Measured from the shipped `policy/*.md` files:
 
-| Scope | Bytes |
-|---|---|
-| Session start (precedence + invariants + contract) | 2,981 |
-| Subagent start (precedence + invariants) | 2,000 |
+| Scope | Bytes | Approx. tokens (~4 chars/token) |
+|---|---|---|
+| Session start (precedence + invariants + contract) | 2,981 | 745 |
+| Subagent start (precedence + invariants) | 2,000 | 499 |
 
 **Provisional.** These are byte counts taken directly from the shipped files with the composition the
-hook performs; reproduce them with
-`node -e "const t=require('./hooks/ttak.cjs');for(const s of ['main','subagent'])console.log(s,Buffer.byteLength(t.compose(s)))"`.
-The project's own measurement script and the accompanying token approximation are not in the tree
-yet; when they land, the figures here are replaced by that script's output. Host tooling is not used
-for this number because `claude plugin details` does not count hook-injected content.
+hook performs, plus a token approximation at four characters per token — an estimate, not an exact
+token count. Reproduce both with `node scripts/measure-injection.cjs`. Host tooling is not used for
+this number because `claude plugin details` does not count hook-injected content.
 
 ## What v1 claims, and what it does not
 

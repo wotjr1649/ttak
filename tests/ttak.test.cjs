@@ -191,6 +191,24 @@ test('policy text names every protected noun verbatim', () => {
   }
 });
 
+// Controller addendum 2 (task 10, carried from task 9): the loop above only
+// checks that each noun occurs somewhere in the composed policy. `accessibility`
+// is an ordinary word, so a bullet that starts using it in another sense could
+// satisfy the loop while no longer carrying the protected noun in its own
+// sentence. Pin the three enclosing bullets verbatim, as they stand in their
+// source files, so both the per-noun loop and this sentence-level pin must hold.
+test('the sentences carrying the five protected nouns are pinned verbatim, not just the nouns', () => {
+  const main = ttak.compose('main');
+  const bullets = [
+    '- Prefer, in order: existing project code, the standard library, native platform features, an already-installed dependency, then the smallest new implementation that fully satisfies the requirement.',
+    '- Never simplify away trust-boundary validation, security controls, correctness guards, data-loss prevention, accessibility, or the failure handling that protects the result. Never simplify away anything the user explicitly asked for; if they want the larger version, build it without re-arguing.',
+    '- Honor explicit output formats. When detail, a walkthrough or an exhaustive review is asked for, give it in full without an arbitrary brevity or list limit.',
+  ];
+  for (const bullet of bullets) {
+    assert.ok(main.includes(bullet), `bullet no longer present verbatim in the composed policy: "${bullet}"`);
+  }
+});
+
 function withPolicyCopy(mutate) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ttak-policy-'));
   for (const n of ['precedence', 'invariants', 'contract']) {
@@ -938,6 +956,43 @@ test('both READMEs publish the inherited measurements, including the negative on
   }
 });
 
+test('injected size is reported for both scopes and the subagent scope is smaller', () => {
+  const out = execFileSync(process.execPath,
+    [path.join(ROOT, 'scripts', 'measure-injection.cjs')], { cwd: ROOT, encoding: 'utf8' });
+  const m = JSON.parse(out);
+  assert.ok(m.main.bytes > 0 && m.subagent.bytes > 0);
+  assert.ok(m.subagent.bytes < m.main.bytes);
+});
+
+// Controller addendum 1 (task 10): the README publishes these byte counts as
+// facts about the shipped artifact. Pin them to the measurement script's own
+// output, so an edit to policy/*.md that changes what is composed makes a
+// stale table fail here instead of only being wrong on the page.
+function readmeByteColumn(text, rowStart) {
+  const row = text.split('\n').find((l) => l.startsWith(rowStart));
+  assert.ok(row, `no table row starting with "${rowStart}"`);
+  return Number(row.split('|')[2].trim().replace(/,/g, ''));
+}
+
+test('both READMEs publish the byte figures the measurement script prints', () => {
+  const out = execFileSync(process.execPath,
+    [path.join(ROOT, 'scripts', 'measure-injection.cjs')], { cwd: ROOT, encoding: 'utf8' });
+  const m = JSON.parse(out);
+  const rows = {
+    'README.md': ['| Session start (precedence + invariants + contract) |',
+                  '| Subagent start (precedence + invariants) |'],
+    'README.ko.md': ['| 세션 시작 (precedence + invariants + contract) |',
+                     '| 서브에이전트 시작 (precedence + invariants) |'],
+  };
+  for (const [name, [mainRow, subRow]] of Object.entries(rows)) {
+    const text = fs.readFileSync(path.join(ROOT, name), 'utf8');
+    assert.strictEqual(readmeByteColumn(text, mainRow), m.main.bytes,
+      `${name}: published main-scope byte figure is stale against scripts/measure-injection.cjs`);
+    assert.strictEqual(readmeByteColumn(text, subRow), m.subagent.bytes,
+      `${name}: published subagent-scope byte figure is stale against scripts/measure-injection.cjs`);
+  }
+});
+
 test('the copied-text inventory tracks both i-have-adhd pins and the reproduced-expression rows', () => {
   const inv = fs.readFileSync(path.join(ROOT, 'docs', 'COPIED_TEXT_INVENTORY.md'), 'utf8');
   // One source, two pins: the record must say which chain applies and why.
@@ -1015,6 +1070,26 @@ test('the copied-text inventory tracks both i-have-adhd pins and the reproduced-
                    'skills/ttak-explain/SKILL.md']) {
     assert.ok(inv.includes(f), `not inventoried: ${f}`);
   }
+});
+
+// Controller addendum 3 (task 10, carried item): the Method section's two-metric
+// definition can be deleted with the suite green, and unlike the ruling block and
+// the persona paragraph it is not disclosed anywhere as unguarded. Every per-unit
+// and file-wide figure in this document is only interpretable given this
+// definition, so pin it, scoped to the Method section so the F1 table's own
+// "file-wide" column header cannot satisfy it by accident.
+test('the copied-text inventory Method section still defines its two metrics', () => {
+  const inv = fs.readFileSync(path.join(ROOT, 'docs', 'COPIED_TEXT_INVENTORY.md'), 'utf8');
+  const method = sections(inv).get('Method');
+  assert.ok(method, 'no Method section in the inventory');
+  const flat = method.replace(/\s+/g, ' ');
+  assert.ok(flat.includes('**Per-unit** — one TTAK bullet or paragraph against one source file. '
+    + 'This is the *Longest run* column in every table. It shows where the reproduced material sits.'),
+  'the per-unit metric is no longer defined the same way in the Method section');
+  assert.ok(flat.includes('**File-wide** — the whole TTAK file against the whole source file, so a '
+    + 'run that continues across a bullet boundary is counted rather than truncated at it. This is '
+    + 'the larger figure and the honest headline. F1 reports it for all four shipped files.'),
+  'the file-wide metric is no longer defined the same way in the Method section');
 });
 
 // fix round 5, NEW-6: the four sites carrying a corrected behaviour-gate
