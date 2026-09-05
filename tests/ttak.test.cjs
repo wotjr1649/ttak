@@ -1227,8 +1227,13 @@ const SIZE_SECTION_PINS = {
     command: 'node scripts/measure-injection.cjs',
     ratio: 'a token approximation at four characters per token',
     disclaimer: 'an estimate, not an exact token count',
-    pinStatement: 'These figures fail the suite if the policy files or the README drift from what '
-      + 'that command prints',
+    // fix round 5: narrowed from "These figures ... or the README drift" to the
+    // table. R1 and R2 of round 4 showed the wider claim was still false --
+    // prose elsewhere can state any number, and a differently-labelled table
+    // can publish contradictory ones. The claim now matches what is enforced:
+    // this table's figures, against the policy files and against this table.
+    pinStatement: 'The figures in this table fail the suite if the policy files or this table drift '
+      + 'from what that command prints',
   },
   'README.ko.md': {
     parent: '측정된 것',
@@ -1237,7 +1242,7 @@ const SIZE_SECTION_PINS = {
     command: 'node scripts/measure-injection.cjs',
     ratio: '4자당 1토큰으로 계산한 토큰',
     disclaimer: '추정치이며 정확한 토큰 수가 아닙니다',
-    pinStatement: '정책 파일이나 README가 그 명령의 출력과 어긋나면 이 수치들은 테스트 스위트에서 실패합니다',
+    pinStatement: '정책 파일이나 이 표가 그 명령의 출력과 어긋나면 이 표의 수치들은 테스트 스위트에서 실패합니다',
   },
 };
 

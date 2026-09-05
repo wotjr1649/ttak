@@ -162,9 +162,9 @@ Measured from the shipped `policy/*.md` files:
 
 These are byte counts taken directly from the shipped files with the composition the hook performs,
 plus a token approximation at four characters per token — an estimate, not an exact token count.
-Reproduce both with `node scripts/measure-injection.cjs`. These figures fail the suite if the policy
-files or the README drift from what that command prints. Host tooling is not used for this number
-because `claude plugin details` does not count hook-injected content.
+Reproduce both with `node scripts/measure-injection.cjs`. The figures in this table fail the suite if
+the policy files or this table drift from what that command prints. Host tooling is not used for this
+number because `claude plugin details` does not count hook-injected content.
 
 ## What v1 claims, and what it does not
 
