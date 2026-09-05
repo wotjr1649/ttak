@@ -170,7 +170,15 @@ def row_key(row):
     `true` the same way. Both are rejected here; a whole-number float
     (1.0) is still accepted, since that is a legitimate re-serialization
     of trial 1, not a different kind of mistake.
+
+    `case`, `arm` and `host` are checked present before the direct subscript
+    below -- a hand-edited or truncated --out row missing one of them must
+    raise this function's own ValueError, not a bare KeyError from whichever
+    caller happens to touch the field first.
     """
+    for field in ("case", "arm", "host"):
+        if field not in row:
+            raise ValueError(f"row is missing required field {field!r}: {row!r}")
     raw = row.get("trial")
     trial = None
     if isinstance(raw, bool):
@@ -381,10 +389,12 @@ def score(rows, cases):
     own. Both are errors, not a silent contribution -- raised, not dropped.
     """
     cases_by_id = {c["id"]: c for c in cases}
-    rows = dedupe_rows(rows)
+    rows = dedupe_rows(rows)  # also validates case/arm/host are present, via row_key()
     by_ac_arm = {}
     ungraded = 0
     for r in rows:
+        if "ac" not in r:
+            raise ValueError(f"row for case {r.get('case')!r} is missing required field 'ac'")
         case = cases_by_id.get(r["case"])
         if case is None:
             raise ValueError(f"row for trial {r.get('trial')!r} names case {r['case']!r}, "
@@ -392,20 +402,24 @@ def score(rows, cases):
         if r["ac"] != case["ac"]:
             raise ValueError(f"row for case {r['case']!r} claims ac={r['ac']!r}, but cases.jsonl "
                               f"defines ac={case['ac']!r} for that case")
-        key = (r["ac"], r["arm"])
-        entry = by_ac_arm.setdefault(key, {"results": [], "cases": set()})
         verdict = r.get("pass")
         if verdict is None:
             ungraded += 1
-            continue  # not yet graded -- must not count as "covered" (gate() below relies on this)
+            # Not yet graded: must create no report entry at all, not an entry
+            # with n=0. gate()'s hard-AC branch relies on report.get(...) being
+            # None here to say "0 of N scored" (N1); its soft-AC branch tests
+            # only `stats is not None`, so an entry with n=0/pass_rate=0.0
+            # would print as a real failure ("0% ... SHOULD reach 85%")
+            # instead of the absence it actually is.
+            continue
+        key = (r["ac"], r["arm"])
+        entry = by_ac_arm.setdefault(key, {"results": [], "cases": set()})
         entry["results"].append(bool(verdict))
         entry["cases"].add(r["case"])
-    report = {}
-    for key, entry in by_ac_arm.items():
-        results = entry["results"]
-        report[key] = {"n": len(results),
-                        "pass_rate": (sum(results) / len(results)) if results else 0.0,
-                        "cases": entry["cases"]}
+    report = {key: {"n": len(entry["results"]),
+                     "pass_rate": sum(entry["results"]) / len(entry["results"]),
+                     "cases": entry["cases"]}
+              for key, entry in by_ac_arm.items()}
     return report, ungraded
 
 
@@ -672,6 +686,54 @@ def _selftest():
     _, soft = gate(report_sa, cases)
     assert soft == [], "a soft AC with no data is not itself a defect -- SHOULD, not MUST"
 
+    # score()/gate(): N1 -- moving the report entry's creation earlier (to
+    # let gate() see which cases are covered, C1) meant a soft AC whose
+    # cases are present but entirely ungraded got an entry too, with
+    # n=0/pass_rate=0.0 -- gate()'s soft branch only tested `stats is not
+    # None`, so that printed as a real failure ("0% ... SHOULD reach 85%")
+    # instead of the absence it actually is, contradicting this file's own
+    # stated design ("absence of non-critical data is not itself a defect").
+    rows_ungraded_soft = [
+        {"case": "audience-beginner", "ac": "AC-007", "trial": 1, "arm": "with", "host": "claude", "pass": None},
+        {"case": "audience-practitioner", "ac": "AC-007", "trial": 1, "arm": "with", "host": "claude", "pass": None},
+    ]
+    report_us, ungraded_us = score(rows_ungraded_soft, cases)
+    assert ("AC-007", "with") not in report_us, \
+        f"an (ac, arm) with zero graded rows must not appear in the report, got {report_us.get(('AC-007', 'with'))}"
+    assert ungraded_us == 2
+    _, soft = gate(report_us, cases)
+    assert not any(f.startswith("AC-007") for f in soft), \
+        f"a soft AC with zero graded trials must not warn as if it failed, got {soft}"
+    # The mutation the N1 fix invites: a soft AC that genuinely does have
+    # graded failures must still warn -- rows_mixed above already covers
+    # this (AC-007 at 2/3 passing lands in `soft`), re-asserted here so the
+    # two behaviors sit next to each other and a future edit that makes
+    # "ungraded" and "genuinely low" indistinguishable again breaks both at
+    # once, not just the one this comment is next to.
+    report_mixed_again, _ = score(rows_mixed, cases)
+    _, soft_mixed = gate(report_mixed_again, cases)
+    assert any(f.startswith("AC-007") for f in soft_mixed), \
+        "a soft AC with real graded failures must still warn -- N1 must not have gone too far"
+
+    # row_key()/score(): N3 -- an --out row missing case, ac, arm or host
+    # must raise this module's own ValueError, not a bare KeyError from
+    # whichever line happens to subscript the missing field first. Missing
+    # trial and missing/non-string pass are unaffected (already route
+    # through .get()); these four went through direct subscript.
+    for field, bad_row in [
+        ("case", {"ac": "AC-006", "trial": 1, "arm": "with", "host": "claude", "pass": True}),
+        ("arm", {"case": "root-cause", "ac": "AC-006", "trial": 1, "host": "claude", "pass": True}),
+        ("host", {"case": "root-cause", "ac": "AC-006", "trial": 1, "arm": "with", "pass": True}),
+        ("ac", {"case": "root-cause", "trial": 1, "arm": "with", "host": "claude", "pass": True}),
+    ]:
+        try:
+            score([bad_row], cases)
+            raise AssertionError(f"a row missing {field!r} must be rejected")
+        except ValueError:
+            pass
+        except KeyError:
+            raise AssertionError(f"a row missing {field!r} raised KeyError, not the intended ValueError")
+
     # main(): C2 -- a malformed --out file must reach the user as a clean
     # stderr message and exit 1, not an uncaught traceback. read_jsonl()'s
     # message was already correct; what was missing is that main() never
@@ -690,6 +752,48 @@ def _selftest():
             f"the error must not reach the user as a bare traceback: {err_buf.getvalue()!r}"
         assert "trim the partial line" in err_buf.getvalue(), \
             f"the clean, actionable message must still reach stderr: {err_buf.getvalue()!r}"
+
+    # main(): N2 -- a nonexistent --out or --cases path is the likeliest
+    # operator mistake with either flag. Path.open() raises OSError, a
+    # different family from read_jsonl()/row_key()/score()'s ValueError;
+    # both must reach the user the same clean way, not two different
+    # failure shapes depending on which one broke.
+    with tempfile.TemporaryDirectory(prefix="ttak-selftest-") as tmp_dir:
+        missing = Path(tmp_dir) / "does-not-exist.jsonl"
+
+        out_buf, err_buf = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out_buf), contextlib.redirect_stderr(err_buf):
+            code = main(["--score", "--out", str(missing)])
+        assert code == 1, f"a missing --out file must exit 1, got {code}"
+        assert "Traceback" not in err_buf.getvalue(), \
+            f"a missing --out file must not surface as a traceback: {err_buf.getvalue()!r}"
+
+        out_buf2, err_buf2 = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out_buf2), contextlib.redirect_stderr(err_buf2):
+            code2 = main(["--host", "claude", "--arm", "without", "--trials", "1",
+                           "--cases", str(missing), "--dry-run"])
+        assert code2 == 1, f"a missing --cases file must exit 1, got {code2}"
+        assert "Traceback" not in err_buf2.getvalue(), \
+            f"a missing --cases file must not surface as a traceback: {err_buf2.getvalue()!r}"
+
+    # The mutation the C2/N2 fix invites: `except (ValueError, OSError)`
+    # must still let a genuine code-invariant violation crash loudly, not
+    # report it as a clean data problem. AssertionError is a sibling of
+    # both under Exception, not a subclass of either, so this holds by the
+    # language's own exception hierarchy -- executed here rather than left
+    # as that reasoning alone, by temporarily corrupting REQUIRED and
+    # driving a real command build through main().
+    saved_claude_required = REQUIRED["claude"]
+    try:
+        REQUIRED["claude"] = [["--this-flag-does-not-exist"]]
+        raised = False
+        try:
+            main(["--host", "claude", "--arm", "without", "--trials", "1", "--dry-run"])
+        except AssertionError:
+            raised = True
+        assert raised, "a corrupted REQUIRED must still raise AssertionError through main(), not be swallowed"
+    finally:
+        REQUIRED["claude"] = saved_claude_required
 
     print("selftest OK")
     return True
@@ -717,10 +821,12 @@ def main(argv=None):
     # Every branch below reads and parses at least one file a long-running or
     # external process could leave malformed (a truncated --out, a stray
     # non-numeric trial, an --out row naming a case cases.jsonl doesn't
-    # define). Each of those raises ValueError with an already-clear,
-    # actionable message (read_jsonl(), row_key(), score()) -- this is the
-    # one place all of them are caught, so the message reaches the user as
-    # itself, not as the last line of a Python traceback.
+    # define) -- ValueError, raised with an already-clear, actionable message
+    # by read_jsonl(), row_key() and score() -- or simply not find at all: a
+    # nonexistent --out or --cases path raises OSError from the plain
+    # Path.open() calls below and in load_cases(). This is the one place both
+    # categories are caught, so the message reaches the user as itself, not
+    # as the last line of a Python traceback.
     try:
         if args.score:
             if not args.out:
@@ -748,7 +854,7 @@ def main(argv=None):
             existing = load_existing_keys(args.out) if args.out else set()
             return do_dry_run(cases, args.host, args.arm, args.model, args.trials, existing)
         return do_run(cases, args.host, args.arm, args.model, args.trials, args.out, args.timeout)
-    except ValueError as e:
+    except (ValueError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
 
