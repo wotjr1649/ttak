@@ -1034,6 +1034,14 @@ function sections(text, level = 2) {
     }
     if (entries.length) entries[entries.length - 1][1].push(line);
   }
+  // The sibling of F2, closed rather than disclosed: a fence that is never
+  // closed grows its section to end of file exactly as the mis-tracked one
+  // did, and `includes()` pins stay satisfied from anywhere in the rest of the
+  // document. Correct fence tracking does not help when the document itself is
+  // unbalanced, so make that loud here instead of leaving it silent -- the
+  // omission that made round 4's R6 closure wrong.
+  assert.strictEqual(fence, null,
+    `unclosed \`${fence}\` fence: every heading after it is swallowed to end of file`);
   const out = new Map();
   for (const [heading, body] of entries) {
     const key = heading.trim();
