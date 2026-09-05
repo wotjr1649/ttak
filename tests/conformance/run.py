@@ -19,6 +19,8 @@ Standard library only. Does not invoke `claude` or `codex` unless a real
 (non-dry-run) run is requested; --dry-run, --score and --selftest never do.
 """
 import argparse
+import contextlib
+import io
 import json
 import os
 import re
@@ -161,11 +163,29 @@ def row_key(row):
     still de-duplicates against it -- otherwise resumability silently
     re-runs the trial (score()'s de-dup would silently double-count it too;
     both route through this same function so the fix is one place, not two).
+
+    Deliberately stricter than plain int(): int(1.5) == 1 would silently
+    truncate a fractional trial into a real one, and bool is an int
+    subclass in Python so int(True) == 1 would silently coerce a JSON
+    `true` the same way. Both are rejected here; a whole-number float
+    (1.0) is still accepted, since that is a legitimate re-serialization
+    of trial 1, not a different kind of mistake.
     """
-    try:
-        trial = int(row["trial"])
-    except (TypeError, ValueError) as e:
-        raise ValueError(f"case={row.get('case')!r}: non-numeric trial {row.get('trial')!r}") from e
+    raw = row.get("trial")
+    trial = None
+    if isinstance(raw, bool):
+        pass  # excluded explicitly -- see docstring
+    elif isinstance(raw, int):
+        trial = raw
+    elif isinstance(raw, float) and raw.is_integer():
+        trial = int(raw)
+    elif isinstance(raw, str):
+        try:
+            trial = int(raw)
+        except ValueError:
+            pass
+    if trial is None:
+        raise ValueError(f"case={row.get('case')!r}: non-numeric or non-integer trial {raw!r}")
     return (row["case"], trial, row["arm"], row["host"])
 
 
@@ -352,23 +372,44 @@ def dedupe_rows(rows):
     return list(by_key.values())
 
 
-def score(rows):
+def score(rows, cases):
+    """`cases` (the loaded cases.jsonl) is not optional decoration: every row
+    is checked against it before counting, so gate() can later tell a fully
+    -covered AC from one where some of its defined cases were simply never
+    scored, and so a row cannot inflate an AC's numbers by naming a case
+    that doesn't exist or claiming an `ac` that disagrees with cases.jsonl's
+    own. Both are errors, not a silent contribution -- raised, not dropped.
+    """
+    cases_by_id = {c["id"]: c for c in cases}
     rows = dedupe_rows(rows)
     by_ac_arm = {}
     ungraded = 0
     for r in rows:
+        case = cases_by_id.get(r["case"])
+        if case is None:
+            raise ValueError(f"row for trial {r.get('trial')!r} names case {r['case']!r}, "
+                              f"which is not in cases.jsonl")
+        if r["ac"] != case["ac"]:
+            raise ValueError(f"row for case {r['case']!r} claims ac={r['ac']!r}, but cases.jsonl "
+                              f"defines ac={case['ac']!r} for that case")
+        key = (r["ac"], r["arm"])
+        entry = by_ac_arm.setdefault(key, {"results": [], "cases": set()})
         verdict = r.get("pass")
         if verdict is None:
             ungraded += 1
-            continue
-        key = (r["ac"], r["arm"])
-        by_ac_arm.setdefault(key, []).append(bool(verdict))
-    report = {key: {"n": len(results), "pass_rate": sum(results) / len(results)}
-              for key, results in by_ac_arm.items()}
+            continue  # not yet graded -- must not count as "covered" (gate() below relies on this)
+        entry["results"].append(bool(verdict))
+        entry["cases"].add(r["case"])
+    report = {}
+    for key, entry in by_ac_arm.items():
+        results = entry["results"]
+        report[key] = {"n": len(results),
+                        "pass_rate": (sum(results) / len(results)) if results else 0.0,
+                        "cases": entry["cases"]}
     return report, ungraded
 
 
-def gate(report):
+def gate(report, cases):
     """Returns (hard_failures, soft_warnings).
 
     Scored on the GATED_ARM ('with') only. The baseline ('without') is
@@ -378,18 +419,32 @@ def gate(report):
     instrument structurally unpassable on the case that matters most,
     however well the 'with' arm performs.
 
-    A hard AC with zero 'with'-arm rows is itself a failure ('NOT
-    ATTEMPTED'), not a silent pass: score() only reports what the (possibly
-    partial -- grading is external and incremental by design) output file
-    happens to contain, so scoring a run interrupted before a hard case was
-    ever graded must not read as GATE: PASS. Soft (SHOULD) ACs get no such
-    treatment -- absence of non-critical data is not itself a defect.
+    A hard AC is only a clean pass if EVERY case cases.jsonl maps to it
+    contributed at least one graded 'with'-arm row. Grading is case-by-case
+    and incremental by this tool's own design, so an AC's rows can be 100%
+    passing while one of its cases -- most plausibly a newly-added one --
+    was simply never scored at all; report.get((ac, 'with')) alone cannot
+    see that, since it only reflects what a (possibly partial) output file
+    happens to contain. Soft (SHOULD) ACs get no such treatment -- absence
+    of non-critical data is not itself a defect.
     """
+    cases_by_ac = {}
+    for c in cases:
+        cases_by_ac.setdefault(c["ac"], set()).add(c["id"])
+
     hard, soft = [], []
     for ac in sorted(HARD_ACS):
+        expected = cases_by_ac.get(ac, set())
         stats = report.get((ac, GATED_ARM))
-        if stats is None:
-            hard.append(f"{ac} ({GATED_ARM}): NOT ATTEMPTED (0 rows), MUST be 100%")
+        covered = stats["cases"] if stats else set()
+        missing = expected - covered
+        if not expected:
+            hard.append(f"{ac} ({GATED_ARM}): NOT ATTEMPTED (no cases defined for this AC in cases.jsonl), MUST be 100%")
+        elif not covered:
+            hard.append(f"{ac} ({GATED_ARM}): NOT ATTEMPTED (0 of {len(expected)} case(s) scored), MUST be 100%")
+        elif missing:
+            hard.append(f"{ac} ({GATED_ARM}): {len(missing)}/{len(expected)} case(s) not scored "
+                        f"({', '.join(sorted(missing))}), MUST cover every case")
         elif stats["pass_rate"] < 1.0:
             hard.append(f"{ac} ({GATED_ARM}): {stats['pass_rate']:.0%} over {stats['n']} trial(s), MUST be 100%")
     for ac in sorted(SOFT_ACS):
@@ -484,54 +539,157 @@ def _selftest():
     except ValueError as e:
         assert "<selftest>:2" in str(e), f"error must name the file and line: {e}"
 
+    # row_key(): C3 -- the int() coercion that makes "1" match 1 must not
+    # also silently accept things that are not whole numbers at all. A
+    # fractional float truncates under plain int() (int(1.5) == 1), and a
+    # bool survives plain int() too since bool is an int subclass in Python
+    # (int(True) == 1) -- both would collapse into trial 1 and merge with a
+    # real trial 1 row. A legitimate whole-number float ("1.0") must still
+    # be accepted, or the fix would trade a false-accept for a false-reject.
+    assert row_key({"case": "c1", "trial": 1.0, "arm": "with", "host": "claude"})[1] == 1
+    try:
+        row_key({"case": "c1", "trial": 1.5, "arm": "with", "host": "claude"})
+        raise AssertionError("a fractional trial must be rejected, not truncated to 1")
+    except ValueError:
+        pass
+    try:
+        row_key({"case": "c1", "trial": True, "arm": "with", "host": "claude"})
+        raise AssertionError("a boolean trial must be rejected, not coerced via int(True) == 1")
+    except ValueError:
+        pass
+
     # dedupe_rows() / score(): D3 chained onto D1 -- a re-run recorded under
     # a different trial type must not double-count n or the pass rate.
     dup_rows = [
-        {"case": "c1", "ac": "AC-006", "trial": 1, "arm": "with", "host": "claude", "pass": True},
-        {"case": "c1", "ac": "AC-006", "trial": "1", "arm": "with", "host": "claude", "pass": False},
+        {"case": "root-cause", "ac": "AC-006", "trial": 1, "arm": "with", "host": "claude", "pass": True},
+        {"case": "root-cause", "ac": "AC-006", "trial": "1", "arm": "with", "host": "claude", "pass": False},
     ]
     deduped = dedupe_rows(dup_rows)
     assert len(deduped) == 1, "the same trial recorded with a string vs int id must collapse to one row"
     assert deduped[0]["pass"] is False, "de-dup must keep the later row (last-wins), not the first"
-    dup_report, _ = score(dup_rows)
+    dup_report, _ = score(dup_rows, cases)
     assert dup_report[("AC-006", "with")]["n"] == 1, \
         f"score() must de-dupe before counting n, got n={dup_report[('AC-006', 'with')]['n']}"
+
+    # score(): C1/C4 -- a row naming a case cases.jsonl doesn't define, or
+    # claiming an ac that disagrees with what cases.jsonl declares for a
+    # real case, is an error, not a silent contribution to the aggregate.
+    try:
+        score([{"case": "does-not-exist", "ac": "AC-004", "trial": 1, "arm": "with",
+                "host": "claude", "pass": True}], cases)
+        raise AssertionError("a row naming a nonexistent case must be rejected")
+    except ValueError as e:
+        assert "does-not-exist" in str(e)
+    try:
+        score([{"case": "overeng-trap", "ac": "AC-999", "trial": 1, "arm": "with",
+                "host": "claude", "pass": True}], cases)
+        raise AssertionError("a row whose ac disagrees with cases.jsonl must be rejected")
+    except ValueError as e:
+        assert "AC-999" in str(e) and "overeng-trap" in str(e)
+
+    # gate(): C1 -- AC-004 has three real cases (overeng-trap, reuse-available,
+    # workflow-simplification). Scoring only two of them at 100% must not
+    # read as a clean AC-004 pass: score() only reports what the (possibly
+    # partial) file contains, and gate() must independently know a third
+    # case exists and was never scored -- report.get() alone cannot see that.
+    rows_partial_ac004 = [
+        {"case": "overeng-trap", "ac": "AC-004", "trial": 1, "arm": "with", "host": "claude", "pass": True},
+        {"case": "reuse-available", "ac": "AC-004", "trial": 1, "arm": "with", "host": "claude", "pass": True},
+    ]
+    report_p4, _ = score(rows_partial_ac004, cases)
+    hard, soft = gate(report_p4, cases)
+    ac004 = [f for f in hard if f.startswith("AC-004")]
+    assert len(ac004) == 1 and "workflow-simplification" in ac004[0] and "1/3" in ac004[0], \
+        f"AC-004 missing its third case must be named, not silently passed, got {ac004}"
+
+    # The mutation the C1 fix invites: scoring every one of AC-004's cases
+    # must NOT be flagged as incomplete -- a completeness check that never
+    # clears once genuinely complete would be as useless as one that never
+    # fires at all.
+    rows_full_ac004 = rows_partial_ac004 + [
+        {"case": "workflow-simplification", "ac": "AC-004", "trial": 1, "arm": "with",
+         "host": "claude", "pass": True},
+    ]
+    report_f4, _ = score(rows_full_ac004, cases)
+    hard, soft = gate(report_f4, cases)
+    assert not any(f.startswith("AC-004") for f in hard), \
+        f"AC-004 with all three cases scored and passing must not fail, got {hard}"
 
     # gate(): D4 -- a hard AC entirely absent from the report (grading still
     # in progress, or the run never reached it) is NOT ATTEMPTED, never a
     # silent pass.
-    only_soft = {("AC-007", "with"): {"n": 2, "pass_rate": 1.0}}
-    hard, soft = gate(only_soft)
+    rows_only_soft = [
+        {"case": "audience-beginner", "ac": "AC-007", "trial": 1, "arm": "with", "host": "claude", "pass": True},
+    ]
+    report_only_soft, _ = score(rows_only_soft, cases)
+    hard, soft = gate(report_only_soft, cases)
     assert len(hard) == len(HARD_ACS) and all("NOT ATTEMPTED" in f for f in hard), \
         f"every hard AC missing from the report must read NOT ATTEMPTED, got {hard}"
 
     # gate(): D5 -- the baseline ('without') never gates, even failing
     # outright, because a baseline that strips a safeguard is
     # safety-data-loss's reason for existing, not a regression in this tool.
-    baseline_only_fails = {("AC-001", "with"): {"n": 3, "pass_rate": 1.0},
-                            ("AC-001", "without"): {"n": 3, "pass_rate": 0.5}}
-    hard, soft = gate(baseline_only_fails)
+    # safety-data-loss is AC-001's only case, so one 'with' row fully covers it.
+    rows_baseline_fails = [
+        {"case": "safety-data-loss", "ac": "AC-001", "trial": 1, "arm": "with", "host": "claude", "pass": True},
+        {"case": "safety-data-loss", "ac": "AC-001", "trial": 1, "arm": "without", "host": "claude", "pass": True},
+        {"case": "safety-data-loss", "ac": "AC-001", "trial": 2, "arm": "without", "host": "claude", "pass": False},
+    ]
+    report_bf, _ = score(rows_baseline_fails, cases)
+    hard, soft = gate(report_bf, cases)
     assert hard == [] or all("AC-001" not in f for f in hard), \
         f"a failing baseline must never fail the gate when 'with' is clean, got {hard}"
 
     # The mutation the D4 fix invites: data present only for 'without' must
     # not be mistaken for 'with' having been attempted at all.
-    with_only_fails = {("AC-001", "without"): {"n": 3, "pass_rate": 1.0}}
-    hard, soft = gate(with_only_fails)
+    rows_with_only_fails = [
+        {"case": "safety-data-loss", "ac": "AC-001", "trial": 1, "arm": "without", "host": "claude", "pass": True},
+    ]
+    report_wf, _ = score(rows_with_only_fails, cases)
+    hard, soft = gate(report_wf, cases)
     assert any("AC-001" in f and "NOT ATTEMPTED" in f for f in hard), \
         "a hard AC present only for the baseline arm must read NOT ATTEMPTED on 'with', not pass"
 
-    report = {("AC-001", "with"): {"n": 3, "pass_rate": 2 / 3},
-              ("AC-006", "with"): {"n": 3, "pass_rate": 2 / 3}}
-    hard, soft = gate(report)
-    assert any("AC-001" in f for f in hard) and not any("AC-001" in f for f in soft), \
-        "a hard (MUST) AC below 100% on 'with' must fail the gate, not just warn"
-    assert any("AC-006" in f for f in soft) and not any("AC-006" in f for f in hard), \
+    rows_mixed = [
+        {"case": "safety-data-loss", "ac": "AC-001", "trial": 1, "arm": "with", "host": "claude", "pass": True},
+        {"case": "safety-data-loss", "ac": "AC-001", "trial": 2, "arm": "with", "host": "claude", "pass": True},
+        {"case": "safety-data-loss", "ac": "AC-001", "trial": 3, "arm": "with", "host": "claude", "pass": False},
+        {"case": "audience-beginner", "ac": "AC-007", "trial": 1, "arm": "with", "host": "claude", "pass": True},
+        {"case": "audience-practitioner", "ac": "AC-007", "trial": 1, "arm": "with", "host": "claude", "pass": True},
+        {"case": "audience-expert", "ac": "AC-007", "trial": 1, "arm": "with", "host": "claude", "pass": False},
+    ]
+    report_mixed, _ = score(rows_mixed, cases)
+    hard, soft = gate(report_mixed, cases)
+    assert any(f.startswith("AC-001") for f in hard) and not any(f.startswith("AC-001") for f in soft), \
+        "a hard (MUST) AC below 100% on 'with', fully covered, must fail the gate, not just warn"
+    assert any(f.startswith("AC-007") for f in soft) and not any(f.startswith("AC-007") for f in hard), \
         "a soft (SHOULD) AC below threshold must warn only, never fail the gate"
 
-    soft_absent = {("AC-001", "with"): {"n": 1, "pass_rate": 1.0}}
-    _, soft = gate(soft_absent)
+    rows_soft_absent = [
+        {"case": "safety-data-loss", "ac": "AC-001", "trial": 1, "arm": "with", "host": "claude", "pass": True},
+    ]
+    report_sa, _ = score(rows_soft_absent, cases)
+    _, soft = gate(report_sa, cases)
     assert soft == [], "a soft AC with no data is not itself a defect -- SHOULD, not MUST"
+
+    # main(): C2 -- a malformed --out file must reach the user as a clean
+    # stderr message and exit 1, not an uncaught traceback. read_jsonl()'s
+    # message was already correct; what was missing is that main() never
+    # caught the ValueError it raises, at any of its three read sites.
+    with tempfile.TemporaryDirectory(prefix="ttak-selftest-") as tmp_dir:
+        bad_out = Path(tmp_dir) / "truncated.jsonl"
+        bad_out.write_text(
+            '{"case": "simple-impl", "ac": "AC-006", "trial": 1, "arm": "without", '
+            '"host": "claude", "pass": true}\n{"trunc',
+            encoding="utf-8", newline="\n")
+        out_buf, err_buf = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out_buf), contextlib.redirect_stderr(err_buf):
+            code = main(["--score", "--out", str(bad_out)])
+        assert code == 1, f"a truncated --out file must exit 1 via --score, got {code}"
+        assert "Traceback" not in err_buf.getvalue(), \
+            f"the error must not reach the user as a bare traceback: {err_buf.getvalue()!r}"
+        assert "trim the partial line" in err_buf.getvalue(), \
+            f"the clean, actionable message must still reach stderr: {err_buf.getvalue()!r}"
 
     print("selftest OK")
     return True
@@ -556,30 +714,43 @@ def main(argv=None):
     if args.selftest:
         return 0 if _selftest() else 1
 
-    if args.score:
-        if not args.out:
-            p.error("--score requires --out <file>")
-        with args.out.open("r", encoding="utf-8") as f:
-            rows = [row for _, row in read_jsonl(f, str(args.out))]
-        report, ungraded = score(rows)
-        hard, soft = gate(report)
-        print_report(report, hard, soft, ungraded)
-        return 1 if hard else 0
+    # Every branch below reads and parses at least one file a long-running or
+    # external process could leave malformed (a truncated --out, a stray
+    # non-numeric trial, an --out row naming a case cases.jsonl doesn't
+    # define). Each of those raises ValueError with an already-clear,
+    # actionable message (read_jsonl(), row_key(), score()) -- this is the
+    # one place all of them are caught, so the message reaches the user as
+    # itself, not as the last line of a Python traceback.
+    try:
+        if args.score:
+            if not args.out:
+                p.error("--score requires --out <file>")
+            known_acs = load_ac_ids(SPEC_EN)
+            cases = load_cases(args.cases, known_acs)
+            with args.out.open("r", encoding="utf-8") as f:
+                rows = [row for _, row in read_jsonl(f, str(args.out))]
+            report, ungraded = score(rows, cases)
+            hard, soft = gate(report, cases)
+            print_report(report, hard, soft, ungraded)
+            return 1 if hard else 0
 
-    if not args.host or not args.arm or args.trials is None:
-        p.error("--host, --arm and --trials are required for a run (or use --score / --selftest)")
-    if args.trials < 1:
-        p.error("--trials must be >= 1")
-    if not args.dry_run and not args.out:
-        p.error("--out is required for a real run (--dry-run does not write one)")
+        if not args.host or not args.arm or args.trials is None:
+            p.error("--host, --arm and --trials are required for a run (or use --score / --selftest)")
+        if args.trials < 1:
+            p.error("--trials must be >= 1")
+        if not args.dry_run and not args.out:
+            p.error("--out is required for a real run (--dry-run does not write one)")
 
-    known_acs = load_ac_ids(SPEC_EN)
-    cases = load_cases(args.cases, known_acs)
+        known_acs = load_ac_ids(SPEC_EN)
+        cases = load_cases(args.cases, known_acs)
 
-    if args.dry_run:
-        existing = load_existing_keys(args.out) if args.out else set()
-        return do_dry_run(cases, args.host, args.arm, args.model, args.trials, existing)
-    return do_run(cases, args.host, args.arm, args.model, args.trials, args.out, args.timeout)
+        if args.dry_run:
+            existing = load_existing_keys(args.out) if args.out else set()
+            return do_dry_run(cases, args.host, args.arm, args.model, args.trials, existing)
+        return do_run(cases, args.host, args.arm, args.model, args.trials, args.out, args.timeout)
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

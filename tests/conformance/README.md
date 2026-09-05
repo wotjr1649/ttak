@@ -146,12 +146,22 @@ verifiability), ending in a verdict. Its bullet list names the artefact *types* 
 pointed at — one of which is "business workflows". §9.1's "workflow analysis" is ordinary reasoning
 about a workflow: a different thing from producing an adversarial review of one.
 
-The overlap between the two sections' bullet lists is systematic, not a one-off: Review also lists
-*"documents, policies, and specifications"* against Core's *"document and policy restructuring"*, and
-*"architecture and database designs"* against Core's *"architecture and database reasoning"*. Reading
-any of these overlaps as removing the domain from Core would strip three of Core's ten entries — so the
-boundary §9 draws is the deliverable (an adversarial review with a verdict) versus the domain (reasoning
-about the same subject matter), not which section's bullet list happens to name the topic first. A
+The overlap between the two sections' bullet lists is not a one-off, and not partial — it is total.
+Every one of Review's five artefact types has a same-domain Core counterpart:
+
+| Review artefact type (§9.2) | Core domain entry (§9.1) |
+|---|---|
+| code and diffs | code implementation and debugging |
+| architecture and database designs | architecture and database reasoning |
+| documents, policies, and specifications | document and policy restructuring |
+| business workflows | workflow analysis |
+| plans and plugin structures | planning with scope control |
+
+Reading any one of these overlaps as removing the domain from Core would strip five of Core's ten
+entries — half of it. So the boundary §9 draws is the deliverable (an adversarial review with a verdict)
+versus the domain (reasoning about the same subject matter), not which section's bullet list happens to
+name the topic first, and a domain-based reading is not a viable alternative interpretation to weigh
+against this one — it deletes half the capability it's reading. A
 single-turn "here is our process, simplify it" prompt asks for a simplified process, not a review
 verdict of the current one — it exercises the trim discipline that is Core's own territory in v1, not a
 Review artefact. `workflow-simplification` maps to `[AC-004]`, not the `[AC-006]` catch-all most of this
