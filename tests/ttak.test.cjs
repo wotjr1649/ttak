@@ -108,18 +108,44 @@ test('a write creates the leaf directory and round-trips', () => {
   });
 });
 
-test('a missing parent is unavailable and is never created', () => {
-  const prev = process.env.PLUGIN_DATA;
-  process.env.PLUGIN_DATA = path.join(os.tmpdir(), 'ttak-no-such-parent-xyz', 'ttak-ttak');
-  try {
-    assert.strictEqual(ttak.readState().status, 'unavailable');
-    const res = ttak.writeState(true);
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.refused, true);
-    assert.strictEqual(fs.existsSync(path.join(os.tmpdir(), 'ttak-no-such-parent-xyz')), false);
-  } finally {
-    if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
-  }
+// The two shapes a fresh profile actually leaves behind, one per host, both
+// observed on live hosts (docs/analysis/). They are separate tests so a
+// regression names which host it broke.
+
+test("Claude Code's fresh-profile shape: leaf missing, parent exists", () => {
+  withData((leaf, root) => {
+    assert.strictEqual(fs.existsSync(root), true, 'fixture: parent must exist');
+    assert.strictEqual(fs.existsSync(leaf), false, 'fixture: leaf must not exist');
+    assert.strictEqual(ttak.readState().status, 'absent');
+    assert.strictEqual(ttak.writeState(true).ok, true);
+    assert.strictEqual(ttak.readState().status, 'on');
+  });
+});
+
+test("Codex's fresh-profile shape: leaf and parent both missing", () => {
+  withData((leaf, root) => {
+    // Codex 0.153.4 creates no part of <CODEX_HOME>/plugins/data/, so the
+    // state path is two levels below anything that exists. Reverting
+    // writeState to a non-recursive mkdirSync fails here and nowhere else.
+    const deep = path.join(root, 'plugins', 'data', 'ttak-ttak');
+    process.env.PLUGIN_DATA = deep;
+    assert.strictEqual(fs.existsSync(path.dirname(deep)), false, 'fixture: parent must not exist');
+    assert.strictEqual(ttak.readState().status, 'absent');
+    assert.strictEqual(ttak.writeState(true).ok, true);
+    assert.strictEqual(fs.existsSync(path.join(deep, 'state.json')), true);
+    assert.strictEqual(ttak.readState().status, 'on');
+    assert.ok(!fs.existsSync(leaf), 'nothing was written to the unused leaf');
+  });
+});
+
+test('a read still creates nothing, at any depth', () => {
+  withData((leaf, root) => {
+    const deep = path.join(root, 'plugins', 'data', 'ttak-ttak');
+    process.env.PLUGIN_DATA = deep;
+    assert.strictEqual(ttak.readState().status, 'absent');
+    assert.strictEqual(fs.existsSync(path.join(root, 'plugins')), false);
+    assert.ok(!fs.existsSync(leaf));
+  });
 });
 
 test('corrupt but readable state is invalid, never guessed, and is repairable by a write', () => {
@@ -513,9 +539,11 @@ test('an ordinary prompt is a no-op and fails open', () => {
 });
 
 test('a control prompt is blocked even when state cannot be written', () => {
-  const prev = process.env.PLUGIN_DATA;
-  process.env.PLUGIN_DATA = path.join(os.tmpdir(), 'ttak-no-parent-abc', 'ttak-ttak');
-  try {
+  // A missing parent is no longer unwritable -- writeState creates the whole
+  // path. The genuinely unwritable shape is a leaf that exists and is not a
+  // directory, which no amount of creating can fix.
+  withData((leaf) => {
+    fs.writeFileSync(leaf, 'not a directory');
     const o = JSON.parse(runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'ttak on' }).stdout);
     assert.strictEqual(o.decision, 'block');
     // Exact text, not just "no leaked path": a regression that reports
@@ -523,9 +551,7 @@ test('a control prompt is blocked even when state cannot be written', () => {
     // still pass a decision-only/no-leak check.
     assert.strictEqual(o.reason, 'TTAK could not read or write its saved setting. Nothing was changed.');
     assert.ok(!/ENOENT|[A-Za-z]:\\|\/tmp/.test(o.reason));
-  } finally {
-    if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
-  }
+  });
 });
 
 // --- fix round 1: reviewer findings C1, C2, I3, I4, I5, I6, M2 ---
@@ -544,18 +570,27 @@ test('the first-session notice fires even when the host never pre-created the le
   });
 });
 
-test('the notice never creates a leaf directory whose parent is also missing', () => {
-  const prev = process.env.PLUGIN_DATA;
-  const noParent = path.join(os.tmpdir(), 'ttak-notice-no-parent-xyz');
-  process.env.PLUGIN_DATA = path.join(noParent, 'ttak-ttak');
-  try {
+test('the first-session notice fires when the parent is missing too', () => {
+  // The Codex shape. This test used to assert the opposite -- that the notice
+  // refuses when the parent is missing -- which on Codex meant the plugin's
+  // only discovery path was dead on every fresh profile.
+  withData((leaf, root) => {
+    const deep = path.join(root, 'plugins', 'data', 'ttak-ttak');
+    process.env.PLUGIN_DATA = deep;
+    const r = runHook({ hook_event_name: 'SessionStart', source: 'startup' });
+    assert.match(JSON.parse(r.stdout).hookSpecificOutput.additionalContext, /ttak on/);
+    assert.strictEqual(fs.existsSync(path.join(deep, '.notified')), true);
+    assert.ok(!fs.existsSync(leaf));
+  });
+});
+
+test('the notice still refuses when the leaf exists and is not a directory', () => {
+  withData((leaf) => {
+    fs.writeFileSync(leaf, 'not a directory');
     const r = runHook({ hook_event_name: 'SessionStart', source: 'startup' });
     assert.strictEqual(r.stdout, '');
     assert.strictEqual(r.exit, 0);
-    assert.strictEqual(fs.existsSync(noParent), false);
-  } finally {
-    if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
-  }
+  });
 });
 
 test('the status control prompt reports the saved setting without changing it', () => {
@@ -630,16 +665,14 @@ test('the status control prompt never claims ON or OFF when the saved setting is
     assert.strictEqual(o.reason, ERR_TEXT, `invalid state must report the bounded error, not guess ON/OFF: ${o.reason}`);
   });
 
-  // unavailable: parent directory of PLUGIN_DATA does not exist at all.
-  const prev = process.env.PLUGIN_DATA;
-  process.env.PLUGIN_DATA = path.join(os.tmpdir(), 'ttak-no-parent-abc', 'ttak-ttak');
-  try {
+  // unavailable: the leaf exists and is not a directory. (A missing parent is
+  // no longer unavailable -- it is absent, and writeState creates the path.)
+  withData((leaf) => {
+    fs.writeFileSync(leaf, 'not a directory');
     const o = JSON.parse(runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'ttak' }).stdout);
     assert.strictEqual(o.decision, 'block');
     assert.strictEqual(o.reason, ERR_TEXT, `unavailable state must report the bounded error, not guess ON/OFF: ${o.reason}`);
-  } finally {
-    if (prev === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = prev;
-  }
+  });
 });
 
 test('SubagentStart does not receive the first-session notice even while absent', () => {

@@ -82,12 +82,29 @@ This is the part worth knowing before it surprises you. The three strings above 
 the **whole** prompt after trimming and lowercasing. When one matches, the plugin answers and the
 turn is blocked: **the model never receives it.** So a message consisting only of the word `ttak` is
 not a question you asked the model — it is a plugin command, and if you meant it as a question, it is
-gone. Add any other word (`ttak status`, `what is ttak`, `/ttak`, `ttak.`) and it is an ordinary
-prompt that reaches the model normally.
+gone. Add any other word (`ttak status`, `what is ttak`, `ttak.`) and it is an ordinary prompt that
+reaches the model normally.
 
-Whether your host displays the plugin's reply is up to the host and **is not yet verified for this
-plugin on either host**. The predecessor was observed printing it on Claude Code `2.1.250`. If yours
-does not, a control prompt will look like a message that vanished.
+There is no slash-command form, and `/ttak` is not a synonym for it. On Claude Code `2.1.261` the
+host answers `Unknown command: /ttak` and the plugin never sees the prompt at all; on Codex CLI
+`0.153.4` the same text arrives as an ordinary prompt and goes to the model. Because the two hosts
+disagree, the bare word is the only trigger.
+
+### What you see when a prompt is consumed depends on the host
+
+Observed on live hosts, three trials each
+(`docs/analysis/claude-code/2026-09-04-host-integration.md`,
+`docs/analysis/codex-cli/2026-09-04-host-integration.md`):
+
+- **Claude Code `2.1.261`** shows the plugin's reply, framed by the host: a line reading
+  `UserPromptSubmit operation blocked by hook:`, then the reply, then `Original prompt: <what you
+  typed>`. It is not flagged as an error.
+- **Codex CLI `0.153.4`** shows **nothing** in `codex exec --json` — the turn completes with zero
+  tokens and the reply text appears nowhere in the output. The interactive Codex UI is **not yet
+  verified**; if it behaves the same way, `ttak on` there gives you no confirmation and looks like a
+  message that vanished. The codex-cli document above tracks that open item.
+
+In both cases the model never received the prompt.
 
 ## The explainer
 

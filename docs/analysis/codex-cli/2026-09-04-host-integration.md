@@ -69,6 +69,32 @@ which looked like a free witness. It is not: with the control hook installed at
 about hook execution and was abandoned. (It did confirm the plugin loads: `ttak` and `ttak-explain`
 appear in its 14899-byte output.)
 
+### Host property: Codex owns the hook's environment, including `PLUGIN_DATA`
+
+**This is a property of the host, not a quirk of this run, and anyone isolating a Codex hook will
+hit it.** Codex sets the hook process's environment itself and its values win over anything the
+caller exports:
+
+| Variable | Value Codex sets |
+|---|---|
+| `CLAUDE_PLUGIN_ROOT` | `<CODEX_HOME>/plugins/cache/<marketplace>/<plugin>/<version>` |
+| `PLUGIN_ROOT` | the same value |
+| `PLUGIN_DATA` | `<CODEX_HOME>/plugins/data/<plugin>-<marketplace>` |
+| `CLAUDE_PLUGIN_DATA` | the same value |
+| `CODEX_PLUGIN_ROOT`, `CODEX_PLUGIN_DATA` | not set |
+
+Consequences worth stating plainly:
+
+- **`PLUGIN_DATA` cannot be used to redirect a Codex hook's state.** The Part A brief's isolation
+  instruction — "point `PLUGIN_DATA` at a temp directory so no state file is ever written into a
+  real host's plugin data" — works on Claude Code and is simply inapplicable on Codex. Isolating a
+  Codex hook means pointing `CODEX_HOME` at a throwaway directory; nothing else will do it.
+- An externally set `PLUGIN_DATA` is not merely ignored, it is silently replaced, so a probe that
+  watches the caller's directory sees nothing and reads as "the hook never ran". That is exactly the
+  false negative recorded under Step 2 below.
+- `${CLAUDE_PLUGIN_ROOT}` is the correct variable to use in `hooks/hooks.json` on both hosts. No
+  Codex-specific command variant is needed.
+
 **Three trials per row.** Where three trials agreed, the row says `3/3`. No row disagreed.
 
 ---
@@ -200,11 +226,50 @@ predecessor `leanclarity`, installed on this machine's real Codex, uses
 `io.mkdirSync(dataRoot, { mode: 0o700, recursive: true })` (line 185 of its installed
 `hooks/leanclarity.cjs`) and does have a populated `~/.codex/plugins/data/leanclarity-leanclarity/`.
 
-**This is a shipping blocker for the Codex host, found by observation, and it is not fixed by
-anything in this task.** It is a runtime defect, not an evidence gap; recording it here is this
-task's whole contribution to it.
+**This was a shipping blocker for the Codex host, found by observation. It is fixed — see §3.3.**
 
-### 3.3 Everything else works once `plugins/data/` exists
+### 3.3 The fix, and the same observation re-run against it
+
+`writeState()` and the notice's one-time write now create the whole path
+(`fs.mkdirSync(leaf, { recursive: true })`), and `readState()` reports `absent` for `ENOENT` at any
+depth rather than only when the parent exists. Reads still create nothing. The safety the old rule
+protected is held by `dataRoot()`, which returns `null` unless the host named a root, so a recursive
+create can only ever happen under a directory the host chose. Every other guard is unchanged: a leaf
+that exists and is not a directory, and a state path that exists and is not a file, are both still
+`unavailable` and still refuse.
+
+**Re-run of the exact failing observation, on three genuinely fresh `CODEX_HOME` directories** — a
+separate throwaway home per trial, each with `<CODEX_HOME>/plugins/data` verified missing after
+install and before the session:
+
+| Observation | Before the fix | After the fix | Trials |
+|---|---|---|---|
+| `<CODEX_HOME>/plugins/data` before the session | missing | missing | 3/3 |
+| state on read | `unavailable` (no notice) | **`absent`** — `SessionStart` emits the 108-char notice | 3/3 |
+| `ttak on` | `{"decision":"block","reason":"TTAK could not read or write its saved setting. Nothing was changed."}` | `{"decision":"block","reason":"TTAK saved setting: ON."}` | 3/3 |
+| `<CODEX_HOME>/plugins/data/ttak-ttak/state.json` | never created | `{"enabled":true}` | 3/3 |
+| `.notified` | never created | created | 3/3 |
+
+Closing the loop, one further session against the now-enabled profile:
+`SessionStart` injected 2977 characters containing `# Precedence`, `# Invariants` and
+`# Response contract`.
+
+The unit tests pin both host shapes separately — leaf missing with the parent present (Claude's
+shape) and leaf and parent both missing (Codex's shape). Reverting `writeState` to the
+non-recursive `mkdirSync(leaf)` fails the Codex-shape test and no other; reverting the notice's
+create fails the notice test and no other. Both mutations were run.
+
+### Design deviation, deliberate, recorded here rather than in the design
+
+The shipped code now contradicts design §4.1 ("A missing leaf directory whose parent exists is
+absent state on read"; "only the leaf, only when its parent exists") and the §4.4 amendment that
+extended the same rule to the notice. **The contradiction is deliberate and is caused by an observed
+host difference:** the rule assumed the host pre-creates its plugin data root, which Claude Code does
+(`~/.claude/plugins/data/ttak-inline/` appears empty at `--plugin-dir` load) and Codex does not.
+Reconciling the design text is a v0.3 amendment item, held until Part B's observations are in. The
+design and the specification were **not** edited by this task.
+
+### 3.4 Everything else works once `plugins/data/` exists
 
 With `<CODEX_HOME>/plugins/data/` created by hand (simulating a profile where any plugin has ever
 written data) and the leaf `ttak-ttak/` still absent:
@@ -230,7 +295,7 @@ The hook receives the same `stdin` shape Claude Code sends, with `source` on `Se
 
 Only `source: "startup"` was ever observed; see NOT VERIFIED.
 
-### 3.4 Step 0 on this host: a sigil prompt *does* reach the hook
+### 3.5 Step 0 on this host: a sigil prompt *does* reach the hook
 
 Row 5 above: `/ttak on` arrived at `UserPromptSubmit` with `prompt` literally `'/ttak on'`, 3/3.
 Codex `exec` does **not** intercept it. `parseControl` correctly treated it as an ordinary prompt
@@ -240,7 +305,7 @@ The two hosts therefore disagree: Codex passes the sigil form through, Claude Co
 unknown slash command. Because it must work on both, the sigil form cannot be adopted, and the bare
 word `ttak` stands. Scope: `codex exec`; the interactive TUI is **NOT VERIFIED**.
 
-### 3.5 Codex honours `decision: block`, but shows the user nothing
+### 3.6 Codex honours `decision: block`, but shows the user nothing
 
 Two independent witnesses that the prompt never reached the model:
 
@@ -264,9 +329,9 @@ A blocked turn never attempts the API call at all. Process exit code `0`.
 Nothing carries `TTAK saved setting: ON.`. In `codex exec` a user who sends `ttak on` sees a turn
 complete silently and gets no confirmation that anything happened. This is a sharp divergence from
 Claude Code, which surfaces the reason as a warning line plus the result text. Whether the
-interactive TUI renders it is **NOT VERIFIED** — command sheet item S6.
+interactive TUI renders it is **NOT VERIFIED** — command sheet item B4.
 
-### 3.6 `/hooks` trust review is required, and the failure is silent
+### 3.7 `/hooks` trust review is required, and the failure is silent
 
 Dropping `--dangerously-bypass-hook-trust` from an otherwise identical invocation:
 

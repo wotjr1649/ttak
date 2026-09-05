@@ -18,11 +18,15 @@ function readState() {
   let leafStat = null;
   try { leafStat = fs.statSync(leaf); }
   catch (e) {
-    if (e.code !== 'ENOENT') return { status: 'unavailable' };
-    // Leaf missing: absent only when the parent exists. The host may not
-    // pre-create <plugin>-<marketplace>/ on a fresh profile.
-    try { return fs.statSync(path.dirname(leaf)).isDirectory() ? { status: 'absent' } : { status: 'unavailable' }; }
-    catch { return { status: 'unavailable' }; }
+    // Nothing exists yet anywhere along the path: absent, however many
+    // levels are missing. Observed on Codex 0.153.4, which never creates
+    // <CODEX_HOME>/plugins/data/ at all -- not the leaf and not its parent.
+    // Requiring the parent made a fresh Codex profile read 'unavailable',
+    // which suppressed the first-session notice and made 'ttak on' fail
+    // forever. A parent that exists but is not a directory still gives
+    // ENOTDIR here, not ENOENT, so that stays 'unavailable'.
+    if (e.code === 'ENOENT') return { status: 'absent' };
+    return { status: 'unavailable' };
   }
   if (!leafStat.isDirectory()) return { status: 'unavailable' };
 
@@ -47,14 +51,13 @@ function writeState(enabled) {
   const leaf = path.dirname(p);
   try {
     if (!fs.existsSync(leaf)) {
-      // Only create the leaf, and only when its parent already exists.
-      // statSync throws when the parent is missing entirely (ENOENT); that is
-      // a refusal too, not an unexpected crash, so it is caught here rather
-      // than left to fall through to the catch-all below.
-      let parentIsDir = false;
-      try { parentIsDir = fs.statSync(path.dirname(leaf)).isDirectory(); } catch { parentIsDir = false; }
-      if (!parentIsDir) return { ok: false, refused: true };
-      fs.mkdirSync(leaf);
+      // Create the whole path. Codex never creates <CODEX_HOME>/plugins/data/,
+      // so refusing a missing parent meant 'ttak on' could never succeed on a
+      // fresh Codex profile (observed, docs/analysis/codex-cli/). The safety
+      // this once protected is held by dataRoot(): it returns null unless the
+      // host named a root, so a recursive create only ever happens under a
+      // directory the host chose. Reads still never create.
+      fs.mkdirSync(leaf, { recursive: true });
     } else if (!fs.statSync(leaf).isDirectory()) {
       return { ok: false, refused: true };
     }
@@ -156,15 +159,15 @@ function handle(input) {
       if (!flag || fs.existsSync(flag)) return NOOP;
       const leaf = path.dirname(flag);
       try {
-        // Some hosts never pre-create the leaf directory on a fresh profile
-        // (design §4.1): absent state can mean "leaf missing, parent
-        // exists". The notice is a deliberate one-time write, exempt from
-        // "reads never create" — it may create the leaf, following the same
-        // rule writeState uses: only when the parent exists, never when it
-        // is missing (a missing parent throws here and is caught below).
+        // Some hosts never pre-create anything under their plugin data root
+        // on a fresh profile — Codex creates neither the leaf nor its parent.
+        // The notice is a deliberate one-time write, exempt from "reads never
+        // create", and follows the same rule writeState uses: create the whole
+        // path under the host-named root. Without this the notice never fires
+        // on a fresh Codex profile, and the notice is the plugin's only
+        // discovery path.
         if (!fs.existsSync(leaf)) {
-          if (!fs.statSync(path.dirname(leaf)).isDirectory()) return NOOP;
-          fs.mkdirSync(leaf);
+          fs.mkdirSync(leaf, { recursive: true });
         } else if (!fs.statSync(leaf).isDirectory()) {
           return NOOP;
         }

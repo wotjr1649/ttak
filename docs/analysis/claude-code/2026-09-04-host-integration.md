@@ -143,6 +143,13 @@ plugin — so on Claude Code the data leaf exists before the hook first runs, wh
 leaf-exists-and-is-empty row above. That directory was removed after the run (it was empty and
 task-created).
 
+**That one fact is why design §4.1's "never create a missing parent" rule looked safe and was not.**
+Claude Code pre-creates the plugin data leaf; Codex creates no part of its data root at all, which
+made `ttak on` impossible there. The rule was replaced in fix round 1 with a recursive create under
+the host-named root. The deviation from §4.1 and §4.4 is deliberate and is written up, with the
+re-run that verifies it, in `docs/analysis/codex-cli/2026-09-04-host-integration.md` §3.3. Neither
+the design nor the specification was edited by this task; reconciling them is a v0.3 amendment item.
+
 ### 1.4 Subagent scope
 
 Forced with `--agents '{"probe":{…}}' --tools Task` and a prompt instructing one `Task` call.
