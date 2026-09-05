@@ -213,14 +213,24 @@ const PROTECTED_BULLETS = [
   },
 ];
 
-test('policy text names every protected noun verbatim, in its own file and every scope it reaches', () => {
+// Fix round 3, residual 1: the loop below used to walk only each entry's own
+// `scopes`, which bound the four subagent-reaching nouns positively but left
+// `explicit output formats` (main-only by design) with no assertion that it
+// stays out of subagent -- four facts and a silence. Walking every scope for
+// every noun makes it one statement: present where listed, absent where not.
+const ALL_SCOPES = ['main', 'subagent'];
+
+test('policy text names every protected noun verbatim, in its own file and exactly the scopes it reaches', () => {
   const composed = { main: ttak.compose('main'), subagent: ttak.compose('subagent') };
   for (const { file, scopes, nouns } of PROTECTED_BULLETS) {
     const source = fs.readFileSync(path.join(ROOT, 'policy', file), 'utf8');
     for (const noun of nouns) {
       assert.ok(source.includes(noun), `missing protected noun in policy/${file}: ${noun}`);
-      for (const scope of scopes) {
-        assert.ok(composed[scope].includes(noun), `missing protected noun in ${scope} scope: ${noun}`);
+      for (const scope of ALL_SCOPES) {
+        const shouldReach = scopes.includes(scope);
+        assert.strictEqual(composed[scope].includes(noun), shouldReach, shouldReach
+          ? `missing protected noun in ${scope} scope: ${noun}`
+          : `protected noun leaked into ${scope} scope, which should not carry it: ${noun}`);
       }
     }
   }
