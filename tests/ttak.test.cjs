@@ -241,9 +241,35 @@ test('the scope model this file asserts against is the one hooks/ttak.cjs compos
     'SCOPES in hooks/ttak.cjs and the scope model every assertion in this file walks have diverged');
 });
 
+// F3 (final fix, Low): round 4 froze SCOPES because exporting it hands out a
+// live handle on the object that decides what text gets injected, and said so
+// in a comment. Removing all three Object.freeze calls left the suite green,
+// so the claim had no witness. It has one now.
+test('the exported scope map is frozen, not merely documented as read-only', () => {
+  assert.ok(Object.isFrozen(ttak.SCOPES), 'hooks/ttak.cjs exports SCOPES without freezing it');
+  for (const [scope, files] of Object.entries(ttak.SCOPES)) {
+    assert.ok(Object.isFrozen(files), `hooks/ttak.cjs exports SCOPES.${scope} without freezing it`);
+    assert.throws(() => files.push('contract'), TypeError,
+      `SCOPES.${scope} accepted a push: the exported scope map is not read-only`);
+  }
+});
+
 // N4 (fix round 4, Low), first half: the file check below was `includes` only.
 // It said the noun must be *in* its file; it never said it is only there.
 // Two-way, the same way the scope check beside it already is.
+//
+// F4 (final fix, Low): what that costs, recorded here rather than only in a
+// report nobody will open. Two-way binding is stronger than the product
+// requires: it forbids these five nouns and three bullets from the other two
+// policy files entirely. Four of the nouns are distinctive phrases;
+// `accessibility` is an ordinary word, so a future policy edit that uses it
+// legitimately in precedence.md or contract.md will fail here. That failure
+// has TWO correct repairs and the message names both -- delete the new use, or
+// keep it and update PROTECTED_BULLETS to record where the noun now lives.
+// Deleting is not automatically the right one. This constrains the
+// repository's own files, not the injected instruction text, so the project's
+// finding about counter-intuitive constraints on model behaviour does not
+// apply to it (controller ruling, fix round 5).
 test('policy text names every protected noun verbatim, in its own file and only there, and exactly the scopes it reaches', () => {
   const composed = { main: ttak.compose('main'), subagent: ttak.compose('subagent') };
   for (const { file, scopes, nouns } of PROTECTED_BULLETS) {
@@ -251,7 +277,9 @@ test('policy text names every protected noun verbatim, in its own file and only 
       for (const [name, source] of POLICY_SOURCES) {
         assert.strictEqual(source.includes(noun), name === file, name === file
           ? `missing protected noun in policy/${name}: ${noun}`
-          : `protected noun also appears in policy/${name}; its file of record is policy/${file}: ${noun}`);
+          : `protected noun also appears in policy/${name}; its file of record is policy/${file}: `
+            + `${noun} -- either remove it from policy/${name}, or, if that use is legitimate, `
+            + `update PROTECTED_BULLETS to record where this noun now lives`);
       }
       for (const scope of ALL_SCOPES) {
         const shouldReach = scopes.includes(scope);
@@ -289,7 +317,9 @@ test('the sentences carrying the five protected nouns are pinned verbatim, in th
     for (const [name, source] of POLICY_SOURCES) {
       assert.strictEqual(source.includes(bullet), name === file, name === file
         ? `bullet no longer present verbatim in policy/${name}: "${bullet}"`
-        : `bullet duplicated into policy/${name}; its file of record is policy/${file}: "${bullet}"`);
+        : `bullet duplicated into policy/${name}; its file of record is policy/${file}: "${bullet}" `
+          + `-- either remove it from policy/${name}, or, if that use is legitimate, update `
+          + `PROTECTED_BULLETS to record where this bullet now lives`);
     }
     for (const scope of ALL_SCOPES) {
       const shouldReach = scopes.includes(scope);
@@ -972,16 +1002,36 @@ test('attributions reproduce each upstream notice as published', () => {
 // the fence and split only outside it. Section bodies still carry their fenced
 // content verbatim, which the notice checks above read back out of them.
 //
+// F2 (final fix, High): round 4 toggled on any line starting with ```, so a
+// legitimate, normally rendering four-backtick block containing a ``` line
+// left the toggle stuck open and the enclosing section swallowed every later
+// heading to end of file. The section GREW, and the four prose pins are
+// `includes()`, so they stayed satisfied from anywhere in the rest of the
+// document -- this fix defeated the section-scoping fix in the same commit.
+// Round 4's residual R6 enumerated only the cases where a section disappears
+// (which fail loudly at `assert.ok(section, ...)`) and never the case where it
+// grows, which is the silent one. That closure was wrong.
+//
+// Track the fence per CommonMark instead: a run of >= 3 backticks or tildes
+// opens one, and only a run of the SAME character, AT LEAST AS LONG, with
+// nothing else on the line, closes it. Up to three leading spaces are allowed
+// on both, which also closes R6's indented-fence and `~~~` cases.
+//
 // `level` selects the heading depth. A level-2 body already ends where the
 // next `## ` begins, so `sections(sections(t).get(a), 3)` yields a `### `
 // subsection bounded by its parent section instead of running to EOF.
 function sections(text, level = 2) {
   const mark = '#'.repeat(level) + ' ';
   const entries = [];
-  let fenced = false;
+  let fence = null;
   for (const line of text.split('\n')) {
-    if (line.startsWith('```')) fenced = !fenced;
-    else if (!fenced && line.startsWith(mark)) { entries.push([line.slice(mark.length), []]); continue; }
+    const run = /^ {0,3}(`{3,}|~{3,})/.exec(line);
+    if (fence === null) {
+      if (run) fence = run[1];
+      else if (line.startsWith(mark)) { entries.push([line.slice(mark.length), []]); continue; }
+    } else if (run && run[1][0] === fence[0] && run[1].length >= fence.length && line.trim() === run[1]) {
+      fence = null;
+    }
     if (entries.length) entries[entries.length - 1][1].push(line);
   }
   const out = new Map();
@@ -1158,11 +1208,36 @@ test('injected size is reported for both scopes and the subagent scope is smalle
 // drift from what that command prints" in its place, while its own residual
 // list recorded that nothing asserted a count of one. Make the sentence true
 // rather than weaker: exactly one row may start with each prefix.
-function readmeColumn(text, rowStart, colIndex) {
-  const rows = text.split('\n').filter((l) => l.startsWith(rowStart));
-  assert.strictEqual(rows.length, 1,
-    `expected exactly one table row starting with "${rowStart}", found ${rows.length}`);
-  return Number(rows[0].split('|')[colIndex].trim().replace(/,/g, ''));
+//
+// F1 + F1b (final fix, High): that check bound the header to its section and to
+// file-wide uniqueness, and left the data rows bound to neither. `readmeColumn`
+// read a row by byte prefix from anywhere in the document, so false figures
+// rendered in the table with the real rows hidden in an HTML comment at end of
+// file shipped green, in both languages. And its uniqueness test compared raw
+// bytes of markdown table lines while GFM ignores cell padding, so a
+// padding-different copy renders identically and compares unequal -- round 5's
+// R2 closure argued a second table needs different labels, when it only needs
+// different bytes.
+//
+// Both close together, using the pattern the header check already used:
+// normalise each table line to its trimmed cells, and read the figures out of
+// the size section's own table by position instead of searching the file for a
+// prefix. `readmeColumn` is gone, so there is no longer a way to read a
+// published figure from outside the section that publishes it.
+const normRow = (line) => line.split('|').map((c) => c.trim()).join('|');
+
+// SIZE_SECTION_PINS is declared below; test bodies run after module evaluation.
+function sizeTable(name, pin) {
+  const text = fs.readFileSync(path.join(ROOT, name), 'utf8');
+  const parent = sections(text).get(pin.parent);
+  assert.ok(parent, `${name}: no "## ${pin.parent}" section`);
+  const section = sections(parent, 3).get(pin.heading);
+  assert.ok(section, `${name}: no "### ${pin.heading}" section inside "## ${pin.parent}"`);
+  const rows = section.split('\n').filter((l) => l.startsWith('|')).map(normRow);
+  assert.strictEqual(rows.length, 4,
+    `${name}: the size section must hold exactly one table -- header, separator, one row per scope `
+    + `-- and holds ${rows.length} table lines`);
+  return { text, section, rows };
 }
 
 test('both READMEs and the measurement script report bytes and tokens that match the composition', () => {
@@ -1182,22 +1257,19 @@ test('both READMEs and the measurement script report bytes and tokens that match
       `scripts/measure-injection.cjs reports a stale ${scope}-scope token approximation`);
   }
 
-  const rowStarts = {
-    'README.md': {
-      main: '| Session start (precedence + invariants + contract) |',
-      subagent: '| Subagent start (precedence + invariants) |',
-    },
-    'README.ko.md': {
-      main: '| 세션 시작 (precedence + invariants + contract) |',
-      subagent: '| 서브에이전트 시작 (precedence + invariants) |',
-    },
-  };
-  for (const [name, byScope] of Object.entries(rowStarts)) {
-    const text = fs.readFileSync(path.join(ROOT, name), 'utf8');
-    for (const [scope, rowStart] of Object.entries(byScope)) {
-      assert.strictEqual(readmeColumn(text, rowStart, 2), expected[scope].bytes,
+  // The row labels used to live here as a second hand-written copy of the same
+  // table SIZE_SECTION_PINS describes. They are in SIZE_SECTION_PINS now, and
+  // the figures are read out of the section's own table by position, so a row
+  // that renders somewhere else in the document cannot answer for this one.
+  for (const [name, pin] of Object.entries(SIZE_SECTION_PINS)) {
+    const { rows } = sizeTable(name, pin);
+    for (const [i, scope] of [[2, 'main'], [3, 'subagent']]) {
+      const cell = rows[i].split('|');
+      assert.strictEqual(cell[1], pin.rows[scope],
+        `${name}: the size table's row ${i - 1} is not the ${scope} row -- it reads "${cell[1]}"`);
+      assert.strictEqual(Number(cell[2].replace(/,/g, '')), expected[scope].bytes,
         `${name}: published ${scope}-scope byte figure is stale against compose('${scope}')`);
-      assert.strictEqual(readmeColumn(text, rowStart, 3), expected[scope].tokens,
+      assert.strictEqual(Number(cell[3].replace(/,/g, '')), expected[scope].tokens,
         `${name}: published ${scope}-scope token figure is stale against compose('${scope}')`);
     }
   }
@@ -1224,6 +1296,10 @@ const SIZE_SECTION_PINS = {
     parent: 'What is measured',
     heading: 'Size of the injected text',
     header: '| Scope | Bytes | Approx. tokens (~4 chars/token) |',
+    rows: {
+      main: 'Session start (precedence + invariants + contract)',
+      subagent: 'Subagent start (precedence + invariants)',
+    },
     command: 'node scripts/measure-injection.cjs',
     ratio: 'a token approximation at four characters per token',
     disclaimer: 'an estimate, not an exact token count',
@@ -1239,6 +1315,10 @@ const SIZE_SECTION_PINS = {
     parent: '측정된 것',
     heading: '주입되는 텍스트의 크기',
     header: '| 범위 | 바이트 | 근사 토큰 수 (~4자/토큰) |',
+    rows: {
+      main: '세션 시작 (precedence + invariants + contract)',
+      subagent: '서브에이전트 시작 (precedence + invariants)',
+    },
     command: 'node scripts/measure-injection.cjs',
     ratio: '4자당 1토큰으로 계산한 토큰',
     disclaimer: '추정치이며 정확한 토큰 수가 아닙니다',
@@ -1248,26 +1328,27 @@ const SIZE_SECTION_PINS = {
 
 test('the size section still explains how to reproduce the figures and that the token column is approximate', () => {
   for (const [name, pin] of Object.entries(SIZE_SECTION_PINS)) {
-    const text = fs.readFileSync(path.join(ROOT, name), 'utf8');
-    const parent = sections(text).get(pin.parent);
-    assert.ok(parent, `${name}: no "## ${pin.parent}" section`);
-    const section = sections(parent, 3).get(pin.heading);
-    assert.ok(section, `${name}: no "### ${pin.heading}" section inside "## ${pin.parent}"`);
+    const { text, section, rows } = sizeTable(name, pin);
     const flat = section.replace(/\s+/g, ' ');
     // N2, second half: one table, and the pinned header is its own first row.
-    // With readmeColumn's one-row-per-prefix check above, this is what makes
-    // the README's "these figures fail the suite if ... the README drift[s]"
+    // With the positional row reads above, this is what makes the README's
+    // "the figures in this table fail the suite if ... this table drift[s]"
     // sentence true of a second table: it cannot be added inside this section,
-    // and a copy of this header cannot be added anywhere else in the file.
-    const table = section.split('\n').filter((l) => l.startsWith('|'));
-    assert.strictEqual(table.length, 4,
-      `${name}: the size section must hold exactly one table -- header, separator, one row per `
-      + `scope -- and holds ${table.length} table lines`);
-    assert.strictEqual(table[0], pin.header,
+    // and nothing rendering as one of these rows may appear anywhere else.
+    //
+    // F1b: every comparison here is on normalised cells. Byte equality let a
+    // copy with different padding, which GFM renders identically, count as a
+    // different line.
+    assert.strictEqual(rows[0], normRow(pin.header),
       `${name}: the table's own header row no longer labels the token column as an approximation`);
-    assert.strictEqual(text.split('\n').filter((l) => l === pin.header).length, 1,
-      `${name}: exactly one size table may exist; a second row identical to this header publishes `
+    const allRows = text.split('\n').filter((l) => l.startsWith('|')).map(normRow);
+    assert.strictEqual(allRows.filter((r) => r === normRow(pin.header)).length, 1,
+      `${name}: exactly one size table may exist; a second row rendering as this header publishes `
       + `a second set of figures`);
+    for (const [scope, label] of Object.entries(pin.rows)) {
+      assert.strictEqual(allRows.filter((r) => r.split('|')[1] === label).length, 1,
+        `${name}: exactly one table row anywhere in the file may be labelled "${label}" (${scope})`);
+    }
     assert.ok(flat.includes(pin.command), `${name}: reproduction command is missing, changed, or no longer beside the figures`);
     assert.ok(flat.includes(pin.ratio), `${name}: the four-characters-per-token ratio is missing from the size section`);
     assert.ok(flat.includes(pin.disclaimer), `${name}: the "not exact" disclaimer is missing from the size section`);
