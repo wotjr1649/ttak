@@ -11,6 +11,18 @@ function statePath() {
   return root ? path.join(root, 'state.json') : null;
 }
 
+// Windows returns ENOENT, not ENOTDIR, when an ancestor of the path is a file
+// (verified on 10.0.26200, Node 24), so the errno alone cannot tell "nothing
+// exists here yet" from "this path can never be used". Walk up to the nearest
+// thing that does exist and ask it. Creates nothing.
+function nearestExistingStat(p) {
+  for (let d = p, prev = null; d !== prev; prev = d, d = path.dirname(d)) {
+    try { return fs.statSync(d); }
+    catch (e) { if (e.code !== 'ENOENT') return null; }
+  }
+  return null;
+}
+
 function readState() {
   const p = statePath();
   if (!p) return { status: 'unavailable' };
@@ -18,15 +30,16 @@ function readState() {
   let leafStat = null;
   try { leafStat = fs.statSync(leaf); }
   catch (e) {
-    // Nothing exists yet anywhere along the path: absent, however many
-    // levels are missing. Observed on Codex 0.153.4, which never creates
-    // <CODEX_HOME>/plugins/data/ at all -- not the leaf and not its parent.
-    // Requiring the parent made a fresh Codex profile read 'unavailable',
-    // which suppressed the first-session notice and made 'ttak on' fail
-    // forever. A parent that exists but is not a directory still gives
-    // ENOTDIR here, not ENOENT, so that stays 'unavailable'.
-    if (e.code === 'ENOENT') return { status: 'absent' };
-    return { status: 'unavailable' };
+    if (e.code !== 'ENOENT') return { status: 'unavailable' };
+    // Absent however many levels are missing, but only when what does exist
+    // above them is a directory. Codex 0.153.4 creates no part of
+    // <CODEX_HOME>/plugins/data/, so requiring the immediate parent made a
+    // fresh Codex profile read 'unavailable', suppressed the first-session
+    // notice and made 'ttak on' fail forever. Accepting every ENOENT instead
+    // made a file-for-an-ancestor read 'absent', which the status prompt
+    // reports as a confident OFF for a path nothing can ever be written to.
+    const anc = nearestExistingStat(path.dirname(leaf));
+    return anc && anc.isDirectory() ? { status: 'absent' } : { status: 'unavailable' };
   }
   if (!leafStat.isDirectory()) return { status: 'unavailable' };
 
@@ -57,6 +70,11 @@ function writeState(enabled) {
       // this once protected is held by dataRoot(): it returns null unless the
       // host named a root, so a recursive create only ever happens under a
       // directory the host chose. Reads still never create.
+      // Still a refusal, not a crash, when what exists above the missing
+      // levels is not a directory -- mkdirSync would throw and the catch-all
+      // would drop the `refused` flag readState and the caller rely on.
+      const anc = nearestExistingStat(path.dirname(leaf));
+      if (!anc || !anc.isDirectory()) return { ok: false, refused: true };
       fs.mkdirSync(leaf, { recursive: true });
     } else if (!fs.statSync(leaf).isDirectory()) {
       return { ok: false, refused: true };

@@ -10,9 +10,9 @@ Every claim below points at an observation. Anything this run could not reach is
 | Codex CLI | `codex-cli 0.153.4` (`codex --version`) — the plan's brief cited `0.150.1`; the installed version has moved |
 | Node | `v24.19.0` |
 | OS | Windows 11 Pro 10.0.26200, Git Bash (MSYS2) |
-| Repository commit under test | `72fe42d` on `feat/ttak-v1` |
-| Date of run | 2026-09-05 |
-| Codex invocations | 36 |
+| Repository commit under test | `72fe42d` on `feat/ttak-v1` for Steps 2 and 3.1–3.2 and §3.7; `9e4eb01` (the fix) for §3.3; `9e4eb01` for §3.8 and §3.9 |
+| Date of run | 2026-09-05 (§3.3), 2026-09-06 (§3.8, §3.9) |
+| Codex invocations | 36 for the original run, 24 more across the two fix rounds |
 
 ## Method, and why nothing was installed into the real profile
 
@@ -83,6 +83,9 @@ caller exports:
 | `CLAUDE_PLUGIN_DATA` | the same value |
 | `CODEX_PLUGIN_ROOT`, `CODEX_PLUGIN_DATA` | not set |
 
+Identical in all six runs that dumped the hook environment (3 with a `hooks` field in the manifest,
+3 without).
+
 Consequences worth stating plainly:
 
 - **`PLUGIN_DATA` cannot be used to redirect a Codex hook's state.** The Part A brief's isolation
@@ -137,6 +140,13 @@ changed to `file:///<temp>/ttaksrc` and `feat/ttak-v1`. **`.codex-plugin/plugin.
 exactly as shipped — no `hooks` field** (verified on the installed copy in `codexhome6`:
 `hooks field present: False`), and `hooks/hooks.json` was left with its shipped structure and
 matcher (`startup|resume|clear|compact`), only the `command` string swapped for the instrument.
+
+**Fixture note, unexplained.** The form that worked here was
+`file:///C:/Users/js/.../ttaksrc` — three slashes — and every install in this document was made
+with it. A later reviewer on the same machine could not reproduce that form and found
+`file://C:/...` working instead. Both cannot be right about one git; the discrepancy is not
+understood and was not chased, because it is a property of a throwaway fixture and not of the
+plugin. If a local marketplace fails to resolve, try both.
 
 ---
 
@@ -259,6 +269,23 @@ shape) and leaf and parent both missing (Codex's shape). Reverting `writeState` 
 non-recursive `mkdirSync(leaf)` fails the Codex-shape test and no other; reverting the notice's
 create fails the notice test and no other. Both mutations were run.
 
+**Corrected in fix round 2 — the commit carrying this section — because the first version of this
+fix opened a new hole.**
+Treating *every* `ENOENT` as `absent` was wrong on the only platform this work was ever observed on:
+Windows returns `ENOENT`, not `ENOTDIR`, when an ancestor of the path is a file. Reproduced directly
+at commit `9e4eb01`, with the leaf's parent existing as a file:
+
+```
+readState        => {"status":"absent"}      (should be "unavailable")
+writeState       => {"ok":false}             (lost the `refused` flag)
+handle('ttak')   => "TTAK saved setting: OFF."
+```
+
+It asserted a confident OFF for a path nothing can ever be written to, contradicting the rule the
+status prompt has always had. `readState` and `writeState` now both walk up to the nearest existing
+ancestor and require it to be a directory, which creates nothing and is correct on either errno. A
+test covers the shape and reverting to the errno-only check fails it and no other test.
+
 ### Design deviation, deliberate, recorded here rather than in the design
 
 The shipped code now contradicts design §4.1 ("A missing leaf directory whose parent exists is
@@ -293,7 +320,7 @@ The hook receives the same `stdin` shape Claude Code sends, with `source` on `Se
 {"session_id":"01a07219-…","turn_id":"01a07219-…","transcript_path":null,"cwd":"…\\cwd","hook_event_name":"UserPromptSubmit","model":"gpt-6-astra","permission_mode":"bypassPermissions","prompt":"Say OK."}
 ```
 
-Only `source: "startup"` was ever observed; see NOT VERIFIED.
+`source: "startup"` was the only value seen until the `--ephemeral` flag was dropped; see §3.8.
 
 ### 3.5 Step 0 on this host: a sigil prompt *does* reach the hook
 
@@ -309,10 +336,10 @@ word `ttak` stands. Scope: `codex exec`; the interactive TUI is **NOT VERIFIED**
 
 Two independent witnesses that the prompt never reached the model:
 
-| Case | wall time | `401` errors in stream | terminal event |
-|---|---|---|---|
-| blocked control prompt (`ttak on`, `ttak`, `ttak off`) | 1–2 s | **0** | `turn.completed` with all usage counters `0` |
-| unblocked ordinary prompt | 18–20 s | 12 | `turn.failed` after auth retries |
+| Case | wall time | `401` errors in stream | terminal event | Trials |
+|---|---|---|---|---|
+| blocked control prompt (`ttak on`, `ttak`, `ttak off`) | 1–2 s | **0** | `turn.completed` with all usage counters `0` | 9/9 (3 prompts × 3) |
+| unblocked ordinary prompt | 18–20 s | 12 | `turn.failed` after auth retries | 6/6 (`Say OK.` and `/ttak on`, 3 each) |
 
 A blocked turn never attempts the API call at all. Process exit code `0`.
 
@@ -346,6 +373,43 @@ skipping it is a plugin that is installed, enabled, and completely inert with no
 
 The interactive `/hooks` review flow itself is **NOT VERIFIED** — see command sheet item S5.
 
+### 3.8 `SessionStart:resume` is reachable, and `--ephemeral` was what hid it
+
+Recorded as `NOT VERIFIED` in the first round, blamed on the host. That was wrong, and the cause was
+this document's own flag set: `--ephemeral` means "run without persisting session files to disk", so
+there was never a session for `resume` to find.
+
+Dropping `--ephemeral` and running `codex exec --sandbox read-only --skip-git-repo-check --json
+--dangerously-bypass-hook-trust resume --last "<prompt>"` in a throwaway `CODEX_HOME`, with no
+authentication and no host-global change:
+
+| Invocation | Hook events | Trials |
+|---|---|---|
+| first session | `SessionStart:startup` injecting 2977 chars, then `UserPromptSubmit` empty | 3/3 |
+| `resume --last` | **`SessionStart:resume`** injecting 2977 chars, then `UserPromptSubmit` empty | 3/3 |
+
+Two details cost time and are worth recording: the flags belong on `codex exec`, *before* the
+`resume` subcommand (`codex exec resume --last --sandbox ...` exits 2 with
+`error: unexpected argument '--sandbox' found`), and dropping `--ephemeral` writes session files
+into `CODEX_HOME`, which is why this is only safe against a throwaway one.
+
+`clear` and `compact` remain unreached: `codex exec` has no equivalent of those commands.
+
+### 3.9 `[features] hooks = true` is not an install requirement on this version
+
+The README claimed it was. On `0.153.4` it is not:
+
+| Configuration | Hook events | Trials |
+|---|---|---|
+| `config.toml` with **no `[features]` block at all** (only `[marketplaces.ttak]` and `[plugins."ttak@ttak"] enabled = true`) | `SessionStart` + `UserPromptSubmit`, full injection | 3/3 |
+| the same, plus `--disable hooks` (equivalent to `features.hooks = false`) | **none** | 3/3 |
+
+Every throwaway `CODEX_HOME` in this document was created by `codex plugin marketplace add` and
+`codex plugin add` alone and never had a `[features]` block, so the 3/3 rows throughout are
+themselves evidence for the first line. The feature is on by default and the flag only matters to
+someone who has turned it off. **NOT VERIFIED:** whether an older Codex required it, and whether any
+other configuration source on this machine could turn it off by default.
+
 ---
 
 ## NOT VERIFIED
@@ -356,7 +420,7 @@ Each of these is in `task-12-partB-commands.md` for the user to run.
 |---|---|
 | `SubagentStart` scope on Codex (`invariants` + `precedence`, not `contract`) | Requires the model to spawn a subagent; no credentials in a throwaway `CODEX_HOME`. |
 | Injected text actually reaching a model response | Same. |
-| `SessionStart` sources `resume`, `clear`, `compact` on Codex | `codex exec` only ever produced `source: "startup"`; the other sources need an interactive or resumed session. |
+| `SessionStart` sources `clear` and `compact` on Codex | `codex exec` has no equivalent of the TUI's clear/compact commands. (`resume` **is** verified — §3.8.) |
 | The interactive `/hooks` trust review flow and its wording | `exec` mode has no review UI. |
 | How a blocked prompt renders in the Codex TUI | `exec --json` shows nothing; the TUI may differ. |
 | `/ttak on` in the Codex TUI | Only `codex exec` was measured. |

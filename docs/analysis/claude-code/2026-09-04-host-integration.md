@@ -11,7 +11,7 @@ Every claim below points at an observation. Anything this run could not reach is
 | Node | `v24.19.0` |
 | OS | Windows 11 Pro 10.0.26200, Git Bash (MSYS2) |
 | Model pinned for every trial | `haiku` → resolved `claude-haiku-4-5-20251001` |
-| Repository commit under test | `72fe42d` on `feat/ttak-v1` |
+| Repository commit under test | `72fe42d` on `feat/ttak-v1`. **Every observation in this document is pre-fix.** The fix rounds that followed (`9e4eb01` and fix round 2, the commit carrying this sentence) changed only the branch taken when part of the plugin data path is missing, and Claude Code pre-creates that path (§1.3), so it is not on this host's path. That is reasoning, not a re-observation. |
 | Date of run | 2026-09-05 |
 | Claude invocations | 61, total `$0.3089` |
 
@@ -149,6 +149,10 @@ made `ttak on` impossible there. The rule was replaced in fix round 1 with a rec
 the host-named root. The deviation from §4.1 and §4.4 is deliberate and is written up, with the
 re-run that verifies it, in `docs/analysis/codex-cli/2026-09-04-host-integration.md` §3.3. Neither
 the design nor the specification was edited by this task; reconciling them is a v0.3 amendment item.
+Fix round 2 corrected that fix in turn: its first version reported `absent` for *any* `ENOENT`, which
+on Windows also covers "an ancestor is a file", so the status prompt answered a confident `OFF` for
+an unusable path. Reads and writes now both require the nearest existing ancestor to be a directory.
+See the codex-cli document §3.3.
 
 ### 1.4 Subagent scope
 

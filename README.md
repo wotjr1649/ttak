@@ -56,9 +56,11 @@ codex plugin marketplace add wotjr1649/ttak
 codex plugin add ttak@ttak
 ```
 
-Codex needs `[features] hooks = true` in `~/.codex/config.toml`, and **it asks you to review and
-trust the plugin's hooks through `/hooks` before any of them run**. Installing is not enough; until
-that trust review is done, TTAK does nothing at all. Restart the Codex desktop app after installing.
+Codex **asks you to review and trust the plugin's hooks through `/hooks` before any of them run**.
+Installing is not enough; until that trust review is done, TTAK does nothing at all and says nothing
+about why. Hooks are on by default: on Codex CLI `0.153.4` they ran with no `[features]` block in
+`~/.codex/config.toml` at all, three trials, so `[features] hooks = true` is only needed if you have
+turned the feature off. Whether an older Codex required it is **not verified**. Restart the Codex desktop app after installing.
 Codex has no per-project enablement: the plugin applies to the whole user profile until removed.
 
 ## Turning it on
@@ -87,8 +89,9 @@ reaches the model normally.
 
 There is no slash-command form, and `/ttak` is not a synonym for it. On Claude Code `2.1.261` the
 host answers `Unknown command: /ttak` and the plugin never sees the prompt at all; on Codex CLI
-`0.153.4` the same text arrives as an ordinary prompt and goes to the model. Because the two hosts
-disagree, the bare word is the only trigger.
+`0.153.4` — measured through `codex exec`; its interactive session is not verified — the same text
+arrives as an ordinary prompt and goes to the model. Because the two hosts disagree, the bare word is
+the only trigger.
 
 ### What you see when a prompt is consumed depends on the host
 
@@ -96,9 +99,11 @@ Observed on live hosts, three trials each
 (`docs/analysis/claude-code/2026-09-04-host-integration.md`,
 `docs/analysis/codex-cli/2026-09-04-host-integration.md`):
 
-- **Claude Code `2.1.261`** shows the plugin's reply, framed by the host: a line reading
-  `UserPromptSubmit operation blocked by hook:`, then the reply, then `Original prompt: <what you
-  typed>`. It is not flagged as an error.
+- **Claude Code `2.1.261`, `claude -p --output-format stream-json`** shows the plugin's reply,
+  framed by the host: a line reading `UserPromptSubmit operation blocked by hook:`, then the reply,
+  then `Original prompt: <what you typed>`. It is not flagged as an error. **How the interactive
+  session renders this is not verified** — that is where most people will meet it, and the framing
+  may differ or be absent.
 - **Codex CLI `0.153.4`** shows **nothing** in `codex exec --json` — the turn completes with zero
   tokens and the reply text appears nowhere in the output. The interactive Codex UI is **not yet
   verified**; if it behaves the same way, `ttak on` there gives you no confirmation and looks like a

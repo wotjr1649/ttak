@@ -138,6 +138,27 @@ test("Codex's fresh-profile shape: leaf and parent both missing", () => {
   });
 });
 
+test('a file where a parent directory should be is unavailable, never a confident OFF', () => {
+  // Fix round 2, F1. Windows returns ENOENT here, not ENOTDIR, so treating
+  // every ENOENT as 'absent' made this path read as absent -- and absent means
+  // OFF, so `ttak` answered "TTAK saved setting: OFF." for a path nothing can
+  // ever be written to. The rule is the same one the status prompt has always
+  // had: never claim ON or OFF when the setting is unreadable.
+  withData((leaf, root) => {
+    const asFile = path.join(root, 'data');
+    fs.writeFileSync(asFile, 'not a directory');
+    process.env.PLUGIN_DATA = path.join(asFile, 'ttak-ttak');
+    assert.strictEqual(ttak.readState().status, 'unavailable');
+    const res = ttak.writeState(true);
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.refused, true, 'a refusal must stay distinguishable from a crash');
+    const o = JSON.parse(runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'ttak' }).stdout);
+    assert.strictEqual(o.reason, 'TTAK could not read or write its saved setting. Nothing was changed.');
+    assert.strictEqual(runHook({ hook_event_name: 'SessionStart', source: 'startup' }).stdout, '');
+    assert.ok(!fs.existsSync(leaf));
+  });
+});
+
 test('a read still creates nothing, at any depth', () => {
   withData((leaf, root) => {
     const deep = path.join(root, 'plugins', 'data', 'ttak-ttak');
@@ -584,13 +605,33 @@ test('the first-session notice fires when the parent is missing too', () => {
   });
 });
 
-test('the notice still refuses when the leaf exists and is not a directory', () => {
-  withData((leaf) => {
-    fs.writeFileSync(leaf, 'not a directory');
-    const r = runHook({ hook_event_name: 'SessionStart', source: 'startup' });
-    assert.strictEqual(r.stdout, '');
-    assert.strictEqual(r.exit, 0);
-  });
+test('the notice emits if and only if its flag was recorded', () => {
+  // Fix round 2, F9. Pinning "some guard returns early" is untestable here:
+  // four shapes funnel into one catch-all that returns the same NOOP, so no
+  // assertion can tell them apart. The property that actually matters is the
+  // biconditional -- an emit without a recorded flag repeats every session,
+  // and the notice is the only discovery path an off-by-default plugin has.
+  // Deleting the flag write fails this on the first two shapes.
+  const shapes = {
+    'leaf-missing-parent-exists': (leaf) => {},
+    'leaf-and-parent-missing': (leaf, root) => { process.env.PLUGIN_DATA = path.join(root, 'p', 'd', 'ttak-ttak'); },
+    'leaf-is-a-file': (leaf) => fs.writeFileSync(leaf, 'not a directory'),
+    'ancestor-is-a-file': (leaf, root) => {
+      const asFile = path.join(root, 'data');
+      fs.writeFileSync(asFile, 'not a directory');
+      process.env.PLUGIN_DATA = path.join(asFile, 'ttak-ttak');
+    },
+  };
+  for (const [shape, setup] of Object.entries(shapes)) {
+    withData((leaf, root) => {
+      setup(leaf, root);
+      const r = runHook({ hook_event_name: 'SessionStart', source: 'startup' });
+      const recorded = fs.existsSync(path.join(path.dirname(ttak.statePath()), '.notified'));
+      assert.strictEqual(r.stdout !== '', recorded,
+        `${shape}: emitted=${r.stdout !== ''} but flag recorded=${recorded}`);
+      assert.strictEqual(r.exit, 0, `${shape}: a lifecycle hook must fail open`);
+    });
+  }
 });
 
 test('the status control prompt reports the saved setting without changing it', () => {

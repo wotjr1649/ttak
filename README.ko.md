@@ -55,9 +55,11 @@ codex plugin marketplace add wotjr1649/ttak
 codex plugin add ttak@ttak
 ```
 
-Codex는 `~/.codex/config.toml`에 `[features] hooks = true`가 필요하고, **훅이 실행되기 전에 `/hooks`를
-통해 플러그인 훅을 검토하고 신뢰하도록 요구합니다.** 설치만으로는 부족합니다. 이 신뢰 검토를 마치기
-전까지 TTAK은 아무 일도 하지 않습니다. 설치 후 Codex 데스크톱 앱을 재시작하십시오. Codex에는 프로젝트별
+Codex는 **훅이 실행되기 전에 `/hooks`를 통해 플러그인 훅을 검토하고 신뢰하도록 요구합니다.**
+설치만으로는 부족합니다. 이 신뢰 검토를 마치기 전까지 TTAK은 아무 일도 하지 않으며 그 이유도 알려 주지
+않습니다. 훅은 기본적으로 켜져 있습니다. Codex CLI `0.153.4`에서는 `~/.codex/config.toml`에 `[features]`
+블록이 전혀 없는 상태로 훅이 실행되었고(3회 시행), 따라서 `[features] hooks = true`는 그 기능을 꺼 둔
+경우에만 필요합니다. 이전 버전의 Codex가 이를 요구했는지는 **확인되지 않았습니다.** 설치 후 Codex 데스크톱 앱을 재시작하십시오. Codex에는 프로젝트별
 활성화가 없으며, 제거하기 전까지 사용자 프로필 전체에 적용됩니다.
 
 ## 켜기
@@ -85,8 +87,8 @@ Codex는 `~/.codex/config.toml`에 `[features] hooks = true`가 필요하고, **
 
 슬래시 명령 형태는 없으며, `/ttak`은 동의어가 아닙니다. Claude Code `2.1.261`에서는 호스트가
 `Unknown command: /ttak`으로 응답하고 플러그인은 그 프롬프트를 아예 보지 못합니다. Codex CLI
-`0.153.4`에서는 같은 텍스트가 평범한 프롬프트로 도착해 모델에 전달됩니다. 두 호스트가 다르게 동작하므로
-맨 단어만이 유일한 트리거입니다.
+`0.153.4`에서는 — `codex exec`로 측정했으며 대화형 세션은 확인되지 않았습니다 — 같은 텍스트가 평범한
+프롬프트로 도착해 모델에 전달됩니다. 두 호스트가 다르게 동작하므로 맨 단어만이 유일한 트리거입니다.
 
 ### 프롬프트가 소비될 때 무엇이 보이는지는 호스트마다 다릅니다
 
@@ -94,9 +96,11 @@ Codex는 `~/.codex/config.toml`에 `[features] hooks = true`가 필요하고, **
 (`docs/analysis/claude-code/2026-09-04-host-integration.md`,
 `docs/analysis/codex-cli/2026-09-04-host-integration.md`).
 
-- **Claude Code `2.1.261`** 은 플러그인의 응답을 호스트 형식으로 감싸서 보여 줍니다.
-  `UserPromptSubmit operation blocked by hook:` 줄, 그다음 응답, 그다음 `Original prompt: <입력한 것>`.
-  오류로 표시되지는 않습니다.
+- **Claude Code `2.1.261`, `claude -p --output-format stream-json`** 은 플러그인의 응답을 호스트
+  형식으로 감싸서 보여 줍니다. `UserPromptSubmit operation blocked by hook:` 줄, 그다음 응답, 그다음
+  `Original prompt: <입력한 것>`. 오류로 표시되지는 않습니다. **대화형 세션이 이를 어떻게 표시하는지는
+  확인되지 않았습니다.** 대부분의 사람이 마주치는 곳이 바로 거기이며, 형식이 다르거나 아예 없을 수
+  있습니다.
 - **Codex CLI `0.153.4`** 는 `codex exec --json`에서 **아무것도** 보여 주지 않습니다. 턴이 토큰 0으로
   완료되고 응답 텍스트는 출력 어디에도 나타나지 않습니다. Codex 대화형 UI는 **아직 확인되지
   않았습니다.** 동일하게 동작한다면 그곳에서 `ttak on`은 아무 확인도 주지 않고 사라진 메시지처럼
