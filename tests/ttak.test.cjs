@@ -736,8 +736,6 @@ test('attributions reproduce each upstream notice as published', () => {
   // source's own section and reject any holder, not just `DreambigOu`.
   const eli5 = sections(a).get('DreambigOu/ELI5');
   assert.ok(eli5, 'no DreambigOu/ELI5 section');
-  assert.match(eli5, /^Copyright \(c\) 2026\s*$/m,
-    'the ELI5 notice must be reproduced with no copyright holder, exactly as published');
   assert.ok(!/Copyright \(c\) 2026 \S/.test(eli5),
     'inventing a copyright holder is a false attribution statement');
 
@@ -746,23 +744,55 @@ test('attributions reproduce each upstream notice as published', () => {
   // notice from a truncated one, so deleting a warranty paragraph passed.
   // Require every structural part of an MIT notice inside each fenced block,
   // per block rather than per file. This catches truncation, which is the
-  // realistic failure, and it runs offline. It does not catch a mid-paragraph
-  // alteration: byte-equality against `git cat-file blob <pin>:LICENSE` is the
-  // check for that, it needs the upstream clones, and a hash recorded here
-  // would be a magic number CI could not regenerate or falsify.
-  const notices = a.match(/^```\n[\s\S]*?^```$/gm) || [];
-  assert.strictEqual(notices.length, 4, 'expected four reproduced notice blocks');
-  notices.forEach((block, i) => {
+  // realistic failure, and it runs offline.
+  //
+  // What stays open, stated as the substantive case rather than the flattering
+  // one: these assertions prove each notice is internally complete and carries
+  // the holder THIS FILE claims for it. Nothing in-repo proves that holder is
+  // what upstream published -- the constants below were read from the pinned
+  // clones by hand. Body text between the structural markers is unchecked too.
+  // Byte-equality against `git cat-file blob <pin>:LICENSE` is the check for
+  // both, it needs the clones, and a hash recorded here would be a magic
+  // number CI could neither regenerate nor falsify.
+  //
+  // fix round 5, NEW-1: round 4 walked the blocks by index and never bound one
+  // to its source, so swapping two holders, blanking `ponytail`'s, or writing
+  // `Ayoub Ghriss` into `leanclarity`'s all stayed green. The holder line is
+  // the one fact MIT requires preserved and the one section 19.3 forbids
+  // altering by name. Read each block out of its own source's section and
+  // check the holder recorded for that source.
+  assert.strictEqual((a.match(/^```$/gm) || []).length, 8,
+    'expected exactly four fenced notice blocks, one per source');
+  for (const [source, holder] of Object.entries({
+    'DietrichGebert/ponytail': 'Copyright (c) 2026 DietrichGebert',
+    'ayghri/i-have-adhd': 'Copyright (c) 2026 Ayoub Ghriss',
+    'DreambigOu/ELI5': 'Copyright (c) 2026',
+    'wotjr1649/leanclarity': 'Copyright (c) 2026 LeanClarity contributors',
+  })) {
+    const s = sections(a).get(source);
+    assert.ok(s, `no attribution section for source: ${source}`);
+    const block = s.match(/^```\n([\s\S]*?)^```$/m);
+    assert.ok(block, `${source}: no reproduced notice block in its own section`);
+    const lines = block[1].split('\n');
+    const at = lines.indexOf(holder);
+    assert.notStrictEqual(at, -1,
+      `${source}: its notice must reproduce its own copyright line, "${holder}"`);
+    // fix round 5, NEW-4: a holder inserted on the next line passed both the
+    // old positive (`\s*$` ends the line happily) and the old negative (which
+    // needed a literal space). Every published notice puts a blank line here,
+    // so requiring one closes both the same-line and next-line forms, for all
+    // four sources rather than only for the holder-less one.
+    assert.strictEqual(lines[at + 1], '',
+      `${source}: nothing may follow its copyright line but a blank line`);
     for (const part of [
-      /^Copyright \(c\) 2026/m,
       /^Permission is hereby granted/m,
       /^The above copyright notice and this permission notice shall be included/m,
       /^THE SOFTWARE IS PROVIDED "AS IS"/m,
       /IN NO EVENT SHALL/,
     ]) {
-      assert.match(block, part, `notice block ${i + 1} is truncated: ${part} is missing`);
+      assert.match(block[1], part, `${source}: its notice is truncated, ${part} is missing`);
     }
-  });
+  }
 });
 
 // fix round 2 removed 'the README warns about the measured composition
@@ -864,7 +894,12 @@ const README_PINS = {
   'README.ko.md': {
     trustReview: '통해 플러그인 훅을 검토하고 신뢰하도록 요구합니다',
     advice: 'TTAK을 `ponytail`과 함께 사용하는 것은 권장하지 않습니다',
-    gateCause: '게이트에 동결된 후보에서 두 호스트 모두 6회 중 6회 실패했으며, 이를 고치려고 만든 '
+    // fix round 5, NEW-3: `두 호스트 모두 6회 중 6회` reads distributively --
+    // six per host, twelve in total. The English `6 of 6 across both hosts`
+    // cannot be read that way, so F-C's implicit denominator survived in
+    // Korean alone. `걸쳐` spans the two hosts instead of quantifying over
+    // each. Both languages carry the same force per [DOC-003].
+    gateCause: '게이트에 동결된 후보에서 두 호스트에 걸쳐 6회 중 6회 실패했으며, 이를 고치려고 만든 '
       + '개정판도 Claude에서 3회 중 3회 다시 실패했습니다',
     cost: 'Claude Opus 5 요금 기준으로 세션당 대략 $0.002',
     openGate: '다시 돌리지 않은 물려받은 행동 게이트 `LCL-BEH-001`',
@@ -947,20 +982,62 @@ test('the copied-text inventory tracks both i-have-adhd pins and the reproduced-
   assert.ok(normalise(inv).includes(RUN_29),
     'the inventory no longer quotes the 29-word run it headlines');
 
+  // fix round 5, NEW-2: the above pins the run's text and the test constant's
+  // word count -- not the number the file publishes. Reverting the headline to
+  // 18, shrinking the F1 table, swapping 29 and 12 between the two files, and
+  // deleting the F1 table outright all stayed green. F-D exists because a
+  // published figure under-reported its own file's defect; an edit re-creating
+  // exactly that defect was unguarded. Pin the printed numbers too.
+  assert.match(inv, /longest shared run of \*\*29 words\*\* measured file-wide/,
+    'the ruling block must headline the file-wide 29-word run');
+  for (const [file, w] of [['policy/invariants.md', 29], ['policy/contract.md', 12]]) {
+    const row = inv.split('\n').find((l) => l.startsWith(`| \`${file}\` | `));
+    assert.ok(row, `${file}: no row in the F1 file-wide table`);
+    assert.match(row, new RegExp(`^\\| \`${file}\` \\| \\*\\*${w} w\\*\\* \\|`),
+      `${file}: the F1 file-wide table must report ${w} w against its own source`);
+  }
+
   // fix round 3, C4, widened in round 4: this file exists to hold two licence
   // gates open, and nothing stopped a future edit from closing them in the
   // Status table. Round 3 pinned the one gate that had been named by
   // instance; both belong here, because the class is what matters.
+  //
+  // fix round 5, NEW-5: /\*\*Open\*\*/ anywhere in the row read a token, not a
+  // state -- `Closed — was **Open**, now signed off` passed it. Read the
+  // state cell and require it to open with the marker.
   for (const id of ['[LIC-007]', '[AC-012]']) {
     const row = inv.split('\n').find((l) => l.startsWith(`| \`${id}\``));
     assert.ok(row, `no ${id} row in the inventory Status table`);
-    assert.match(row, /\*\*Open\*\*/,
-      `${id} is closed only by a human ruling, not by editing this table`);
+    assert.match(row.split('|')[2].trim(), /^\*\*Open\*\*/,
+      `${id} is closed by a human ruling, not by editing its state cell`);
   }
   for (const f of ['policy/precedence.md', 'policy/invariants.md', 'policy/contract.md',
                    'skills/ttak-explain/SKILL.md']) {
     assert.ok(inv.includes(f), `not inventoried: ${f}`);
   }
+});
+
+// fix round 5, NEW-6: the four sites carrying a corrected behaviour-gate
+// denominator were all unguarded and silently revertible, including
+// AMENDMENT_EN.md, where the merged claim originated. This task has twice
+// watched a corrected figure be re-broken -- once as the merged claim, once as
+// the replacement that asserted six post-revision Claude runs where the gate
+// ran three. A correction is worth no more than its pin.
+test('every corrected behaviour-gate denominator names what it counts', () => {
+  const amend = fs.readFileSync(path.join(ROOT, 'docs',
+    'TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md'), 'utf8').replace(/\s+/g, ' ');
+  for (const pin of [
+    '`BEH-GUI-04` fails 6/6 on Claude across two candidates',
+    '6/6 failure rate across two hosts on the frozen candidate `1.0.2`',
+    'failed 6/6 across both hosts on the frozen candidate `1.0.2`, and 3/3 again on Claude',
+  ]) {
+    assert.ok(amend.includes(pin), `AMENDMENT_EN.md: denominator no longer named: "${pin}"`);
+  }
+  const inv = fs.readFileSync(path.join(ROOT, 'docs', 'COPIED_TEXT_INVENTORY.md'), 'utf8');
+  const c7 = inv.split('\n').find((l) => l.startsWith('| C7 |'));
+  assert.ok(c7, 'no C7 row in the inventory');
+  assert.ok(c7.includes('failing 6 of 6 across both hosts on the frozen candidate `1.0.2`'),
+    'the C7 row must name the candidate its 6 of 6 belongs to');
 });
 
 // Section 19.3: attribution lives in ATTRIBUTIONS.md and README prose only. A

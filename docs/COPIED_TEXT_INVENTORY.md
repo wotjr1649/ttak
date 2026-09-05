@@ -52,7 +52,15 @@ injected text until the three-arm ablation (`OPEN-12`) shows a user-experience e
 brand lives in the name, the logo, the README, and the marketplace `interface` block, which cost no
 runtime tokens." The brand does ship in exactly those places —
 `displayName: "TTAK — Track · Trim · Adapt · Keep"` in all three manifests. Spec §19.3 and design
-§5.4 therefore contradict design §5.3, which is the governing decision and the one this file follows.
+§5.4 therefore both list a unit that does not ship, and this file follows §5.3.
+
+**The reason is not that a design document outranks a specification.** On the face of it the reverse
+holds: §19.3 declares itself normative and §5.3 declares nothing. The reason is that **§19.3's
+persona clause is stale.** The v0.2 amendment revised twelve requirements and never reached this one,
+so the sentence predates the decision recorded in §5.3 rather than competing with it. What is adopted
+here is the decision, not the document's rank — and **the precedence question between the
+specification and the design is itself unsettled, and joins the v0.3 list.**
+
 §5.3's own first sentence is inaccurate too: the operating frame does not appear as section headings,
 which are `# Precedence`, `# Invariants` and `# Response contract`. **Reconciling those three
 sentences is a v0.3 amendment item alongside the derivation requirement below. No persona text is to
