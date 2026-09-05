@@ -138,25 +138,57 @@ test("Codex's fresh-profile shape: leaf and parent both missing", () => {
   });
 });
 
-test('a file where a parent directory should be is unavailable, never a confident OFF', () => {
-  // Fix round 2, F1. Windows returns ENOENT here, not ENOTDIR, so treating
-  // every ENOENT as 'absent' made this path read as absent -- and absent means
-  // OFF, so `ttak` answered "TTAK saved setting: OFF." for a path nothing can
-  // ever be written to. The rule is the same one the status prompt has always
-  // had: never claim ON or OFF when the setting is unreadable.
-  withData((leaf, root) => {
+// A name that lstat sees but stat cannot resolve. On Windows this is a
+// dangling directory junction, which any unprivileged user can create; on
+// POSIX it is a dangling symlink. Returns false if the platform refuses,
+// so the tests below skip loudly rather than passing vacuously.
+function makeDangling(p) {
+  try { fs.symlinkSync(path.join(path.dirname(p), 'no-such-target'), p, 'junction'); return true; }
+  catch { return false; }
+}
+
+// Every shape where the state path cannot be used. `statSync` alone reports
+// ENOENT for all of them -- the same errno it reports for a path that is
+// simply free -- so each one was, at some point, read as 'absent' and
+// answered as a confident OFF for a path nothing can ever be written to.
+// Fix round 2 (F1) found the first, the final round (F-J) the other two.
+const UNUSABLE_SHAPES = {
+  'file where a parent directory should be': (root) => {
     const asFile = path.join(root, 'data');
     fs.writeFileSync(asFile, 'not a directory');
-    process.env.PLUGIN_DATA = path.join(asFile, 'ttak-ttak');
-    assert.strictEqual(ttak.readState().status, 'unavailable');
-    const res = ttak.writeState(true);
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.refused, true, 'a refusal must stay distinguishable from a crash');
-    const o = JSON.parse(runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'ttak' }).stdout);
-    assert.strictEqual(o.reason, 'TTAK could not read or write its saved setting. Nothing was changed.');
-    assert.strictEqual(runHook({ hook_event_name: 'SessionStart', source: 'startup' }).stdout, '');
-    assert.ok(!fs.existsSync(leaf));
-  });
+    return path.join(asFile, 'ttak-ttak');
+  },
+  'dangling junction as the leaf': (root) => {
+    const leaf = path.join(root, 'ttak-ttak');
+    return makeDangling(leaf) ? leaf : null;
+  },
+  'dangling junction as a parent': (root) => {
+    const asLink = path.join(root, 'data');
+    return makeDangling(asLink) ? path.join(asLink, 'ttak-ttak') : null;
+  },
+};
+
+test('an unusable state path is unavailable, never a confident OFF', (t) => {
+  let ran = 0;
+  for (const [shape, setup] of Object.entries(UNUSABLE_SHAPES)) {
+    withData((_leaf, root) => {
+      const target = setup(root);
+      if (target === null) return;
+      ran += 1;
+      process.env.PLUGIN_DATA = target;
+      assert.strictEqual(ttak.readState().status, 'unavailable', `${shape}: read`);
+      const res = ttak.writeState(true);
+      assert.strictEqual(res.ok, false, `${shape}: write must not report success`);
+      assert.strictEqual(res.refused, true, `${shape}: a refusal must stay distinguishable from a crash`);
+      const o = JSON.parse(runHook({ hook_event_name: 'UserPromptSubmit', prompt: 'ttak' }).stdout);
+      assert.strictEqual(o.reason, 'TTAK could not read or write its saved setting. Nothing was changed.',
+        `${shape}: the status prompt must not claim ON or OFF`);
+    });
+  }
+  if (ran < Object.keys(UNUSABLE_SHAPES).length) {
+    t.diagnostic(`only ${ran} of ${Object.keys(UNUSABLE_SHAPES).length} shapes were creatable on this platform`);
+  }
+  assert.ok(ran >= 1, 'no unusable shape could be constructed; this test proved nothing');
 });
 
 test('a read still creates nothing, at any depth', () => {
@@ -621,6 +653,10 @@ test('the notice emits if and only if its flag was recorded', () => {
       fs.writeFileSync(asFile, 'not a directory');
       process.env.PLUGIN_DATA = path.join(asFile, 'ttak-ttak');
     },
+    // The shape that disproved the round-2 claim that a failing flag write was
+    // unreachable: its immediate parent is a real directory, so the old
+    // reasoning admitted it, and it still cannot be created or written into.
+    'leaf-is-a-dangling-junction': (leaf) => { makeDangling(leaf); },
   };
   for (const [shape, setup] of Object.entries(shapes)) {
     withData((leaf, root) => {

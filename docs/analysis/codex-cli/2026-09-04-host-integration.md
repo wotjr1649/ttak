@@ -282,9 +282,46 @@ handle('ttak')   => "TTAK saved setting: OFF."
 ```
 
 It asserted a confident OFF for a path nothing can ever be written to, contradicting the rule the
-status prompt has always had. `readState` and `writeState` now both walk up to the nearest existing
-ancestor and require it to be a directory, which creates nothing and is correct on either errno. A
-test covers the shape and reverting to the errno-only check fails it and no other test.
+status prompt has always had.
+
+**Corrected again in the final round, because round 2 generalised the wrong invariant.** The round-2
+fix walked up to the nearest existing ancestor using `fs.statSync` — and `statSync` follows reparse
+points, so it still could not tell "this name is free" from "this name is occupied by something that
+cannot be walked through". It had only learned the distinction for a plain file. A **dangling
+directory junction** — an ordinary unprivileged NTFS shape, `fs.symlinkSync(target, p, 'junction')`
+with a target that does not exist — reopened exactly the hole:
+
+```
+lstat sees it: true
+stat  gives  : ENOENT
+readState   => {"status":"absent"}
+handle ttak => "TTAK saved setting: OFF. …"
+writeState  => {"ok":false}          <- refused dropped again
+```
+
+They are two different questions and only `lstat` answers the first:
+
+| Question | Call |
+|---|---|
+| does this name exist | `lstatSync` — does not follow links |
+| can I walk through it | `statSync` — does |
+
+`nearestExistingStat` now asks both: it walks up past names that do not exist and stops at the first
+one that does, returning `null` when that name cannot be resolved. Both call sites pass the leaf
+itself rather than its parent, so a leaf that is a dangling junction is caught by the same code path
+as an unwalkable ancestor. Verified across six shapes:
+
+| State path shape | `readState` | `writeState` | notice | flag |
+|---|---|---|---|---|
+| dangling junction as the leaf | `unavailable` | `{ok:false,refused:true}` | silent | not written |
+| dangling junction as a parent | `unavailable` | `{ok:false,refused:true}` | silent | not written |
+| plain file as a parent | `unavailable` | `{ok:false,refused:true}` | silent | not written |
+| plain file as the leaf | `unavailable` | `{ok:false,refused:true}` | silent | not written |
+| Codex fresh profile (leaf and parent missing) | `absent` | `{ok:true}` | fires | written |
+| Claude fresh profile (leaf missing) | `absent` | `{ok:true}` | fires | written |
+
+One test covers all three unusable shapes, and six mutations are now run against the suite —
+including reverting the helper to `statSync` alone, which fails that test and no other.
 
 ### Design deviation, deliberate, recorded here rather than in the design
 
@@ -393,7 +430,12 @@ Two details cost time and are worth recording: the flags belong on `codex exec`,
 `error: unexpected argument '--sandbox' found`), and dropping `--ephemeral` writes session files
 into `CODEX_HOME`, which is why this is only safe against a throwaway one.
 
-`clear` and `compact` remain unreached: `codex exec` has no equivalent of those commands.
+`clear` and `compact` remain unreached, and that is now a measurement rather than an assumption.
+A later review enumerated the `codex exec` surface and tested `--thread-source`, the one flag that
+looked like it might carry a lifecycle source, against a throwaway `CODEX_HOME` with a raw control
+hook: both `--thread-source clear` and `--thread-source compact` still deliver `"source":"startup"`.
+(Reviewer's observation, not this document's own run.) Nobody should re-open the question without
+new evidence.
 
 ### 3.9 `[features] hooks = true` is not an install requirement on this version
 

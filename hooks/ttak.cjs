@@ -11,14 +11,25 @@ function statePath() {
   return root ? path.join(root, 'state.json') : null;
 }
 
-// Windows returns ENOENT, not ENOTDIR, when an ancestor of the path is a file
-// (verified on 10.0.26200, Node 24), so the errno alone cannot tell "nothing
-// exists here yet" from "this path can never be used". Walk up to the nearest
-// thing that does exist and ask it. Creates nothing.
+// Two different questions, and only lstat answers the first one.
+//
+//   "does this name exist"        -> lstatSync, which does not follow links
+//   "can I walk through it"       -> statSync, which does
+//
+// statSync alone conflates them: it reports ENOENT both for a name that is
+// free and for a name occupied by something unwalkable. On Windows an
+// ancestor that is a plain file gives ENOENT rather than ENOTDIR, and a
+// dangling directory junction -- an ordinary unprivileged NTFS shape -- gives
+// ENOENT while the name is plainly taken. Reading either as "free" hands back
+// 'absent', which the status prompt reports as a confident OFF for a path
+// nothing can ever be written to. So ask both: walk up past names that do not
+// exist, and stop at the first one that does. Creates nothing.
 function nearestExistingStat(p) {
   for (let d = p, prev = null; d !== prev; prev = d, d = path.dirname(d)) {
+    try { fs.lstatSync(d); }
+    catch (e) { if (e.code === 'ENOENT') continue; return null; }
     try { return fs.statSync(d); }
-    catch (e) { if (e.code !== 'ENOENT') return null; }
+    catch { return null; }
   }
   return null;
 }
@@ -38,7 +49,7 @@ function readState() {
     // notice and made 'ttak on' fail forever. Accepting every ENOENT instead
     // made a file-for-an-ancestor read 'absent', which the status prompt
     // reports as a confident OFF for a path nothing can ever be written to.
-    const anc = nearestExistingStat(path.dirname(leaf));
+    const anc = nearestExistingStat(leaf);
     return anc && anc.isDirectory() ? { status: 'absent' } : { status: 'unavailable' };
   }
   if (!leafStat.isDirectory()) return { status: 'unavailable' };
@@ -73,7 +84,7 @@ function writeState(enabled) {
       // Still a refusal, not a crash, when what exists above the missing
       // levels is not a directory -- mkdirSync would throw and the catch-all
       // would drop the `refused` flag readState and the caller rely on.
-      const anc = nearestExistingStat(path.dirname(leaf));
+      const anc = nearestExistingStat(leaf);
       if (!anc || !anc.isDirectory()) return { ok: false, refused: true };
       fs.mkdirSync(leaf, { recursive: true });
     } else if (!fs.statSync(leaf).isDirectory()) {
