@@ -444,7 +444,7 @@ def _selftest():
     known = load_ac_ids(SPEC_EN)
     assert known, "no AC ids found in the spec -- regex or path is wrong"
     cases = load_cases(CASES_FILE, known)
-    assert len(cases) >= 15, f"expected at least 15 cases (one per owned Sec17.2 group), found {len(cases)}"
+    assert len(cases) >= 16, f"expected at least 16 cases (one per owned Sec17.2 group), found {len(cases)}"
     ids = [c["id"] for c in cases]
     assert len(ids) == len(set(ids)), "duplicate case id in cases.jsonl"
     for c in cases:

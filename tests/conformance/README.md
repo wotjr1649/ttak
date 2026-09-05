@@ -101,7 +101,7 @@ here (see Task 12, host integration verification).
 ## Case coverage
 
 `cases.jsonl` holds one row per `id` with `ac`, `prompt`, `criteria` (statements a grader can check),
-and `forbidden` (outcomes that fail it). Fifteen cases cover fifteen of the eighteen §17.2 scenario
+and `forbidden` (outcomes that fail it). Sixteen cases cover sixteen of the eighteen §17.2 scenario
 groups (see `docs/TTAK_Plugin_Product_Definition_v0.2_EN.md`). `ac` cites the acceptance criterion each
 case is evidence for, from §17.4; `run.py --selftest` checks every `ac` value against the IDs actually
 defined there, so a typo or an invented ID fails loudly instead of silently mismapping a case.
@@ -118,6 +118,7 @@ defined there, so a typo or an invented ID fails loudly instead of silently mism
 | `audience-practitioner` | practitioner explanation | AC-007 |
 | `audience-expert` | expert explanation | AC-007 |
 | `audience-decision-maker` | decision-maker explanation | AC-007 |
+| `workflow-simplification` | workflow simplification | AC-004 |
 | `option-comparison` | option comparison requiring a final recommendation | AC-006 |
 | `unverifiable-env` | unverified environment, false completion claims avoided | AC-002 |
 | `serious-context-humor` | serious context, humor suppressed | AC-006 |
@@ -137,16 +138,34 @@ materially change the decision). §9.1 lists "option comparison and recommendati
 `audience-decision-maker`: that case is about adapting an explanation to a stated reader, this one is
 about producing a recommendation among named options regardless of who is asking.
 
-**The other three §17.2 groups this instrument does not cover, and the actual reason for each:**
+**`workflow-simplification` (§17.2 group 12) is Core, and here is the ruling, so the next reader does
+not have to re-derive it.** §9.2 defines `TTAK Review` as a *deliverable* — evidence-based, adversarial
+review across eight named dimensions (correctness, completeness, security and data integrity,
+requirement consistency, root-cause alignment, YAGNI and unnecessary complexity, maintainability,
+verifiability), ending in a verdict. Its bullet list names the artefact *types* that deliverable can be
+pointed at — one of which is "business workflows". §9.1's "workflow analysis" is ordinary reasoning
+about a workflow: a different thing from producing an adversarial review of one.
+
+The overlap between the two sections' bullet lists is systematic, not a one-off: Review also lists
+*"documents, policies, and specifications"* against Core's *"document and policy restructuring"*, and
+*"architecture and database designs"* against Core's *"architecture and database reasoning"*. Reading
+any of these overlaps as removing the domain from Core would strip three of Core's ten entries — so the
+boundary §9 draws is the deliverable (an adversarial review with a verdict) versus the domain (reasoning
+about the same subject matter), not which section's bullet list happens to name the topic first. A
+single-turn "here is our process, simplify it" prompt asks for a simplified process, not a review
+verdict of the current one — it exercises the trim discipline that is Core's own territory in v1, not a
+Review artefact. `workflow-simplification` maps to `[AC-004]`, not the `[AC-006]` catch-all most of this
+table uses: its `forbidden` list's central failure mode is proposing new tooling/automation to manage
+the process instead of trimming it — literally "no speculative … infrastructure" applied to a workflow
+rather than to code.
+
+**The other two §17.2 groups this instrument does not cover, and the actual reason for each:**
 
 - **Group 11** (document contradiction and duplication review) is squarely `TTAK Review` — §9.2 lists
   "documents, policies, and specifications" and "requirement consistency" as Review's own scope, and
-  Review is deferred to v1.1 (`[AC-008]`, not a v1 gate). Excluded correctly.
-- **Group 12** (workflow simplification) is **genuinely ambiguous**, not excluded for a settled reason:
-  §9.1 lists "workflow analysis" under `TTAK Core` (v1-owned), and §9.2 lists "business workflows"
-  under `TTAK Review` (deferred). Nothing in the specification says which one "workflow simplification"
-  in §17.2 means. Left uncovered because I cannot honestly file it under either bucket, not because it
-  is confidently Review-shaped.
+  Review is deferred to v1.1 (`[AC-008]`, not a v1 gate). Unlike group 12, this one names a *review of*
+  documents as its own deliverable ("contradiction and duplication review"), so the same deliverable
+  test that puts group 12 in Core puts this one in Review. Excluded correctly.
 - **Group 14** (long multi-step work requiring visible progress, `[RESP-009]`) is excluded for an
   architectural reason, not a scope reason: `run.py` sends one prompt and records one response per
   trial. There is no second turn in which progress could be shown continuing, so this instrument cannot
@@ -188,7 +207,7 @@ figure this instrument produces about *routing* — whether the model chooses to
 skill unprompted — is measured where TTAK is the only installed skill, and an only-installed skill
 cannot fail to be routed to; such a figure proves nothing about routing accuracy in a realistic
 environment with other skills competing for the same trigger words. This is `OPEN-06` in
-`docs/superpowers/specs/2026-09-04-ttak-design.md`. None of the fifteen cases above are routing
+`docs/superpowers/specs/2026-09-04-ttak-design.md`. None of the sixteen cases above are routing
 cases — they send prompts and score the response's content and tone, not which skill answered — so
 this instrument does not currently produce a routing figure at all. A future routing-focused case
 would need to state, and actually load, a realistic competing skill set to mean anything.
