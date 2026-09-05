@@ -68,10 +68,10 @@ Ponytail plus high effort. Superseding LeanClarity does not remove it. TTAK inhe
 
 ### 1.2 Two of the five failures were caused by adding a clause the upstream did not have
 
-`BEH-GUI-04` fails 6/6 across two candidates. Its cause is recorded: LeanClarity took i-have-adhd's
-already-conditional rule ("if anything is left open, name ONE thing") and appended a prohibition
-("do not invent one after completion"). A revision was built specifically to fix it and did not.
-The evidence file states: "상위에 없던 조항을 추가한 것이 통하지 않는다는 직접 증거다."
+`BEH-GUI-04` fails 6/6 on Claude across two candidates. Its cause is recorded: LeanClarity took
+i-have-adhd's already-conditional rule ("if anything is left open, name ONE thing") and appended a
+prohibition ("do not invent one after completion"). A revision was built specifically to fix it and
+did not. The evidence file states: "상위에 없던 조항을 추가한 것이 통하지 않는다는 직접 증거다."
 
 **`[RESP-007]` is that same appended prohibition.** TTAK currently carries a clause with a measured
 6/6 failure rate across two hosts on the frozen candidate `1.0.2`.
@@ -160,7 +160,7 @@ Requirement-ID count: 155 + 2 = **157**. The arithmetic coincidence is noted so 
 | ID | Change | Basis |
 |---|---|---|
 | `[SRC-002]` | Add an exception: the enumerated protection nouns — `standard library`, `trust-boundary validation`, `data-loss prevention`, `accessibility`, `explicit output formats`, and the verification-honesty clause — SHOULD be preserved in meaning rather than paraphrased for style. | v0.1 §0.2 admits a SHOULD exception only for a documented platform constraint; this basis is a measurement, so it is declared here instead of taken silently. LeanClarity's `L3` compression deleted exactly these nouns and broke 14 of 19 deterministic assertions. |
-| `[RESP-007]` | Restate in the upstream's conditional-positive form: *give one concrete next action only when work remains for the user*. Drop the appended prohibition. | §1.2. The prohibition form failed 6/6 across both hosts on the frozen candidate `1.0.2`, and 6/6 again on Claude after a revision built specifically to fix it. |
+| `[RESP-007]` | Restate in the upstream's conditional-positive form: *give one concrete next action only when work remains for the user*. Drop the appended prohibition. | §1.2. The prohibition form failed 6/6 across both hosts on the frozen candidate `1.0.2`, and 3/3 again on Claude after a revision built specifically to fix it. |
 | `[ACT-003]` | Qualify: session persistence is delivered by host lifecycle injection where the host supports it. On a host that instructs the model not to carry skill instructions across turns, a skill-only implementation MUST NOT be described as persistent. | §1.3 |
 | `[ACT-006]` | Narrow to v1 scope: Review is deferred (§2.4), so this governs Explain only in v1. | §3, D9′ |
 | `[AC-001]` | Unchanged as a gate. Add a scope sentence: this gate measures TTAK's own critical scenarios under pinned evaluation conditions. It does not certify behavior when TTAK is loaded alongside other instruction sets, and TTAK is not a security control. | §1.1. Publishing the composition finding as a limitation is required, but it does not discharge the gate; conflating the two was the error the compliance audit caught. |

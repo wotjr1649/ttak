@@ -114,7 +114,7 @@ including the ones that did not go its way. All figures below are from its evide
 - **The predecessor's own behaviour gate failed.** `LCL-BEH-001`: **5 of 17** frozen cases did not
   pass over 102 runs. Release was recorded as `NOT VERIFIED` and complete sign-off was never granted.
   One of the five has a recorded cause — a prohibition appended to a rule the upstream did not have.
-  It failed 6 of 6 across both hosts on the frozen candidate, and 6 of 6 again on Claude after a
+  It failed 6 of 6 across both hosts on the frozen candidate, and 3 of 3 again on Claude after a
   revision built specifically to fix it; TTAK drops that clause. A second failed 24 of 24 at every
   compression level and is classified in the same evidence as a constraint that opposes the model's
   defaults, which published work measures failing regardless of how it is worded. TTAK has not

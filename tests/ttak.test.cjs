@@ -817,21 +817,36 @@ const README_PINS = {
     // F-C: "6 of 6 across two hosts and two candidates" merged two distinct
     // measurements into a figure true of neither denominator. Both halves of
     // the argument are pinned, not only the corrected number.
-    gateCause: 'It failed 6 of 6 across both hosts on the frozen candidate, and 6 of 6 again on '
+    //
+    // fix round 3, C6: round 2's replacement said "6 of 6 again on Claude",
+    // which is also wrong. The gate is three runs per host per case per
+    // candidate (evidence L446, `17 cases x 3 runs x 2 hosts`, 102 runs at
+    // L259 and L616), so the revision gave Claude three runs, not six. The
+    // "six consecutive" at L479-482 spans both candidates and already
+    // includes the frozen candidate's three, which the first clause counts.
+    gateCause: 'It failed 6 of 6 across both hosts on the frozen candidate, and 3 of 3 again on '
       + 'Claude after a revision built specifically to fix it',
     // F-I: the evidence qualifies this figure at Claude Opus 5 rates.
     cost: '$0.002 per session at Claude Opus 5 rates',
     // F-K: the open-gate list omitted the gate the README states twice
     // elsewhere is inherited and un-rerun.
     openGate: 'the inherited `LCL-BEH-001` behaviour gate (not re-run)',
+    // fix round 3, C5: /not a guard|가드가 아닙니다/i matched twice in
+    // README.ko.md -- the bullet and the composition sentence at :150 -- so
+    // deleting the bullet stayed green. English matched once only because
+    // :24 reads "Not a guard" and :152 reads "is a guard"; that is an
+    // accident of wording, not a guard. Pin the bullet by its content.
+    notAGuard: '**Not a guard.** Not an enforcement mechanism, not a security control, not a '
+      + 'correctness guarantee.',
   },
   'README.ko.md': {
     trustReview: '통해 플러그인 훅을 검토하고 신뢰하도록 요구합니다',
     advice: 'TTAK을 `ponytail`과 함께 사용하는 것은 권장하지 않습니다',
     gateCause: '게이트에 동결된 후보에서 두 호스트 모두 6회 중 6회 실패했으며, 이를 고치려고 만든 '
-      + '개정판도 Claude에서 다시 6회 중 6회 실패했습니다',
+      + '개정판도 Claude에서 3회 중 3회 다시 실패했습니다',
     cost: 'Claude Opus 5 요금 기준으로 세션당 대략 $0.002',
     openGate: '다시 돌리지 않은 물려받은 행동 게이트 `LCL-BEH-001`',
+    notAGuard: '**가드가 아닙니다.** 강제 메커니즘도, 보안 통제도, 정확성 보장도 아닙니다.',
   },
 };
 
@@ -861,7 +876,8 @@ test('both READMEs publish the inherited measurements, including the negative on
       `${name}: the un-rerun behaviour gate belongs in the open-gate list`);
     assert.ok(r.includes('/ttak:ttak-explain') && r.includes('$ttak:ttak-explain'),
       `${name}: both host invocation strings are required`);
-    assert.match(r, /not a guard|가드가 아닙니다/i, `${name}: the not-a-guard statement is missing`);
+    assert.ok(flat.includes(pin.notAGuard),
+      `${name}: the not-a-guard bullet is missing: "${pin.notAGuard}"`);
   }
 });
 
@@ -890,6 +906,31 @@ test('the copied-text inventory tracks both i-have-adhd pins and the reproduced-
   assert.match(inv, /reuse[- ]order/i, 'the reuse-order chain is not recorded');
   assert.match(inv, /protected noun/i, 'the protected-noun list is not recorded');
   assert.match(inv, /ponytail-review/, 'Review material must be recorded even when not carried');
+
+  // fix round 3, C3: the inventory headlines a 29-word file-wide run between
+  // `policy/invariants.md` and the predecessor's `policies/engineering.md`.
+  // The upstream half of that measurement cannot be checked in-repo, but the
+  // local half can: if the policy file is edited, the headline silently
+  // becomes false in the direction that flatters the project. Both the policy
+  // text and the inventory's quoted evidence are pinned to the same run,
+  // normalised exactly as the inventory's Method section describes.
+  const RUN_29 = 'the reported symptom optimize for the smallest correct change not the shortest '
+    + 'looking diff never simplify away trust boundary validation security controls correctness '
+    + 'guards data loss prevention accessibility or';
+  assert.strictEqual(RUN_29.split(' ').length, 29, 'the pinned run is not 29 words');
+  const normalise = (s) => s.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  assert.ok(normalise(fs.readFileSync(path.join(ROOT, 'policy', 'invariants.md'), 'utf8'))
+    .includes(RUN_29),
+  'policy/invariants.md no longer contains the 29-word run the inventory headlines');
+  assert.ok(normalise(inv).includes(RUN_29),
+    'the inventory no longer quotes the 29-word run it headlines');
+
+  // fix round 3, C4: this file exists to hold two licence gates open, and
+  // nothing stopped a future edit from closing them in the Status table.
+  const ac012 = inv.split('\n').find((l) => l.startsWith('| `[AC-012]`'));
+  assert.ok(ac012, 'no [AC-012] row in the inventory Status table');
+  assert.match(ac012, /\*\*Open\*\*/,
+    '[AC-012] is closed only by a human ruling, not by editing this table');
   for (const f of ['policy/precedence.md', 'policy/invariants.md', 'policy/contract.md',
                    'skills/ttak-explain/SKILL.md']) {
     assert.ok(inv.includes(f), `not inventoried: ${f}`);
