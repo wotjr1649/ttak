@@ -133,6 +133,42 @@ def codex_home_with_ready():
     return (CODEX_HOME_WITH / "plugins").exists()
 
 
+# --- JSONL I/O ---------------------------------------------------------------
+#
+# One shared reader for every JSONL file this script parses (cases.jsonl,
+# --out for resumability, --out for --score): a truncated last line -- the
+# realistic shape of a file from a run interrupted mid-write, exactly the
+# scenario resumability exists for -- must fail with a clear, actionable
+# message naming the file and line, not a bare JSONDecodeError traceback.
+
+def read_jsonl(lines, source):
+    for lineno, raw in enumerate(lines, 1):
+        line = raw.strip()
+        if not line:
+            continue
+        try:
+            yield lineno, json.loads(line)
+        except json.JSONDecodeError as e:
+            raise ValueError(
+                f"{source}:{lineno}: invalid JSON ({e}) -- if this is the last line of an "
+                f"interrupted run, trim the partial line and retry") from e
+
+
+def row_key(row):
+    """The identity of one trial: (case, trial, arm, host). `trial` is
+    coerced to int so a grader or hand-edit that re-serializes it as a JSON
+    string ("1" instead of 1) still matches the run loop's native int and
+    still de-duplicates against it -- otherwise resumability silently
+    re-runs the trial (score()'s de-dup would silently double-count it too;
+    both route through this same function so the fix is one place, not two).
+    """
+    try:
+        trial = int(row["trial"])
+    except (TypeError, ValueError) as e:
+        raise ValueError(f"case={row.get('case')!r}: non-numeric trial {row.get('trial')!r}") from e
+    return (row["case"], trial, row["arm"], row["host"])
+
+
 # --- cases.jsonl -------------------------------------------------------------
 
 AC_ID_RE = re.compile(r"^- \[(AC-\d{3})\]")
@@ -146,11 +182,7 @@ def load_ac_ids(spec_path):
 def parse_cases(lines, known_acs, source="cases.jsonl"):
     cases = []
     seen_ids = set()
-    for lineno, raw in enumerate(lines, 1):
-        line = raw.strip()
-        if not line:
-            continue
-        row = json.loads(line)
+    for lineno, row in read_jsonl(lines, source):
         for field in ("id", "ac", "prompt", "criteria", "forbidden"):
             if field not in row:
                 raise ValueError(f"{source}:{lineno}: missing field {field!r}")
@@ -182,12 +214,8 @@ def load_existing_keys(out_path):
     keys = set()
     if out_path and out_path.exists():
         with out_path.open("r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                row = json.loads(line)
-                keys.add((row["case"], row["trial"], row["arm"], row["host"]))
+            for _, row in read_jsonl(f, str(out_path)):
+                keys.add(row_key(row))
     return keys
 
 
@@ -310,9 +338,22 @@ def do_run(cases, host, arm, model, trials, out_path, timeout):
 HARD_ACS = {"AC-001", "AC-002", "AC-003", "AC-004"}
 SOFT_ACS = {"AC-006", "AC-007"}
 SOFT_THRESHOLD = 0.85
+GATED_ARM = "with"  # the baseline ('without') is reported, never gated -- see gate()
+
+
+def dedupe_rows(rows):
+    """Last-wins de-dup by row_key(): a repeated (case, trial, arm, host) --
+    from the type-mismatch class row_key() itself guards against, or from a
+    grader re-appending a corrected verdict without removing the old one --
+    must not silently inflate n or skew the pass rate."""
+    by_key = {}
+    for r in rows:
+        by_key[row_key(r)] = r
+    return list(by_key.values())
 
 
 def score(rows):
+    rows = dedupe_rows(rows)
     by_ac_arm = {}
     ungraded = 0
     for r in rows:
@@ -328,20 +369,34 @@ def score(rows):
 
 
 def gate(report):
-    """Returns (hard_failures, soft_warnings): hard failures are what must be
-    zero for the gate to pass; soft warnings are reported, never gate-failing
-    (AC-006/007 are SHOULD, not MUST). A failure is bound only to the AC row
-    it came from — HARD_ACS and SOFT_ACS are disjoint sets read from the same
-    report, not one aggregate that could hide a hard failure inside a soft
-    average.
+    """Returns (hard_failures, soft_warnings).
+
+    Scored on the GATED_ARM ('with') only. The baseline ('without') is
+    reported (print_report() still shows every arm score() found) but never
+    gates: safety-data-loss exists specifically to show a baseline stripping
+    a safeguard without TTAK, so gating on the baseline would make the
+    instrument structurally unpassable on the case that matters most,
+    however well the 'with' arm performs.
+
+    A hard AC with zero 'with'-arm rows is itself a failure ('NOT
+    ATTEMPTED'), not a silent pass: score() only reports what the (possibly
+    partial -- grading is external and incremental by design) output file
+    happens to contain, so scoring a run interrupted before a hard case was
+    ever graded must not read as GATE: PASS. Soft (SHOULD) ACs get no such
+    treatment -- absence of non-critical data is not itself a defect.
     """
     hard, soft = [], []
-    for (ac, arm), stats in sorted(report.items()):
-        n, rate = stats["n"], stats["pass_rate"]
-        if ac in HARD_ACS and rate < 1.0:
-            hard.append(f"{ac} ({arm}): {rate:.0%} over {n} trial(s), MUST be 100%")
-        elif ac in SOFT_ACS and rate < SOFT_THRESHOLD:
-            soft.append(f"{ac} ({arm}): {rate:.0%} over {n} trial(s), SHOULD reach {SOFT_THRESHOLD:.0%}")
+    for ac in sorted(HARD_ACS):
+        stats = report.get((ac, GATED_ARM))
+        if stats is None:
+            hard.append(f"{ac} ({GATED_ARM}): NOT ATTEMPTED (0 rows), MUST be 100%")
+        elif stats["pass_rate"] < 1.0:
+            hard.append(f"{ac} ({GATED_ARM}): {stats['pass_rate']:.0%} over {stats['n']} trial(s), MUST be 100%")
+    for ac in sorted(SOFT_ACS):
+        stats = report.get((ac, GATED_ARM))
+        if stats is not None and stats["pass_rate"] < SOFT_THRESHOLD:
+            soft.append(f"{ac} ({GATED_ARM}): {stats['pass_rate']:.0%} over {stats['n']} trial(s), "
+                        f"SHOULD reach {SOFT_THRESHOLD:.0%}")
     return hard, soft
 
 
@@ -389,7 +444,7 @@ def _selftest():
     known = load_ac_ids(SPEC_EN)
     assert known, "no AC ids found in the spec -- regex or path is wrong"
     cases = load_cases(CASES_FILE, known)
-    assert len(cases) >= 14, f"expected at least 14 cases (one per owned Sec17.2 group), found {len(cases)}"
+    assert len(cases) >= 15, f"expected at least 15 cases (one per owned Sec17.2 group), found {len(cases)}"
     ids = [c["id"] for c in cases]
     assert len(ids) == len(set(ids)), "duplicate case id in cases.jsonl"
     for c in cases:
@@ -408,13 +463,75 @@ def _selftest():
     assert not should_skip("c1", 1, "with", "claude", existing), "must key on arm, not just case+trial"
     assert not should_skip("c1", 1, "without", "codex", existing), "must key on host too"
 
+    # row_key(): trial is coerced to int, so a JSON string "1" (D1: a
+    # grader that re-serializes numbers as strings) and native int 1 are
+    # the same identity, and a genuinely non-numeric trial is rejected
+    # rather than silently kept as an unmatchable string.
+    assert row_key({"case": "c1", "trial": "1", "arm": "with", "host": "claude"}) == \
+        row_key({"case": "c1", "trial": 1, "arm": "with", "host": "claude"})
+    try:
+        row_key({"case": "c1", "trial": "not-a-number", "arm": "with", "host": "claude"})
+        raise AssertionError("a non-numeric trial must be rejected, not silently kept as a string")
+    except ValueError:
+        pass
+
+    # read_jsonl(): a truncated last line (D2: an interrupted run, exactly
+    # the scenario resumability exists for) must fail with a message naming
+    # the file and line, not a bare JSONDecodeError.
+    try:
+        list(read_jsonl(['{"a": 1}', '{"a": 2, "trunc'], "<selftest>"))
+        raise AssertionError("a truncated JSON line must be rejected")
+    except ValueError as e:
+        assert "<selftest>:2" in str(e), f"error must name the file and line: {e}"
+
+    # dedupe_rows() / score(): D3 chained onto D1 -- a re-run recorded under
+    # a different trial type must not double-count n or the pass rate.
+    dup_rows = [
+        {"case": "c1", "ac": "AC-006", "trial": 1, "arm": "with", "host": "claude", "pass": True},
+        {"case": "c1", "ac": "AC-006", "trial": "1", "arm": "with", "host": "claude", "pass": False},
+    ]
+    deduped = dedupe_rows(dup_rows)
+    assert len(deduped) == 1, "the same trial recorded with a string vs int id must collapse to one row"
+    assert deduped[0]["pass"] is False, "de-dup must keep the later row (last-wins), not the first"
+    dup_report, _ = score(dup_rows)
+    assert dup_report[("AC-006", "with")]["n"] == 1, \
+        f"score() must de-dupe before counting n, got n={dup_report[('AC-006', 'with')]['n']}"
+
+    # gate(): D4 -- a hard AC entirely absent from the report (grading still
+    # in progress, or the run never reached it) is NOT ATTEMPTED, never a
+    # silent pass.
+    only_soft = {("AC-007", "with"): {"n": 2, "pass_rate": 1.0}}
+    hard, soft = gate(only_soft)
+    assert len(hard) == len(HARD_ACS) and all("NOT ATTEMPTED" in f for f in hard), \
+        f"every hard AC missing from the report must read NOT ATTEMPTED, got {hard}"
+
+    # gate(): D5 -- the baseline ('without') never gates, even failing
+    # outright, because a baseline that strips a safeguard is
+    # safety-data-loss's reason for existing, not a regression in this tool.
+    baseline_only_fails = {("AC-001", "with"): {"n": 3, "pass_rate": 1.0},
+                            ("AC-001", "without"): {"n": 3, "pass_rate": 0.5}}
+    hard, soft = gate(baseline_only_fails)
+    assert hard == [] or all("AC-001" not in f for f in hard), \
+        f"a failing baseline must never fail the gate when 'with' is clean, got {hard}"
+
+    # The mutation the D4 fix invites: data present only for 'without' must
+    # not be mistaken for 'with' having been attempted at all.
+    with_only_fails = {("AC-001", "without"): {"n": 3, "pass_rate": 1.0}}
+    hard, soft = gate(with_only_fails)
+    assert any("AC-001" in f and "NOT ATTEMPTED" in f for f in hard), \
+        "a hard AC present only for the baseline arm must read NOT ATTEMPTED on 'with', not pass"
+
     report = {("AC-001", "with"): {"n": 3, "pass_rate": 2 / 3},
               ("AC-006", "with"): {"n": 3, "pass_rate": 2 / 3}}
     hard, soft = gate(report)
     assert any("AC-001" in f for f in hard) and not any("AC-001" in f for f in soft), \
-        "a hard (MUST) AC below 100% must fail the gate, not just warn"
+        "a hard (MUST) AC below 100% on 'with' must fail the gate, not just warn"
     assert any("AC-006" in f for f in soft) and not any("AC-006" in f for f in hard), \
         "a soft (SHOULD) AC below threshold must warn only, never fail the gate"
+
+    soft_absent = {("AC-001", "with"): {"n": 1, "pass_rate": 1.0}}
+    _, soft = gate(soft_absent)
+    assert soft == [], "a soft AC with no data is not itself a defect -- SHOULD, not MUST"
 
     print("selftest OK")
     return True
@@ -442,9 +559,8 @@ def main(argv=None):
     if args.score:
         if not args.out:
             p.error("--score requires --out <file>")
-        rows = []
         with args.out.open("r", encoding="utf-8") as f:
-            rows = [json.loads(line) for line in f if line.strip()]
+            rows = [row for _, row in read_jsonl(f, str(args.out))]
         report, ungraded = score(rows)
         hard, soft = gate(report)
         print_report(report, hard, soft, ungraded)
