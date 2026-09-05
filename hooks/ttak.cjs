@@ -74,7 +74,12 @@ const POLICY_DIR = path.join(__dirname, '..', 'policy');
 // Null prototype: SCOPES[scope] must be undefined for any inherited Object.prototype
 // key (constructor, hasOwnProperty, __proto__, ...), never an inherited function/object
 // that would pass `if (!names)` and then blow up as non-iterable.
-const SCOPES = { __proto__: null, main: ['precedence', 'invariants', 'contract'], subagent: ['precedence', 'invariants'] };
+// Frozen because it is exported: the suite asserts its own hand-written scope
+// model against this one instead of hand-copying it, and this object decides
+// what text gets injected, so the export is read-only.
+const SCOPES = Object.freeze({ __proto__: null,
+  main: Object.freeze(['precedence', 'invariants', 'contract']),
+  subagent: Object.freeze(['precedence', 'invariants']) });
 
 function compose(scope, dir = POLICY_DIR) {
   if (typeof scope !== 'string') return null;
@@ -92,6 +97,7 @@ function compose(scope, dir = POLICY_DIR) {
 }
 
 module.exports.compose = compose;
+module.exports.SCOPES = SCOPES;
 
 const CONTROLS = new Map([['ttak', 'status'], ['ttak on', 'on'], ['ttak off', 'off']]);
 

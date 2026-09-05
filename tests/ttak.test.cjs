@@ -218,14 +218,41 @@ const PROTECTED_BULLETS = [
 // `explicit output formats` (main-only by design) with no assertion that it
 // stays out of subagent -- four facts and a silence. Walking every scope for
 // every noun makes it one statement: present where listed, absent where not.
-const ALL_SCOPES = ['main', 'subagent'];
+//
+// N5 (fix round 4, Low): ALL_SCOPES was a hand-copy of the keys of SCOPES in
+// hooks/ttak.cjs with nothing tying the two together, so adding a third scope
+// to the product left that "present where listed, absent where not" guarantee
+// silently not covering it. The missing-file test's `scopeFiles` and
+// withPolicyCopy's own file list were two more copies of the same object.
+// Keep one hand-written model here as the independent witness -- deriving it
+// from the product would make the product the sole witness to itself, the
+// circularity the byte/token pin below exists to prevent -- assert it equals
+// the product's once, and read the other two off it. Latent today, because
+// handle() hard-codes the two hook events, but it is the one-way binding this
+// round exists to remove, one level up.
+const SCOPE_FILES = { main: ['precedence', 'invariants', 'contract'], subagent: ['precedence', 'invariants'] };
+const ALL_SCOPES = Object.keys(SCOPE_FILES);
+const POLICY_FILES = [...new Set(Object.values(SCOPE_FILES).flat())];
+const POLICY_SOURCES = new Map(POLICY_FILES.map((n) =>
+  [`${n}.md`, fs.readFileSync(path.join(ROOT, 'policy', `${n}.md`), 'utf8')]));
 
-test('policy text names every protected noun verbatim, in its own file and exactly the scopes it reaches', () => {
+test('the scope model this file asserts against is the one hooks/ttak.cjs composes from', () => {
+  assert.deepStrictEqual({ ...ttak.SCOPES }, SCOPE_FILES,
+    'SCOPES in hooks/ttak.cjs and the scope model every assertion in this file walks have diverged');
+});
+
+// N4 (fix round 4, Low), first half: the file check below was `includes` only.
+// It said the noun must be *in* its file; it never said it is only there.
+// Two-way, the same way the scope check beside it already is.
+test('policy text names every protected noun verbatim, in its own file and only there, and exactly the scopes it reaches', () => {
   const composed = { main: ttak.compose('main'), subagent: ttak.compose('subagent') };
   for (const { file, scopes, nouns } of PROTECTED_BULLETS) {
-    const source = fs.readFileSync(path.join(ROOT, 'policy', file), 'utf8');
     for (const noun of nouns) {
-      assert.ok(source.includes(noun), `missing protected noun in policy/${file}: ${noun}`);
+      for (const [name, source] of POLICY_SOURCES) {
+        assert.strictEqual(source.includes(noun), name === file, name === file
+          ? `missing protected noun in policy/${name}: ${noun}`
+          : `protected noun also appears in policy/${name}; its file of record is policy/${file}: ${noun}`);
+      }
       for (const scope of ALL_SCOPES) {
         const shouldReach = scopes.includes(scope);
         assert.strictEqual(composed[scope].includes(noun), shouldReach, shouldReach
@@ -242,13 +269,33 @@ test('policy text names every protected noun verbatim, in its own file and exact
 // loop while no longer carrying the protected noun in its own sentence. Pin
 // the three enclosing bullets verbatim, as they stand in their source files,
 // so both the per-noun loop and this sentence-level pin must hold.
-test('the sentences carrying the five protected nouns are pinned verbatim, in their own file and every scope, not just the nouns', () => {
+//
+// N4 (fix round 4, Low), second half: this test was titled "and every scope"
+// while its loop walked only each entry's own `scopes`, and its file check was
+// one-way -- the same shape round 3 had just removed from the noun test one
+// line above, left standing here. Duplicating a protected sentence into
+// policy/precedence.md shipped green. Both bindings are two-way now.
+//
+// What stays open, stated as the substantive case rather than the flattering
+// one: every binding here is exact-string. A near-copy of the main-only
+// contract bullet with the noun singularised ("explicit output format") added
+// to policy/invariants.md is not this bullet and does not contain this noun,
+// so it satisfies every assertion in both tests while reaching the subagent
+// injection. Nothing short of semantics catches that; it is the standing cost
+// of pinning strings, not a gap this round could have closed.
+test('the sentences carrying the five protected nouns are pinned verbatim, in their own file and only there, and in exactly the scopes that file reaches', () => {
   const composed = { main: ttak.compose('main'), subagent: ttak.compose('subagent') };
   for (const { file, scopes, bullet } of PROTECTED_BULLETS) {
-    const source = fs.readFileSync(path.join(ROOT, 'policy', file), 'utf8');
-    assert.ok(source.includes(bullet), `bullet no longer present verbatim in policy/${file}: "${bullet}"`);
-    for (const scope of scopes) {
-      assert.ok(composed[scope].includes(bullet), `bullet no longer present verbatim in ${scope} scope: "${bullet}"`);
+    for (const [name, source] of POLICY_SOURCES) {
+      assert.strictEqual(source.includes(bullet), name === file, name === file
+        ? `bullet no longer present verbatim in policy/${name}: "${bullet}"`
+        : `bullet duplicated into policy/${name}; its file of record is policy/${file}: "${bullet}"`);
+    }
+    for (const scope of ALL_SCOPES) {
+      const shouldReach = scopes.includes(scope);
+      assert.strictEqual(composed[scope].includes(bullet), shouldReach, shouldReach
+        ? `bullet no longer present verbatim in ${scope} scope: "${bullet}"`
+        : `bullet leaked into ${scope} scope, which should not carry it: "${bullet}"`);
     }
   }
 });
@@ -257,12 +304,31 @@ test('the sentences carrying the five protected nouns are pinned verbatim, in th
 // assume it): a space-to-newline edit inside a policy line is byte-neutral,
 // so the byte pin can't see it, and a wrapped continuation line breaks any
 // contiguous-string pin that happens to cross the wrap point. Every
-// non-blank, non-heading line must be self-contained: it either starts a
+// non-blank, non-heading line must be self-contained: it either starts a flat
 // bullet ('- ') or the line before it is blank/a heading. This covers
 // policy/precedence.md's un-bulleted paragraph lines too -- each of its
 // three paragraphs is its own isolated line today.
-test('no policy bullet or paragraph is hard-wrapped across lines', () => {
-  for (const file of ['precedence.md', 'invariants.md', 'contract.md']) {
+//
+// N6 (fix round 4, Low): the failure message said "looks like a wrapped
+// continuation line", which is not what this check enforces. A legitimate
+// nested sub-bullet ("  - Name the file it touches.") is rejected too, because
+// it does not start at column 0. Flat bullets are what the Global Constraint
+// means, so the strictness stays and the message now names what it enforces.
+//
+// N3 (fix round 4): the evasion set, restated accurately. Round 2 recorded the
+// two known evasions -- a blank-line split leaving an orphan paragraph
+// mid-list, and a continuation promoted to its own `- ` bullet -- as harmless
+// because "any mutation that adds or removes a character already changes the
+// byte count and is caught by D1 instead". That is false, and it is the
+// argument an earlier finding in this task destroyed: correct the published
+// figures and the byte pin goes silent. Every mutation in the fix-4 re-review
+// corrected the figures first, which is exactly why they passed. So both
+// evasions ship green, caught by nothing else, unless the line they touch is
+// one of the three bullets pinned verbatim above. The promoted-bullet form is
+// syntactically a legitimate bullet and cannot be told from one without
+// semantics, so this detector is deliberately not widened to chase them.
+test('every policy line stands alone as a flat bullet or its own block, never a wrapped or nested continuation', () => {
+  for (const file of POLICY_FILES.map((n) => `${n}.md`)) {
     const lines = fs.readFileSync(path.join(ROOT, 'policy', file), 'utf8').split('\n');
     let prevIsContent = false;
     lines.forEach((line, i) => {
@@ -270,7 +336,8 @@ test('no policy bullet or paragraph is hard-wrapped across lines', () => {
       const isHeading = line.startsWith('#');
       if (isBlank || isHeading) { prevIsContent = false; return; }
       assert.ok(!prevIsContent || line.startsWith('- '),
-        `policy/${file}:${i + 1} looks like a wrapped continuation line: "${line}"`);
+        `policy/${file}:${i + 1} must open a flat '- ' bullet or a new block; it continues the line `
+        + `above, and nothing here may be a wrapped or nested continuation: "${line}"`);
       prevIsContent = true;
     });
   }
@@ -278,7 +345,7 @@ test('no policy bullet or paragraph is hard-wrapped across lines', () => {
 
 function withPolicyCopy(mutate) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ttak-policy-'));
-  for (const n of ['precedence', 'invariants', 'contract']) {
+  for (const n of POLICY_FILES) {
     fs.copyFileSync(path.join(ROOT, 'policy', `${n}.md`), path.join(dir, `${n}.md`));
   }
   try { mutate(dir); }
@@ -286,8 +353,7 @@ function withPolicyCopy(mutate) {
 }
 
 test('composition is all-or-nothing when a required policy file is missing, for every file in every scope', () => {
-  const scopeFiles = { main: ['precedence', 'invariants', 'contract'], subagent: ['precedence', 'invariants'] };
-  for (const [scope, names] of Object.entries(scopeFiles)) {
+  for (const [scope, names] of Object.entries(SCOPE_FILES)) {
     for (const missing of names) {
       withPolicyCopy((dir) => {
         fs.unlinkSync(path.join(dir, `${missing}.md`));
@@ -889,16 +955,42 @@ test('attributions reproduce each upstream notice as published', () => {
 
 // D4 (fix round 2, Low): a Map silently lets a later ## heading of the same
 // name overwrite an earlier one, so a duplicate section could corrupt any of
-// this helper's four callers green. Fix it once, here, rather than at each
-// call site.
-function sections(text) {
-  const entries = text.split(/\n## /).slice(1).map((s) => [s.split('\n')[0].trim(), s]);
-  const seen = new Set();
-  for (const [heading] of entries) {
-    assert.ok(!seen.has(heading), `duplicate "## ${heading}" section: sections() would silently return the last one`);
-    seen.add(heading);
+// its callers green. Fix it once, here, rather than at each call site: every
+// test that reads a `##` section out of a document goes through this helper.
+// (fix round 4: this comment used to claim "four callers". There were five
+// call sites across four tests when it said so, and seven across five after
+// this round. A count that goes stale on the next edit is not worth carrying,
+// so it is not restated.)
+//
+// N7 (fix round 4, Low): headings were read inside fenced code blocks too.
+// ATTRIBUTIONS.md exists to reproduce upstream notices verbatim and already
+// carries four fenced blocks, so the first upstream notice containing a `## `
+// line would split a section mid-notice, or trip the duplicate check below, in
+// the one file whose whole purpose is embedding foreign text. Verified not a
+// regression -- the pre-fix helper mis-read the same input, so the callers
+// failed on it before this fix too -- but it would break confusingly. Track
+// the fence and split only outside it. Section bodies still carry their fenced
+// content verbatim, which the notice checks above read back out of them.
+//
+// `level` selects the heading depth. A level-2 body already ends where the
+// next `## ` begins, so `sections(sections(t).get(a), 3)` yields a `### `
+// subsection bounded by its parent section instead of running to EOF.
+function sections(text, level = 2) {
+  const mark = '#'.repeat(level) + ' ';
+  const entries = [];
+  let fenced = false;
+  for (const line of text.split('\n')) {
+    if (line.startsWith('```')) fenced = !fenced;
+    else if (!fenced && line.startsWith(mark)) { entries.push([line.slice(mark.length), []]); continue; }
+    if (entries.length) entries[entries.length - 1][1].push(line);
   }
-  return new Map(entries);
+  const out = new Map();
+  for (const [heading, body] of entries) {
+    const key = heading.trim();
+    assert.ok(!out.has(key), `duplicate "${mark}${key}" section: sections() would silently return the last one`);
+    out.set(key, [heading, ...body].join('\n'));
+  }
+  return out;
 }
 
 test('every attributed source carries its pinned revision and the artifacts derived from it', () => {
@@ -1057,10 +1149,20 @@ test('injected size is reported for both scopes and the subagent scope is smalle
 // one column to the right. Extend `expected` with the same
 // Math.ceil(length / 4) the script and the README claim to report, and check
 // both against it.
+//
+// N2 (fix round 4, Medium): `.find()` returned the first matching row, so a
+// second size table appended after the real one -- same row prefixes, false
+// figures -- left the README publishing two contradictory tables with the
+// suite green. The same round deleted the `**Provisional.**` label and
+// published "These figures fail the suite if the policy files or the README
+// drift from what that command prints" in its place, while its own residual
+// list recorded that nothing asserted a count of one. Make the sentence true
+// rather than weaker: exactly one row may start with each prefix.
 function readmeColumn(text, rowStart, colIndex) {
-  const row = text.split('\n').find((l) => l.startsWith(rowStart));
-  assert.ok(row, `no table row starting with "${rowStart}"`);
-  return Number(row.split('|')[colIndex].trim().replace(/,/g, ''));
+  const rows = text.split('\n').filter((l) => l.startsWith(rowStart));
+  assert.strictEqual(rows.length, 1,
+    `expected exactly one table row starting with "${rowStart}", found ${rows.length}`);
+  return Number(rows[0].split('|')[colIndex].trim().replace(/,/g, ''));
 }
 
 test('both READMEs and the measurement script report bytes and tokens that match the composition', () => {
@@ -1106,8 +1208,21 @@ test('both READMEs and the measurement script report bytes and tokens that match
 // reproduction command, the four-characters-per-token ratio, the "not exact"
 // disclaimer, and the column header's own approximation label could each be
 // deleted or changed with the suite green. Pin them too.
+//
+// N1 (fix round 4, Medium): all five ran `includes` over the whole README, so
+// relabelling the rendered header to `| Scope | Bytes | Tokens |`, deleting
+// the disclaimer from beside the figures and re-homing the five pinned strings
+// in an appendix section passed -- the rendered page then presents the
+// approximation as exact, reversing the plan's "do not present it as exact",
+// with the suite green. The test's own name says "section", which is not what
+// it checked. Scope it there, the way the `## Method` pin below already does.
+// `heading` is a `### ` inside `parent`, so it is read out of the parent's
+// body: a level-2 body ends at the next `## `, which bounds the last
+// subsection instead of letting it run to the end of the file.
 const SIZE_SECTION_PINS = {
   'README.md': {
+    parent: 'What is measured',
+    heading: 'Size of the injected text',
     header: '| Scope | Bytes | Approx. tokens (~4 chars/token) |',
     command: 'node scripts/measure-injection.cjs',
     ratio: 'a token approximation at four characters per token',
@@ -1116,6 +1231,8 @@ const SIZE_SECTION_PINS = {
       + 'that command prints',
   },
   'README.ko.md': {
+    parent: '측정된 것',
+    heading: '주입되는 텍스트의 크기',
     header: '| 범위 | 바이트 | 근사 토큰 수 (~4자/토큰) |',
     command: 'node scripts/measure-injection.cjs',
     ratio: '4자당 1토큰으로 계산한 토큰',
@@ -1127,12 +1244,29 @@ const SIZE_SECTION_PINS = {
 test('the size section still explains how to reproduce the figures and that the token column is approximate', () => {
   for (const [name, pin] of Object.entries(SIZE_SECTION_PINS)) {
     const text = fs.readFileSync(path.join(ROOT, name), 'utf8');
-    const flat = text.replace(/\s+/g, ' ');
-    assert.ok(text.includes(pin.header), `${name}: table header no longer labels the token column as an approximation`);
-    assert.ok(text.includes(pin.command), `${name}: reproduction command is missing or changed`);
-    assert.ok(flat.includes(pin.ratio), `${name}: the four-characters-per-token ratio is missing`);
-    assert.ok(flat.includes(pin.disclaimer), `${name}: the "not exact" disclaimer is missing`);
-    assert.ok(flat.includes(pin.pinStatement), `${name}: the sentence stating the figures are pinned to the composition is missing`);
+    const parent = sections(text).get(pin.parent);
+    assert.ok(parent, `${name}: no "## ${pin.parent}" section`);
+    const section = sections(parent, 3).get(pin.heading);
+    assert.ok(section, `${name}: no "### ${pin.heading}" section inside "## ${pin.parent}"`);
+    const flat = section.replace(/\s+/g, ' ');
+    // N2, second half: one table, and the pinned header is its own first row.
+    // With readmeColumn's one-row-per-prefix check above, this is what makes
+    // the README's "these figures fail the suite if ... the README drift[s]"
+    // sentence true of a second table: it cannot be added inside this section,
+    // and a copy of this header cannot be added anywhere else in the file.
+    const table = section.split('\n').filter((l) => l.startsWith('|'));
+    assert.strictEqual(table.length, 4,
+      `${name}: the size section must hold exactly one table -- header, separator, one row per `
+      + `scope -- and holds ${table.length} table lines`);
+    assert.strictEqual(table[0], pin.header,
+      `${name}: the table's own header row no longer labels the token column as an approximation`);
+    assert.strictEqual(text.split('\n').filter((l) => l === pin.header).length, 1,
+      `${name}: exactly one size table may exist; a second row identical to this header publishes `
+      + `a second set of figures`);
+    assert.ok(flat.includes(pin.command), `${name}: reproduction command is missing, changed, or no longer beside the figures`);
+    assert.ok(flat.includes(pin.ratio), `${name}: the four-characters-per-token ratio is missing from the size section`);
+    assert.ok(flat.includes(pin.disclaimer), `${name}: the "not exact" disclaimer is missing from the size section`);
+    assert.ok(flat.includes(pin.pinStatement), `${name}: the sentence stating the figures are pinned to the composition is missing from the size section`);
   }
 });
 
