@@ -185,6 +185,12 @@ remove anything else. And regardless of what is installed: review destructive ch
 is one synthetic case on two pinned models, not a survey — but it is the measurement that exists, and
 none of these instruction sets is a guard.
 
+**The predecessor is a special case of the same hazard.** `wotjr1649/leanclarity` is being retired,
+but retiring it does not uninstall it: its saved setting defaults to **on** when its state file is
+absent, so a copy left installed from before keeps injecting its own guidance while TTAK sits off by
+default. If you are moving over from it, remove it through the host's plugin controls rather than
+relying on TTAK to supersede it — TTAK does not detect or disable it.
+
 ### Size of the injected text
 
 Measured from the shipped `policy/*.md` files:
