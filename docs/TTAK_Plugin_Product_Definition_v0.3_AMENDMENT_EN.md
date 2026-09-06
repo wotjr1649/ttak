@@ -4,8 +4,8 @@
 
 | Field | Value |
 |---|---|
-| Status | Applied |
-| Amends | `TTAK_Plugin_Product_Definition_v0.2_EN.md` §5.1 and §19.3 (normative) and `..._v0.2_KO.md` (translation), renamed on application to `..._v0.3_EN.md` and `..._v0.3_KO.md`, and `docs/superpowers/specs/2026-09-04-ttak-design.md` §4.1, §4.4, §5.3, §5.4 and its §9 risks table |
+| Status | Applied. §9 added in the final fix round on 2026-09-06 |
+| Amends | `TTAK_Plugin_Product_Definition_v0.2_EN.md` §5.1 and §19.3 (normative) and `..._v0.2_KO.md` (translation), renamed on application to `..._v0.3_EN.md` and `..._v0.3_KO.md`, and `docs/superpowers/specs/2026-09-04-ttak-design.md` §4.1, §4.4, §5.3, §5.4 and its §9 risks table. The final fix round adds §9 of this amendment, which amends the specification's §19.3 licence-string bullet in both languages |
 | Date | 2026-09-06 |
 | Normative language | English. `[DOC-003]` — English edited first, Korean mirrored in the same commit, equal force in both |
 | Authority | `[HANDOFF-005]` — a platform constraint MAY trigger a proposed product amendment but MUST NOT silently rewrite a requirement. Item 4 is exactly that case; the other three are stale sentences, and this document exists so that neither kind is silent |
@@ -20,7 +20,8 @@
 Fourteen tasks built and reviewed the v1 artifact. Four times, execution found the shipped artifact
 and a written sentence disagreeing. Each was ruled on when it was found and recorded where its
 evidence lives, and each was deliberately left in the documents so that fixing it would be a declared
-change rather than a quiet one.
+change rather than a quiet one. A whole-branch review later found a fifth, recorded as §9; §0
+through §8 describe the original four.
 
 Three of the four are **stale sentences**: a decision was taken, the artifact followed it, and a
 sentence written before the decision was never revisited. One — item 4 — is a **deliberate
@@ -309,8 +310,41 @@ delivered, as §5.
 
 ---
 
-## 9. Revision history
+## 9. Item 5 — §19.3's licence-string sentence names manifests the check does not require
+
+**Found by the whole-branch review and added in the final fix round, 2026-09-06.** Same class as
+items 1–4: a normative sentence that never matched the artifact. It survived fourteen per-task
+reviews because it spans two surfaces — the manifests and the CI check — and every one of those
+reviews looked at a single task's surface.
+
+**What §19.3 said.** *"One license string MUST be identical across `LICENSE`, all plugin and
+marketplace manifests, and every `SKILL.md` frontmatter, enforced by a CI check."*
+
+**What ships.** Neither marketplace manifest declares a licence at all: `.claude-plugin/marketplace.json`
+and `.agents/plugins/marketplace.json` carry no `license` key. Both plugin manifests declare
+`"license": "MIT"`, as do every `SKILL.md` frontmatter and `LICENSE`. `tests/lint/check-hygiene.cjs`
+scopes the **presence** requirement to `plugin.json` deliberately, and checks the **value** wherever a
+`"license"` key appears in any JSON file. The check has therefore always enforced something narrower
+than the sentence.
+
+**The ruling: amend the sentence, not the manifests.** The plan resolved this conditionally — both
+marketplace files *if they carry a license field* — and the check implements exactly that. A
+marketplace manifest is a listing document, not a distribution unit; adding a licence key to it would
+add a second place for the string to drift without adding a licensing guarantee. §19.3's purpose is
+one string with no drift, and that is met.
+
+This follows §5: the specification is the document that had fallen behind the artifact, so the
+specification is amended. The artifact is not changed to make a sentence true.
+
+**Sections changed.** Specification §19.3, the licence-string bullet, in English and Korean. No
+manifest, no check, no test logic. The recorded SHA-256 hashes were recomputed for the same reason
+row D gives.
+
+---
+
+## 10. Revision history
 
 | Version | Date | Status | Summary |
 |---|---|---|---|
 | 0.3 | 2026-09-06 | Applied | Second amendment. Documents, plus the file paths the rename moves. Reconciles four recorded deviations: §19.3's unsatisfiable direct-derivation MUST becomes a SHOULD with a recorded two-step chain; the restored-unit list drops the persona, which does not ship; design §5.3's frame-as-headings sentence is corrected to the manifests' `displayName`; design §4.1 and §4.4 are brought to the shipped recursive create, with the read prohibition unchanged. Records the ruling that the specification outranks the design (§5). No requirement ID added, retired or renumbered; the set stays at 157. Fix round 1 renamed the specification files to `v0.3`, moved the three path references the rename invalidates, and corrected the four stale statements in §8 rather than reporting them. No policy text, manifest, README, or test logic changed |
+| 0.3, §9 | 2026-09-06 | Applied | Final fix round, after the whole-branch review. Adds §9, a fifth deviation of the same class: §19.3's licence-string sentence required one string across "all plugin and marketplace manifests" when neither marketplace manifest declares a licence and `tests/lint/check-hygiene.cjs` scopes the presence check to `plugin.json`. The sentence is brought to the artifact and the check in both languages. `[AC-012]`'s stated reason is also corrected in both languages: it named the copied-text inventory as non-existent when it has shipped since `779a379`. The gate stays open on F4. Recorded hashes recomputed. No requirement ID added, retired or renumbered; the set stays at 157 |

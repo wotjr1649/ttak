@@ -11,7 +11,7 @@ Every claim below points at an observation. Anything this run could not reach is
 | Node | `v24.19.0` |
 | OS | Windows 11 Pro 10.0.26200, Git Bash (MSYS2) |
 | Model pinned for every trial | `haiku` → resolved `claude-haiku-4-5-20251001` |
-| Repository commit under test | `72fe42d` on `feat/ttak-v1`. **Every observation in this document is pre-fix.** The fix rounds that followed (`9e4eb01` and fix round 2, the commit carrying this sentence) changed only the branch taken when part of the plugin data path is missing, and Claude Code pre-creates that path (§1.3), so it is not on this host's path. That is reasoning, not a re-observation. |
+| Repository commit under test | `72fe42d` on `feat/ttak-v1`. **Every observation in this document is pre-fix.** The fix rounds that followed (`9e4eb01` and fix round 2, the commit carrying this sentence) changed only the branch taken when part of the plugin data path is missing, and Claude Code pre-creates that path (§1.3), so it is not on this host's path. That is reasoning, not a re-observation. The final fix round then changed the `ttak` status reply, which §-tables below quote verbatim as observed: it named two of the four `SessionStart` sources the matcher covers when the observations in this document show all four injecting. The quoted strings are left as observed and are historical from that round on. |
 | Date of run | 2026-09-05 |
 | Claude invocations | 61, total `$0.3089` |
 
@@ -25,7 +25,7 @@ cd <empty temp dir>
 MSYS2_ARG_CONV_EXCL="*" PLUGIN_DATA="<temp>\pd\<case>" \
 claude -p --output-format stream-json --include-hook-events --verbose \
        --setting-sources "" --model haiku [--tools ""] \
-       --plugin-dir 'D:\AI_DEV\ttak' "<prompt>"
+       --plugin-dir '<repo>' "<prompt>"
 ```
 
 - `--plugin-dir` loads a plugin directory **"for this session only"** (`claude --help`, verbatim).
@@ -34,7 +34,7 @@ claude -p --output-format stream-json --include-hook-events --verbose \
   TTAK's. The operator's enabled `ponytail` never fired.
 - `PLUGIN_DATA` is read by `dataRoot()` **before** `CLAUDE_PLUGIN_DATA`, so no state file was ever
   written into a live host directory. This machine has an ambient
-  `CLAUDE_PLUGIN_DATA=C:/Users/js/.claude/plugins/data/codex-openai-codex`; the override made it
+  `CLAUDE_PLUGIN_DATA=<home>/.claude/plugins/data/codex-openai-codex`; the override made it
   inert. Verified after the run: no `.notified` or `state.json` exists anywhere under
   `~/.claude/plugins/data/` that this run created.
 - The working directory was an empty temp directory, never the repository, so the model could not
@@ -79,7 +79,7 @@ plainly that a prompt whose entire content is `ttak` is consumed by the plugin a
 model.
 
 Scope of the claim: this is `-p` (non-interactive) mode. The interactive TUI is **NOT VERIFIED** —
-see the command sheet, item S1.
+see the command sheet, item A3.
 
 ---
 
@@ -210,7 +210,7 @@ Three things follow, each from the bytes above:
 3. **A block is not an error**: `is_error: false`, `subtype: "success"`, process exit code 0.
 
 How this renders in the interactive TUI is **NOT VERIFIED** — `-p` mode has no TUI. See command
-sheet item S2.
+sheet item A3.
 
 ### 1.6 An ordinary prompt is never blocked
 
@@ -226,7 +226,7 @@ sheet item S2.
 the only carrier — there is no in-memory session state involved.
 
 This is process-level persistence. Survival across a full host restart (reboot, or the host's own
-plugin cache lifecycle after a real install) is **NOT VERIFIED**; see command sheet item S4.
+plugin cache lifecycle after a real install) is **NOT VERIFIED**; see command sheet item A5.
 
 ---
 
@@ -242,4 +242,6 @@ Each of these is in `task-12-partB-commands.md` for the user to run.
 | Real install (`/plugin marketplace add` + install + enable) and everything that depends on it | Installing or enabling changes host-global configuration, which this run was barred from doing. |
 | The setting surviving a host restart / real plugin data directory | Requires a real install; `--plugin-dir` state lives under `<data>/ttak-inline`. |
 | Any behaviour with a model other than `haiku` | Every trial pinned `haiku`. Hook behaviour is model-independent by construction, but this was not measured on another model. |
+| Injected text actually reaching a model response | The instrument is hook `stdout` off the host event stream, which shows what the hook emitted, not what entered the model's context. Same standard as the Codex table, which already carried this row. On **neither** host has the policy text been observed entering a model's context. |
+| The explainer's invocation syntax: `/ttak:ttak-explain` and the bare `/ttak-explain` | Neither form was invoked in any trial. Both follow the host's documented namespacing; neither was observed resolving. Command sheet item B7. |
 | Behaviour on a non-Windows platform | Single machine, Windows only. |

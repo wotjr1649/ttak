@@ -6,7 +6,7 @@
 | Status | Design. Implemented on `feat/ttak-v1`; amended on 2026-09-06 to match what shipped. |
 | Governs | `TTAK_Plugin_Product_Definition_v0.3_EN.md` — the v0.1 candidate with the v0.2 and v0.3 amendments applied. Where this document and that one conflict, **the specification governs**; see the v0.3 amendment §5 |
 | Evidence | `docs/analysis/2026-09-04_TTAK_DESIGN_REVIEW_PACKET.md` and four adversarial reviews |
-| Hosts | Claude Code `2.1.259`, Codex CLI `0.150.1` |
+| Hosts | Claude Code `2.1.261`, Codex CLI `0.153.4` — the versions the two host-integration analyses measured and both READMEs publish. This design was written against `2.1.259` and `0.150.1`; both had moved by implementation |
 | Development platform | Windows 11 Pro 26200, Git Bash, `core.autocrlf=true` |
 | Amended by | `docs/TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md`, 2026-09-06 — §4.1, §4.4, §5.3, §5.4 and the §9 risks table reconciled with the shipped artifact |
 
@@ -287,15 +287,16 @@ on both platforms, so it is not needed.
 |---|---|---|
 | `precedence.md` | Where TTAK ranks against system, host, repository, project and user instructions; that it yields to all of them; that it is guidance and not a guard | Both upstreams told the model their rank and the predecessor dropped both statements. Its own evidence calls this the most important unresolved conflict: the specification knew the ranking and the model did not. |
 | `invariants.md` | Understand before changing; reuse order; smallest complete change at the right boundary; root cause over symptom; no unrequested abstraction; **the protected nouns, preserved**; leave one runnable check; analysis-only requests do not mutate code | `[TTAK-TRIM-009]` is new; the protected nouns are covered by the amended `[SRC-002]` |
-| `contract.md` | Lead with the task-appropriate answer; numbered steps only for genuinely multi-step work; distinguish run from unrun checks and performed from proposed work; honor requested detail without a brevity or list cap; one next action only when work remains; stop blind iteration after repeated same-reason failure; user authority over simplification | `[TTAK-TRACK-008]` is new; `[RESP-007]` takes its amended conditional-positive form |
+| `contract.md` | Lead with the task-appropriate answer; numbered steps only for genuinely multi-step work; distinguish run from unrun checks and performed from proposed work; honor requested detail without a brevity or list cap; one next action when work remains; stop blind iteration after repeated same-reason failure; user authority over simplification | `[TTAK-TRACK-008]` is new; `[RESP-007]` takes its amended conditional-positive form |
 
 ### 5.2 What stays out
 
 - Anything a host already enforces. The response section states what `Concise` does not do — the
   run/unrun distinction, the performed/proposed distinction, and the protection of requested detail —
   and does not restate preamble suppression at length.
-- Any prohibition appended to an upstream rule that the upstream did not have. That form has a
-  measured 6/6 failure across two hosts and two candidates.
+- Any prohibition appended to an upstream rule that the upstream did not have. That form failed 6 of
+  6 across both hosts on the frozen candidate, and 3 of 3 again on Claude after a revision built
+  specifically to fix it.
 - Mechanical output templates, fixed line counts, list caps, mandatory time estimates, and forbidden-
   phrase blacklists. v0.1 §5.3–§5.6 already exclude these; the predecessor's non-mandated list reached
   the same conclusion independently.
@@ -492,7 +493,7 @@ release gate, not an optional step, and no automated instrument replaces it.
 | Two marketplace manifests can drift | CI check on version and source agreement |
 | Codex hook declaration: validator rejects the manifest field the runtime supports | Verify default discovery from `hooks/hooks.json` on Codex in phase 1; if it fails, the conflict is a submission blocker and must be raised upstream rather than worked around |
 | `node --test` and the runner add a toolchain the plugin itself does not need | Test-only; the shipped plugin keeps zero dependencies and the runtime stays Node stdlib |
-| `[LIC-001]` inventory does not exist | Blocks `[LIC-007]` and `[AC-012]`; the inventory is a planned deliverable, and MIT is the expected outcome, not a completed decision |
+| `[LIC-001]` inventory | Shipped as `docs/COPIED_TEXT_INVENTORY.md`. `[LIC-007]` and `[AC-012]` stay open: the v0.3 amendment has landed, so what remains is a human ruling on F4 and the review that inventory feeds. MIT is the expected outcome, not a completed decision |
 | Review's niche unverified | `OPEN-15`; competitor check before v1.1 scope is set |
 
 ---

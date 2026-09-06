@@ -10,7 +10,7 @@ Every claim below points at an observation. Anything this run could not reach is
 | Codex CLI | `codex-cli 0.153.4` (`codex --version`) — the plan's brief cited `0.150.1`; the installed version has moved |
 | Node | `v24.19.0` |
 | OS | Windows 11 Pro 10.0.26200, Git Bash (MSYS2) |
-| Repository commit under test | `72fe42d` on `feat/ttak-v1` for Steps 2 and 3.1–3.2 and §3.7; `9e4eb01` (the fix) for §3.3; `9e4eb01` for §3.8 and §3.9 |
+| Repository commit under test | `72fe42d` on `feat/ttak-v1` for Steps 2 and 3.1–3.2 and §3.7; `9e4eb01` (the fix) for §3.3; `9e4eb01` for §3.8 and §3.9. The final fix round then changed the `ttak` status reply, which §-tables below quote verbatim as observed: it named two of the four `SessionStart` sources the matcher covers when the observations in this document show all four injecting. The quoted strings are left as observed and are historical from that round on. |
 | Date of run | 2026-09-05 (§3.3), 2026-09-06 (§3.8, §3.9) |
 | Codex invocations | 36 for the original run, 24 more across the two fix rounds |
 
@@ -37,7 +37,7 @@ plugin. The isolation the flag exists to provide is supplied more completely her
 plugin cache and plugin data were all out of reach for the whole run.
 
 `env -u PLUGIN_DATA -u CLAUDE_PLUGIN_DATA` matters on this machine, which carries an ambient
-`CLAUDE_PLUGIN_DATA=C:/Users/js/.claude/plugins/data/codex-openai-codex` pointing at a live host
+`CLAUDE_PLUGIN_DATA=<home>/.claude/plugins/data/codex-openai-codex` pointing at a live host
 directory.
 
 ### The auth limit, and what it costs
@@ -108,7 +108,7 @@ Consequences worth stating plainly:
 
 `.agents/plugins/marketplace.json` declares the plugin source as
 `{"source":"url","url":"https://github.com/wotjr1649/ttak.git","ref":"main"}`. With that manifest,
-after `codex plugin marketplace add D:\AI_DEV\ttak` succeeded and `codex plugin list` showed
+after `codex plugin marketplace add <repo>` succeeded and `codex plugin list` showed
 `ttak@ttak  not installed`, the install failed:
 
 ```
@@ -129,8 +129,8 @@ checkout until the repository is published.
 ### F2 — a non-URL `source.url` is dropped silently
 
 Building a local fixture, setting `source.url` to a bare Windows path
-(`C:/Users/js/.../ttaksrc`) made `codex plugin list` print `No marketplace plugins found` — no error,
-no warning. Changing it to `file:///C:/Users/js/.../ttaksrc` made the same plugin appear and install.
+(`<temp>/ttaksrc`) made `codex plugin list` print `No marketplace plugins found` — no error,
+no warning. Changing it to `file:///<temp>/ttaksrc` made the same plugin appear and install.
 Worth knowing when a marketplace entry appears to vanish.
 
 ### The fixture used for everything below
@@ -142,7 +142,7 @@ exactly as shipped — no `hooks` field** (verified on the installed copy in `co
 matcher (`startup|resume|clear|compact`), only the `command` string swapped for the instrument.
 
 **Fixture note, unexplained.** The form that worked here was
-`file:///C:/Users/js/.../ttaksrc` — three slashes — and every install in this document was made
+`file:///<temp>/ttaksrc` — three slashes — and every install in this document was made
 with it. A later reviewer on the same machine could not reproduce that form and found
 `file://C:/...` working instead. Both cannot be right about one git; the discrepancy is not
 understood and was not chased, because it is a property of a throwaway fixture and not of the
@@ -408,7 +408,7 @@ An untrusted plugin hook does not run and Codex does not say so in `exec --json`
 instructions must state the `/hooks` trust review as a required step, because the symptom of
 skipping it is a plugin that is installed, enabled, and completely inert with no diagnostic.
 
-The interactive `/hooks` review flow itself is **NOT VERIFIED** — see command sheet item S5.
+The interactive `/hooks` review flow itself is **NOT VERIFIED** — see command sheet item B3.
 
 ### 3.8 `SessionStart:resume` is reachable, and `--ephemeral` was what hid it
 
@@ -467,4 +467,5 @@ Each of these is in `task-12-partB-commands.md` for the user to run.
 | How a blocked prompt renders in the Codex TUI | `exec --json` shows nothing; the TUI may differ. |
 | `/ttak on` in the Codex TUI | Only `codex exec` was measured. |
 | Install from a published marketplace | The declared repository is empty (F1). |
+| The explainer's invocation syntax: `$ttak:ttak-explain` | Never invoked in any trial. `codex debug prompt-input` output *contains* the string `ttak-explain`, which shows the skill is discovered, not that the `$`-prefixed form resolves. Command sheet item B7. |
 | Behaviour on a non-Windows platform | Single machine, Windows only. |

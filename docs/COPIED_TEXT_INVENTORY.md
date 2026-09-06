@@ -37,7 +37,7 @@ notice file uses for its own sources.
 
 `policy/precedence.md` and `skills/ttak-explain/SKILL.md` are **not** affected: both were derived as
 §19.3 requires, and both measure at a three-word longest shared run against any source **file-wide**,
-the same metric that gives the two defect files 29 and 12 (`skills/ttak-explain/SKILL.md` reaches
+the same metric that gives the two defect files 29 and 9 (`skills/ttak-explain/SKILL.md` reaches
 four words in its frontmatter alone; see F1).
 
 **The ruling: amend, do not rewrite.** §19.3 had two purposes, and neither is fully met.
@@ -232,7 +232,7 @@ files is three words **file-wide**, not only per unit. Nothing in it is reproduc
 | C4 | "Honor explicit output formats. When detail, a walkthrough or an exhaustive review is asked for, give it in full without an arbitrary brevity or list limit." | `SRC-LEANCLARITY` `policies/guidance.md` L8; "give it in full" is `ponytail` SKILL L73. Deliberately rejects `i-have-adhd` SKILL L103 ("Cap lists at 5 items"), per v0.2 section 5.4 Exclude. `explicit output formats` is a `[SRC-002]` protected noun | 7 w vs leanclarity: "detail a walkthrough or an exhaustive review"; 4 w vs `ponytail`: "give it in full" | Reproduced expression (intermediate) | DEFECT, see F1 |
 | C5 | "Distinguish checks that were run and observed from checks that were not. Never report a check as passing unless it ran and the result was seen..." — the verification-honesty clause | `SRC-LEANCLARITY` `policies/guidance.md` L9. **No upstream `SKILL.md` contains this rule**; it originates with the predecessor. `[SRC-002]` requires it be preserved in meaning rather than paraphrased for style | 8 w vs leanclarity: "never report a check as passing unless it" | Reproduced expression, sole source `SRC-LEANCLARITY` | DEFECT, see F1 and F2 |
 | C6 | "Disclose material uncertainty, unverified assumptions and remaining limitations." | No source reproduces. Concept adjacent to `i-have-adhd` SKILL L135 ("Keep a hedge that carries real uncertainty; deleting it manufactures confidence") | 1 w | Original | OK |
-| C7 | "Give one concrete next action only when work remains for the user." — `[RESP-007]` | `SRC-LEANCLARITY` `policies/guidance.md` L7, **minus** its trailing clause "do not invent one after completion"; upstream in `i-have-adhd` SKILL L57-59 (Rule 3), minus its under-two-minutes cap | **12 w** vs leanclarity: "give one concrete next action only when work remains for the user"; 4 w vs `i-have-adhd`: "one concrete next action" | **Reproduced expression** | DEFECT, see F1. The dropped clause is deliberate: the v0.2 amendment records it failing 6 of 6 across both hosts on the frozen candidate `1.0.2`, as a prohibition the upstream did not have |
+| C7 | "When work remains for the user, give one concrete next action." — `[RESP-007]` | `SRC-LEANCLARITY` `policies/guidance.md` L7, **minus** its trailing clause "do not invent one after completion" and reordered into the conditional-positive form `[RESP-007]` states in v0.3; upstream in `i-have-adhd` SKILL L57-59 (Rule 3), minus its under-two-minutes cap | **6 w** vs leanclarity: "when work remains for the user"; 4 w vs `i-have-adhd`: "one concrete next action" (unchanged — the new bullet still carries that phrase verbatim) | Reproduced expression (intermediate) | DEFECT, see F1. The dropped clause is deliberate: the v0.2 amendment records it failing 6 of 6 across both hosts on the frozen candidate `1.0.2`, as a prohibition the upstream did not have. The reorder is the final-fix round: the shipped "only when work remains" entailed that same prohibition, so it was restated to match `[RESP-007]`. That took the run from 12 w to 6 w and the classification down one step — a consequence of changed text, not a reclassification of unchanged text |
 | C8 | "After repeated attempts fail for the same reason, stop iterating, name the assumption now in doubt, and ask for the smallest diagnostic evidence that would settle it." — `[TTAK-TRACK-008]` | `SRC-LEANCLARITY` `policies/guidance.md` L11; upstream in `i-have-adhd` SKILL L123 ("If the last three turns have been 'still broken,' stop iterating on code. Name the assumption that might be wrong. Ask one diagnostic question") | 9 w vs leanclarity: "after repeated attempts fail for the same reason stop"; 3 w vs `i-have-adhd`: "name the assumption" | Reproduced expression (intermediate) | DEFECT, see F1 |
 | C9 | "Confirm before a destructive effect." | `SRC-LEANCLARITY` `policies/guidance.md` L10, first sentence **verbatim**; upstream in `i-have-adhd` SKILL L122 (rule-break 2) | **5 w, the whole sentence**: "confirm before a destructive effect" | **Reproduced expression** | DEFECT, see F1. A five-word functional instruction; the shortest reproduction here and the least material one |
 
@@ -302,7 +302,7 @@ attribution chain one step instead of two." The design document repeats it at se
 Measured, the shipped text does not meet that. `policy/invariants.md` aligns bullet-for-bullet, in
 the same order, with `SRC-LEANCLARITY` `policies/engineering.md` at `7dfe5b2` — 8 of 8 bullets — and
 `policy/contract.md` aligns with `policies/guidance.md` for 8 of its 9. **Per unit**, the longest
-shared runs against the predecessor reach **18, 15, 14, 13 and 12 words**. Against the upstream
+shared runs against the predecessor reach **18, 15, 14, 13 and 9 words**. Against the upstream
 `SKILL.md` files the longest per-unit run anywhere in either file is **8 words**, and most are 2 to 4.
 
 **File-wide, measured the same way for all four shipped files** — the metric that counts a run
@@ -311,7 +311,7 @@ continuing across a bullet boundary instead of truncating it there:
 | TTAK file | File-wide longest run | Against | Largest per-unit figure in its table |
 |---|---|---|---|
 | `policy/invariants.md` | **29 w** | `SRC-LEANCLARITY` `policies/engineering.md` | 18 w (I4) |
-| `policy/contract.md` | **12 w** | `SRC-LEANCLARITY` `policies/guidance.md` | 12 w (C7) |
+| `policy/contract.md` | **9 w** | `SRC-LEANCLARITY` `policies/guidance.md` | 9 w (C8) |
 | `policy/precedence.md` | 3 w | `SRC-IHAVEADHD` and `SRC-DREAMBIG-ELI5` `SKILL.md` | 3 w (P1, P2) |
 | `skills/ttak-explain/SKILL.md` | 3 w body, 4 w frontmatter | body `SRC-DREAMBIG-ELI5`; frontmatter `SRC-IHAVEADHD` and `SRC-PONYTAIL` `skills/ponytail-review/SKILL.md` | 4 w (E1) |
 

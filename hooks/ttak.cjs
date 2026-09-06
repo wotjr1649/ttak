@@ -169,7 +169,12 @@ function handle(input) {
         if (cmd === 'status') {
           const s = readState();
           if (s.status === 'unavailable' || s.status === 'invalid') return block(ERR);
-          return block(`TTAK saved setting: ${s.status === 'on' ? 'ON' : 'OFF'}. It applies from the next clean session boundary; resumed or compacted contexts may retain earlier text.`);
+          // The matcher is startup|resume|clear|compact and handle() never
+          // reads input.source, so all four apply the setting -- observed live
+          // on both hosts, 3/3 each. The earlier wording named only two of the
+          // four and sent users to start a new session when a /compact would
+          // do. `fork` is the one source the matcher leaves out.
+          return block(`TTAK saved setting: ${s.status === 'on' ? 'ON' : 'OFF'}. It takes effect at the next session start - a new session, a resumed one, /clear or /compact. Text already injected into this conversation stays.`);
         }
         const ok = writeState(cmd === 'on').ok;
         return block(ok ? `TTAK saved setting: ${cmd === 'on' ? 'ON' : 'OFF'}.` : ERR);

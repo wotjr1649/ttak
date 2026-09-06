@@ -1521,13 +1521,23 @@ test('the copied-text inventory tracks both i-have-adhd pins and the reproduced-
 
   // fix round 5, NEW-2: the above pins the run's text and the test constant's
   // word count -- not the number the file publishes. Reverting the headline to
-  // 18, shrinking the F1 table, swapping 29 and 12 between the two files, and
-  // deleting the F1 table outright all stayed green. F-D exists because a
-  // published figure under-reported its own file's defect; an edit re-creating
-  // exactly that defect was unguarded. Pin the printed numbers too.
+  // 18, shrinking the F1 table, swapping the two files' figures, and deleting
+  // the F1 table outright all stayed green. F-D exists because a published
+  // figure under-reported its own file's defect; an edit re-creating exactly
+  // that defect was unguarded. Pin the printed numbers too.
+  //
+  // Final fix round: contract.md's figure moved 12 -> 9 because the file
+  // changed, not because the measurement was re-read. Restating C7 in
+  // `[RESP-007]`'s conditional-positive form broke the 12-word run that was
+  // both C7's per-unit figure and the file's file-wide maximum; the maximum is
+  // now C8's 9-word run. Re-derived against `SRC-LEANCLARITY`
+  // `policies/guidance.md` at the pinned `7dfe5b2`, with the same
+  // case-folded, punctuation-stripped longest-contiguous-run instrument the
+  // Method section describes -- validated by reproducing every unchanged
+  // figure in both tables, including invariants.md's 29.
   assert.match(inv, /longest shared run of \*\*29 words\*\* measured file-wide/,
     'the ruling block must headline the file-wide 29-word run');
-  for (const [file, w] of [['policy/invariants.md', 29], ['policy/contract.md', 12]]) {
+  for (const [file, w] of [['policy/invariants.md', 29], ['policy/contract.md', 9]]) {
     const row = inv.split('\n').find((l) => l.startsWith(`| \`${file}\` | `));
     assert.ok(row, `${file}: no row in the F1 file-wide table`);
     assert.match(row, new RegExp(`^\\| \`${file}\` \\| \\*\\*${w} w\\*\\* \\|`),
@@ -1601,6 +1611,22 @@ test('every corrected behaviour-gate denominator names what it counts', () => {
   assert.ok(c7, 'no C7 row in the inventory');
   assert.ok(c7.includes('failing 6 of 6 across both hosts on the frozen candidate `1.0.2`'),
     'the C7 row must name the candidate its 6 of 6 belongs to');
+
+  // Final fix round: the ruling said "pin all four sites" and there were five.
+  // The design document carried the merged claim verbatim -- "a measured 6/6
+  // failure across two hosts and two candidates", the form ruled true of
+  // neither denominator -- and it was the one site no per-task review covered,
+  // because it belongs to no task. Ground truth: 6 of 6 on the frozen
+  // candidate across two hosts, then 3 of 3 on Claude after the revision. Two
+  // hosts and two candidates are different measurements, not factors to
+  // multiply.
+  const design = fs.readFileSync(path.join(ROOT, 'docs', 'superpowers', 'specs',
+    '2026-09-04-ttak-design.md'), 'utf8').replace(/\s+/g, ' ');
+  assert.ok(design.includes('That form failed 6 of 6 across both hosts on the frozen candidate, '
+    + 'and 3 of 3 again on Claude after a revision built specifically to fix it.'),
+  'design section 5.2: the behaviour-gate denominator no longer names what it counts');
+  assert.ok(!/6\/6 failure across two hosts and two candidates/.test(design),
+    'design section 5.2: the merged 6/6 claim is back');
 });
 
 // Section 19.3: attribution lives in ATTRIBUTIONS.md and README prose only. A

@@ -125,8 +125,8 @@ defined there, so a typo or an invented ID fails loudly instead of silently mism
 | `ambiguous-instruction` | ambiguous instruction, one focused question justified | AC-006 |
 | `completed-no-next-action` | complete task, no artificial next action added | AC-006 |
 
-`completed-no-next-action` exercises the amended `[RESP-007]`: *"Give one concrete next action only
-when work remains for the user"* (`policy/contract.md`). The prohibition form this replaced failed
+`completed-no-next-action` exercises the amended `[RESP-007]`: *"When work remains for the user, give
+one concrete next action"* (`policy/contract.md`). The prohibition form this replaced failed
 6/6 on the frozen predecessor candidate across two hosts; this case measures whether the
 conditional-positive form alone (no explicit "do not invent a next action" clause) still avoids the
 failure, now that the prohibition has been dropped rather than merely reworded.

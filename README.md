@@ -60,8 +60,9 @@ Codex **asks you to review and trust the plugin's hooks through `/hooks` before 
 Installing is not enough; until that trust review is done, TTAK does nothing at all and says nothing
 about why. Hooks are on by default: on Codex CLI `0.153.4` they ran with no `[features]` block in
 `~/.codex/config.toml` at all, three trials, so `[features] hooks = true` is only needed if you have
-turned the feature off. Whether an older Codex required it is **not verified**. Restart the Codex desktop app after installing.
-Codex has no per-project enablement: the plugin applies to the whole user profile until removed.
+turned the feature off. Whether an older Codex required it is **not verified**. Codex has no
+per-project enablement: the plugin applies to the whole user profile until you remove it (see
+[Removing it](#removing-it)).
 
 ## Turning it on
 
@@ -73,10 +74,13 @@ Codex has no per-project enablement: the plugin applies to the whole user profil
 | `ttak off` | Save the setting as off for this host |
 | `ttak` | Report the saved setting |
 
-The setting is saved per host and the two hosts are never synchronised. It applies from the next
-clean session boundary — a new session or a cleared one. A resumed or compacted context may still
-carry text injected earlier, so `ttak` reports the *saved setting*, not a claim about the
-conversation you are in.
+The setting is saved per host and the two hosts are never synchronised. It takes effect at the next
+session start, on all four of the sources the hook's matcher covers: a new session, a resumed one,
+`/clear` and `/compact`. All four were observed injecting the full text, 3/3 each
+(`docs/analysis/claude-code/2026-09-04-host-integration.md`) — re-injecting after a compaction is
+one of the reasons this is a hook and not a skill. A `fork` is the one session source the matcher
+leaves out. Turning it off does not remove text already injected into the conversation you are in,
+so `ttak` reports the *saved setting*, not a claim about that conversation.
 
 ### A control prompt is consumed and does not reach the model
 
@@ -121,6 +125,12 @@ Invoke it directly:
 On Claude Code the bare `/ttak-explain` also resolves, but that slot can be taken by any
 model-invocable skill with the same bare name, so the namespaced form is the one to use. Both hosts
 may also invoke it on their own when a request matches its description.
+
+**None of those three invocation forms is verified.** They follow each host's documented
+namespacing, and Codex's `debug prompt-input` output does contain the string `ttak-explain`, which
+shows the skill is discovered — not that any of the three resolves. Both evidence documents track
+this as `NOT VERIFIED`. If a form does not work, ask for the explanation in plain language instead:
+the host-invoked route needs no syntax.
 
 ## What is measured
 
@@ -179,7 +189,7 @@ Measured from the shipped `policy/*.md` files:
 
 | Scope | Bytes | Approx. tokens (~4 chars/token) |
 |---|---|---|
-| Session start (precedence + invariants + contract) | 2,981 | 745 |
+| Session start (precedence + invariants + contract) | 2,977 | 744 |
 | Subagent start (precedence + invariants) | 2,000 | 499 |
 
 These are byte counts taken directly from the shipped files with the composition the hook performs,
@@ -198,8 +208,42 @@ plugin data directory.
 
 **Does not claim.** Better output, higher correctness, fewer defects, faster work, or any benchmark
 result. Safe composition with other instruction sets — measured otherwise. That the behaviour gate it
-inherits passes — it does not, and it has not been re-run. Cross-host conformance, activation
-reliability, or context overhead measured on a live host: all of that is unmeasured for TTAK today.
+inherits passes — it does not, and it has not been re-run. **Cross-host conformance is genuinely
+unmeasured**: the runner exists but has never been pointed at a model, so nothing here is claimed
+about how the policy text changes a response. Activation reliability and context overhead *are*
+measured, on both live hosts, in the two documents linked above — but what they measure is the
+plumbing, not the output.
+
+## Removing it
+
+**To stop the injection without removing anything, send `ttak off`.** That is the reversible
+option, and it takes effect on the same session sources listed above.
+
+To remove the plugin itself, two commands per host — the plugin, then the marketplace entry:
+
+```text
+/plugin                                  # Claude Code: uninstall ttak
+/plugin marketplace remove ttak
+```
+
+```text
+codex plugin remove ttak@ttak            # Codex CLI
+codex plugin marketplace remove ttak
+```
+
+**Neither host's removal deletes the saved setting.** `codex plugin remove` removes the local
+cache, and the marketplace command removes the listing; the state file lives in the host's plugin
+data directory and survives both. So a reinstall comes back on if it was on. To clear it too,
+delete the data directory as well:
+
+```text
+rm -rf ~/.claude/plugins/data/ttak-ttak/   # Claude Code
+rm -rf ~/.codex/plugins/data/ttak-ttak/    # Codex CLI
+```
+
+That directory holds only `state.json` and the `.notified` flag. The specification defers uninstall
+workflows, so no test covers these paths; they are the commands the host documents plus the data
+directory this plugin writes.
 
 ## Licence and attribution
 
@@ -223,5 +267,6 @@ projects are named there and here as factual attribution. **None of their author
 ## Status
 
 Pre-release. The gates still open are the copied-content review, the inherited `LCL-BEH-001`
-behaviour gate (not re-run), host-integration verification on both live hosts, the cross-host
-conformance run, and the required human adversarial review of the English policy text.
+behaviour gate (not re-run), the interactive surface of both hosts and the explainer's invocation
+syntax — the non-interactive surface is verified in the two host-integration documents — the
+cross-host conformance run, and the required human adversarial review of the English policy text.
