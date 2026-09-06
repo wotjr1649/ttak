@@ -10,7 +10,7 @@
 | 기준 언어 | 영어 |
 | 기준 원문 | 영문 문서 |
 | 공식 번역본 | 이 문서 `TTAK_Plugin_Product_Definition_v0.2_KO.md` |
-| 반영한 개정안 | `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`, 해당 문서 §8 절차에 따라 전부 반영 |
+| 반영한 개정안 | `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`, 해당 문서 §8 절차에 따라 전부 반영. `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md`, 해당 문서 §5 절차에 따라 전부 반영. v0.3 개정안은 파일명을 바꾸지 않고 현재 파일에 그대로 반영했다. 이유는 해당 문서 §5에 있다 |
 | 다음 단계 | Claude Code와 Codex CLI의 구현 가능성 분석 및 구현 계획 수립 |
 | 구현 상태 | 미착수. 플랫폼별 구현은 의도적으로 확정하지 않음 |
 
@@ -159,7 +159,7 @@ TTAK의 성공은 사용자가 다음 조건을 만족하는 **가장 작은 완
 - `[SRC-002]`, `[AC-005]`, `[AC-009]` 요구사항이 인용하는 측정 근거.
 - §17에 공개하는 승계된 제한사항.
 
-TTAK의 정책 문구는 이 원본의 정책 파일이 아니라 상위 `SKILL.md` 파일에서 직접 파생한다(§19.3). 이 원본은 `SRC-IHAVEADHD`를 `cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c`로 고정한다. 이 원본을 거쳐 TTAK에 들어온 문구는 그 고정 커밋과 §5.1의 고정 커밋을 모두 출처 기록에 남긴다.
+TTAK의 정책 문구는 가능한 경우 상위 `SKILL.md` 파일에서 직접 파생한다. `policy/invariants.md`와 `policy/contract.md`는 그 대신 이 원본의 정책 파일을 거쳐 TTAK에 들어온다. §19.3은 기록을 남기는 조건으로 이 두 단계 연결 고리를 허용하며, 그 기록은 `ATTRIBUTIONS.md`에 있다. 이 원본은 `SRC-IHAVEADHD`를 `cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c`로 고정한다. 이 원본을 거쳐 TTAK에 들어온 문구는 그 고정 커밋과 §5.1의 고정 커밋을 모두 출처 기록에 남긴다.
 
 ### 5.2 원본 사용 정책
 
@@ -892,7 +892,8 @@ TTAK은 다음을 조정한다.
 
 다음 의무는 규범이며 별도의 요구사항 ID를 갖지 않는다. `[SRC-001]`~`[SRC-005]`와 `[LIC-001]`~`[LIC-008]`을 어떻게 충족할지를 한정하는 조항이다.
 
-- 정책 문구는 `SRC-LEANCLARITY`의 정책 파일이 아니라 상위 `SKILL.md` 파일에서 반드시 직접 파생한다. TTAK은 그 원본이 의도적으로 버린 단위인 페르소나, 우선순위 조항, 사용자 권한 조항을 복원하는데 이 단위들은 그 원본 문구에 없으며, 직접 파생하면 출처 연결 고리가 두 단계가 아니라 한 단계가 된다.
+- 정책 문구는 상위 `SKILL.md` 파일에서 직접 파생하는 것을 권장한다. 그러지 않고 `SRC-LEANCLARITY`의 정책 파일을 거쳐 TTAK에 들어온 경우 그 두 단계 연결 고리를 허용하되 반드시 기록해야 한다. 아래 고정 커밋 기록 항목이 요구하는 고정 커밋 두 개가 모두 출처 기록에 있어야 하며, `SRC-LEANCLARITY`에서 비롯한 단위는 갖고 있지도 않은 상위 출처로 표기하지 말고 그 원본에서 비롯했다고 반드시 기록해야 한다. 모든 단위에 직접 파생을 요구할 수는 없다. 배포된 단위 두 개 — `policy/invariants.md` I2(`[TTAK-TRIM-009]`)와 `policy/contract.md` C5(검증 정직성 조항) — 에는 파생할 상위 문장 자체가 없기 때문이다. 라이선스 결과는 어느 쪽이든 같다. 연결 고리의 모든 당사자가 동일한 저자이고 동일한 라이선스다. 측정값, 연결 고리 및 이 문구가 반영하는 판정은 `docs/COPIED_TEXT_INVENTORY.md`의 "Controller ruling"과 F1, F2에 있다. 기록은 `ATTRIBUTIONS.md`의 `wotjr1649/leanclarity`에 있다.
+- TTAK은 `SRC-LEANCLARITY`가 의도적으로 버린 단위 두 개를 복원한다. 우선순위 조항은 `policy/precedence.md`로, 사용자 권한 조항은 `policy/invariants.md` I7의 두 번째 문장으로 배포한다. 페르소나는 여기에 포함되지 않으며 페르소나 문구는 어디에도 배포하지 않는다. 페르소나는 이름, 로고, README, Manifest의 `displayName`이 담는 브랜드 장치이며, 주입 문구에 페르소나 문장을 넣는 것은 `OPEN-12` 실험 결과를 조건으로 한다.
 - `ATTRIBUTIONS.md`는 각 상위 원본의 고지를 **공개된 그대로** 재현해야 한다. `DreambigOu/ELI5`의 LICENSE는 저작권자 이름 없이 `Copyright (c) 2026`으로 적혀 있으므로 사실 관계를 덧붙여 그대로 재현해야 하며, 이름을 넣어 "바로잡아서는" 안 된다. 저작권자를 지어내는 것은 허위 출처 표기다.
 - `ATTRIBUTIONS.md`는 각 파생 산출물이 어느 상위 커밋을 거쳤는지 반드시 기록한다. `SRC-LEANCLARITY`를 거쳐 TTAK에 들어온 산출물은 그 원본의 상위 고정 커밋과 §5.1의 고정 커밋을 모두 기록에 남긴다.
 - Review 관련 자료를 가져오는 경우 `skills/ponytail-review/SKILL.md`를 파생 출처로 반드시 명시한다. 여기에는 그 파일의 "간결한 산출물은 통과시킨다" 규칙에 대응하는 `[CAP-REVIEW-007]`도 포함된다.
@@ -1026,3 +1027,4 @@ Claude Code와 Codex CLI는 각자의 최신 공식 플랫폼 기능을 기준�
 |---|---|---|---|
 | 0.1 | 2026-09-04 | 후보 | 제품, 페르소나, 기능, 범위, 출처 및 평가 정의의 최초 통합본 |
 | 0.2 | 2026-09-04 | 후보 | `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`를 전부 반영했다. `SRC-006`과 `LIC-004`를 폐기하고, `[TTAK-TRACK-008]`과 `[TTAK-TRIM-009]`를 추가하고, 요구사항 열두 개를 개정했다. `SRC-ANTHROPIC-ELI5`를 제거하고 고정 커밋을 명시한 `SRC-LEANCLARITY` 행을 추가했다. `TTAK Review`를 v1.1로 연기했고, 크로스 호스트 평가 실행기와 로고 한 개를 v1 범위로 옮겼다. 우선순위 전달 의무와 파생·고지·라이선스 문자열 의무를 추가했다 |
+| 0.3 | 2026-09-06 | 후보 | `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md`를 전부 반영했다. §5.1과 §19.3을 배포된 산출물에 맞췄다. 직접 파생 의무를 권장으로 바꾸고 기록을 남기는 두 단계 연결 고리를 허용했으며, 복원 단위 목록에서 배포되지 않는 페르소나를 뺐다. 요구사항 ID는 추가·폐기·재번호 없이 157개 그대로다 |

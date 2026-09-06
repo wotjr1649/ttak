@@ -10,7 +10,7 @@
 | Normative language | English |
 | Source of Truth | This English document |
 | Official translation | `TTAK_Plugin_Product_Definition_v0.2_KO.md` |
-| Amendment applied | `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`, applied in full per its §8 |
+| Amendments applied | `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`, applied in full per its §8; `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md`, applied in full per its §5. The v0.3 amendment is applied in place and these filenames are unchanged — see its §5 for why |
 | Intended next stage | Claude Code and Codex CLI feasibility analysis and implementation planning |
 | Implementation status | Not started; platform-specific implementation is intentionally unspecified |
 
@@ -159,7 +159,7 @@ The source analysis for this candidate was verified on **2026-09-04** against th
 - the measured evidence cited in the `[SRC-002]`, `[AC-005]`, and `[AC-009]` requirements;
 - the inherited limitations published under §17.
 
-TTAK's policy text is derived from the upstream `SKILL.md` files directly, not from this source's policy files (§19.3). This source pins `SRC-IHAVEADHD` at `cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c`; where text reaches TTAK through it, that pin and the §5.1 pin both belong in the attribution record.
+TTAK's policy text is derived from the upstream `SKILL.md` files directly where it can be. `policy/invariants.md` and `policy/contract.md` reach TTAK through this source's policy files instead; §19.3 permits that two-step chain where it is recorded, and `ATTRIBUTIONS.md` records it. This source pins `SRC-IHAVEADHD` at `cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c`; where text reaches TTAK through it, that pin and the §5.1 pin both belong in the attribution record.
 
 ### 5.2 Source use policy
 
@@ -892,7 +892,8 @@ The preferred implementation approach is to **rewrite behavioral concepts in ori
 
 These obligations are normative and carry no separate requirement ID; they qualify how `[SRC-001]`–`[SRC-005]` and `[LIC-001]`–`[LIC-008]` are satisfied.
 
-- Policy text MUST be derived from the upstream `SKILL.md` files directly, not from `SRC-LEANCLARITY`'s policy files. TTAK restores units that source deliberately dropped — the persona, the precedence clause, and the user-authority clause — which are absent from its text, and direct derivation makes the attribution chain one step instead of two.
+- Policy text SHOULD be derived from the upstream `SKILL.md` files directly. Where it instead reaches TTAK through `SRC-LEANCLARITY`'s policy files, that two-step chain is permitted and MUST be recorded: the pins required by the pin-recording bullet below MUST both appear in the attribution record, and a unit that originates with `SRC-LEANCLARITY` MUST be recorded as originating there rather than attributed to an upstream source it does not have. Direct derivation cannot be required of every unit, because two shipped units have no upstream line to derive from — `policy/invariants.md` I2 (`[TTAK-TRIM-009]`) and `policy/contract.md` C5, the verification-honesty clause. The licensing outcome is the same either way: every party in the chain is the same author under the same licence. Measurement, chain, and the ruling this wording implements: `docs/COPIED_TEXT_INVENTORY.md`, "Controller ruling" and findings F1 and F2. Record: `ATTRIBUTIONS.md`, `wotjr1649/leanclarity`.
+- TTAK restores two units `SRC-LEANCLARITY` deliberately dropped: the precedence clause, which ships as `policy/precedence.md`, and the user-authority clause, which ships as the second sentence of `policy/invariants.md` I7. The persona is not one of them and no persona text ships. The persona is a brand device carried by the name, the logo, the READMEs, and the manifests' `displayName`; persona prose in the injected text is gated on the `OPEN-12` ablation.
 - `ATTRIBUTIONS.md` MUST reproduce each upstream notice **verbatim as published**. `DreambigOu/ELI5`'s LICENSE reads `Copyright (c) 2026` with no copyright holder named; it MUST be reproduced that way with a factual note, and MUST NOT be "corrected" by inserting a name, because inventing a copyright holder is a false attribution statement.
 - `ATTRIBUTIONS.md` MUST record which upstream commit each derived artifact passed through. Where an artifact reaches TTAK through `SRC-LEANCLARITY`, both that source's upstream pin and the §5.1 pin belong in the record.
 - `skills/ponytail-review/SKILL.md` MUST be listed as a derivation source if any Review material is carried, including `[CAP-REVIEW-007]`, which corresponds to its lean-artifact-passes rule.
@@ -1026,3 +1027,4 @@ Recommended gate verdict:
 |---|---|---|---|
 | 0.1 | 2026-09-04 | Candidate | Initial consolidated product, persona, capability, scope, source, and evaluation definition |
 | 0.2 | 2026-09-04 | Candidate | Applied `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md` in full. Retired `SRC-006` and `LIC-004`; added `[TTAK-TRACK-008]` and `[TTAK-TRIM-009]`; amended twelve requirements; removed `SRC-ANTHROPIC-ELI5` and added the pinned `SRC-LEANCLARITY` row; deferred `TTAK Review` to v1.1; moved a cross-host evaluation runner and a single logo into v1 scope; added the delivered-precedence obligation and the derivation, notice, and license-string obligations |
+| 0.3 | 2026-09-06 | Candidate | Applied `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md` in full. Reconciled §5.1 and §19.3 with the shipped artifact: the direct-derivation MUST becomes a SHOULD with a recorded two-step chain permitted, and the restored-unit list drops the persona, which does not ship. No requirement ID is added, retired, or renumbered; the set stays at 157 |

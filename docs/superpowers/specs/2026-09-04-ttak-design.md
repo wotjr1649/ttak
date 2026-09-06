@@ -8,6 +8,7 @@
 | Evidence | `docs/analysis/2026-09-04_TTAK_DESIGN_REVIEW_PACKET.md` and four adversarial reviews |
 | Hosts | Claude Code `2.1.259`, Codex CLI `0.150.1` |
 | Development platform | Windows 11 Pro 26200, Git Bash, `core.autocrlf=true` |
+| Amended by | `docs/TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md`, 2026-09-06 — §4.1, §4.4, §5.3, §5.4 and the §9 risks table reconciled with the shipped artifact |
 
 ---
 
@@ -153,10 +154,19 @@ read-only at run time; the only writes go to host-provided plugin data.
 - **Absent state means OFF.** This inverts the predecessor's default and is what makes `[ACT-001]`
   hold: installing the plugin injects nothing.
 - Each host owns its own file. They are never synchronized.
-- Codex does not pre-create `<CODEX_HOME>/plugins/data/<plugin>-<marketplace>/`. A missing leaf
-  directory whose parent exists is **absent state on read**, and is created only by an `on`/`off`
-  write. Lifecycle reads never create it. A missing parent, a non-directory path, or a stat failure
-  is **unavailable**, which is distinct from absent.
+- Codex creates no part of `<CODEX_HOME>/plugins/data/`; Claude Code pre-creates its leaf. Observed
+  per host in `docs/analysis/codex-cli/2026-09-04-host-integration.md` §3.1 and
+  `docs/analysis/claude-code/2026-09-04-host-integration.md` §1.3.
+- A path missing at **any** depth is **absent state on read**, provided the nearest name that does
+  exist above it is a traversable directory. It is created only by an `on`/`off` write or by the
+  §4.4 notice. **Lifecycle reads never create anything, at any depth** — unchanged, and pinned by a
+  test at every depth.
+- Classification asks two questions, because one answer cannot serve both: `lstat` whether the name
+  exists, and `stat` whether it can be traversed. A name occupied by something unusable — a plain
+  file where a directory belongs, a dangling junction — therefore reports **unavailable** rather
+  than a confident `absent`, as does a stat failure. `unavailable` is distinct from absent, and the
+  distinction is what keeps the status prompt from reporting a confident OFF for a path nothing can
+  ever be written to.
 - Writes are atomic: write a temporary file in the same directory, then rename over the target, then
   read back and verify.
 
@@ -189,9 +199,9 @@ When state is absent and a `<PLUGIN_DATA>/.notified` flag does not exist, `Sessi
 short line naming the activation prompt, then writes the flag. It never repeats. If the flag cannot be
 written, the notice is skipped rather than repeated — a nag is worse than a missed hint.
 
-**The notice may create its own leaf directory, under the same rule `writeState` follows: only when
-the parent exists, never a missing parent.** §4.1's "lifecycle reads never create" governs reads. The
-notice is a deliberate one-time write and is exempt.
+**The notice creates its own directory path, under the same rule `writeState` follows: a deliberate
+write creates the full path under the host-designated root.** §4.1's "lifecycle reads never create"
+governs reads and is unchanged. The notice is a deliberate one-time write and is exempt.
 
 This is not a detail. Task 5's review found that without the exemption the notice never fires at all
 on a fresh profile of the host that does not pre-create the leaf — `readState` correctly reports
@@ -201,6 +211,16 @@ discovery path, so that user never learns it is installed or what prompt turns i
 failure the predecessor shipped three candidates to escape, reached from the opposite direction.
 
 This is the ponytail statusline-nudge pattern, which is already shipped and proven.
+
+The earlier rule — create the leaf only, and only when its parent already exists — is replaced
+because it made TTAK impossible to enable on one of its two hosts. Codex never creates
+`<CODEX_HOME>/plugins/data/`, so on a fresh profile the parent is always missing, `ttak on` returned
+its error message every time and the notice never fired. Observed on three genuinely fresh
+`CODEX_HOME` directories and re-run against the fix:
+`docs/analysis/codex-cli/2026-09-04-host-integration.md` §3.1–§3.3 and its "Design deviation,
+deliberate, recorded here rather than in the design" note. The safety the old rule protected is held
+by `dataRoot()`, which returns `null` unless the host named a root, so a recursive create can only
+ever happen under a directory the host chose.
 
 ### 4.5 Control prompts
 
@@ -285,21 +305,31 @@ on both platforms, so it is not needed.
 
 ### 5.3 Character
 
-The operating frame — `Track · Trim · Adapt · Keep` — appears as section headings. Persona prose does
-not appear in the injected text until the three-arm ablation (`OPEN-12`) shows a user-experience
-effect. Until then the brand lives in the name, the logo, the README, and the marketplace `interface`
-block, which cost no runtime tokens.
+The operating frame — `Track · Trim · Adapt · Keep` — appears in the `displayName` of all three
+manifests that carry one, and so on the host listing surface. It does **not** appear as headings in
+the injected text, whose headings are `# Precedence`, `# Invariants` and `# Response contract`.
+Persona prose does not appear in the injected text either, until the three-arm ablation (`OPEN-12`)
+shows a user-experience effect. Until then the brand lives in the name, the logo, the README, and the
+marketplace `interface` block, which cost no runtime tokens.
 
-This follows the reviewer's argument directly: user experience is observable model behavior. If the
-headings change structure, directness or memorability, that is an effect and must be measured. If they
-change nothing, they should not be paid for.
+This follows the reviewer's argument directly: user experience is observable model behavior. If
+operating-frame headings change structure, directness or memorability, that is an effect and must be
+measured. If they change nothing, they should not be paid for. That is what `OPEN-12`'s middle arm
+is for; until it runs, nothing is paid.
 
 ### 5.4 Derivation
 
-Policy text is written from the upstream `SKILL.md` files directly, not from the predecessor's
-policies. TTAK restores three units the predecessor deliberately dropped — the persona, the precedence
-clause, and the user-authority clause — which are absent from its text. Direct derivation also keeps
-the attribution chain one step long.
+Policy text is written from the upstream `SKILL.md` files directly where it can be.
+`policy/invariants.md` and `policy/contract.md` were written from the predecessor's policy files
+instead; spec §19.3 permits that two-step chain where it is recorded, and it is recorded
+(`ATTRIBUTIONS.md`, `wotjr1649/leanclarity`; `docs/COPIED_TEXT_INVENTORY.md` "Controller ruling" and
+F1). For two units the one-step chain is not available at all: `policy/invariants.md` I2 and
+`policy/contract.md` C5 originate with the predecessor and have no upstream `SKILL.md` source
+(`docs/COPIED_TEXT_INVENTORY.md` F2).
+
+TTAK restores two units the predecessor deliberately dropped — the precedence clause and the
+user-authority clause — which are absent from its text. The persona is not a third: §5.3 gates
+persona prose on `OPEN-12`, and no persona text ships.
 
 ---
 
@@ -456,7 +486,7 @@ release gate, not an optional step, and no automated instrument replaces it.
 |---|---|
 | Codex hook trust review means installation alone does not activate | Documented in the install flow as a required step, not a footnote |
 | Windows hook-stdin freeze | §4.7 defenses are mandatory, with a regression test |
-| Persona runtime cost unjustified | Frame headings only; prose gated on `OPEN-12` |
+| Persona runtime cost unjustified | Frame in packaging only — the manifests' `displayName`, not headings in the injected text; persona prose gated on `OPEN-12` |
 | Explainer routing under a realistic skill set | `OPEN-06`; measured figures must name their installed-skill set |
 | Guidance does not compose safely | Republished as a limitation; README warns against running alongside Ponytail; TTAK is stated not to be a guard |
 | Two marketplace manifests can drift | CI check on version and source agreement |
