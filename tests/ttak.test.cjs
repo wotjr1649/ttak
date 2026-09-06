@@ -1629,6 +1629,73 @@ test('every corrected behaviour-gate denominator names what it counts', () => {
     'design section 5.2: the merged 6/6 claim is back');
 });
 
+// Section 19.3's licence-string obligation, pinned the way the README figures
+// are: not as a quoted sentence, but against the thing the sentence describes.
+//
+// It required one string across "all plugin and marketplace manifests" when
+// neither marketplace manifest declares a licence and check-hygiene.cjs scopes
+// the presence check to plugin.json deliberately. The v0.3 amendment section 9
+// brought the sentence to the artifact -- each marketplace manifest *that
+// carries a license field*. That was the last normative sentence on this branch
+// with no instrument behind it, and an obligation with no instrument is not an
+// obligation: the old wording could be restored and stay green.
+//
+// Three bindings, because the sentence makes three claims:
+//   1. both language documents state the conditional and not the old absolute;
+//   2. the shipped manifests are in the state the sentence describes;
+//   3. checkHygiene actually implements the conditional -- presence required on
+//      plugin.json, value checked wherever declared, marketplace silence
+//      permitted. Asserted behaviourally against a fixture, because asserting
+//      it by reading the check's source would only restate the source.
+test('the licence-string obligation matches the manifests and the check that enforces it', () => {
+  // 1. Both languages, conditional present and absolute gone.
+  for (const [name, must, mustNot] of [
+    ['TTAK_Plugin_Product_Definition_v0.3_EN.md',
+      'each marketplace manifest that carries a `license` field',
+      'all plugin and marketplace manifests'],
+    ['TTAK_Plugin_Product_Definition_v0.3_KO.md',
+      '`license` 필드를 가진 마켓플레이스 Manifest',
+      '모든 플러그인·마켓플레이스 Manifest'],
+  ]) {
+    const spec = fs.readFileSync(path.join(ROOT, 'docs', name), 'utf8').replace(/\s+/g, ' ');
+    assert.ok(spec.includes(must),
+      `${name}: section 19.3 no longer scopes the licence string to manifests that declare one`);
+    assert.ok(!spec.includes(mustNot),
+      `${name}: section 19.3's unconditional "all ... manifests" wording is back, and the `
+      + 'marketplace manifests still do not declare a licence');
+  }
+
+  // 2. The manifests are in the state that sentence describes.
+  for (const rel of ['.claude-plugin/plugin.json', '.codex-plugin/plugin.json']) {
+    assert.strictEqual(JSON.parse(fs.readFileSync(path.join(ROOT, rel), 'utf8')).license, 'MIT',
+      `${rel}: a plugin manifest must declare the licence string`);
+  }
+  for (const rel of ['.claude-plugin/marketplace.json', '.agents/plugins/marketplace.json']) {
+    assert.strictEqual(JSON.parse(fs.readFileSync(path.join(ROOT, rel), 'utf8')).license, undefined,
+      `${rel}: a marketplace manifest now declares a licence, so section 19.3's conditional `
+      + 'sentence and this pin both need re-reading -- the sentence is not wrong, but it is no '
+      + 'longer describing silence');
+  }
+
+  // 3. The check implements the conditional, not the absolute.
+  const fx = fs.mkdtempSync(path.join(os.tmpdir(), 'ttak-lic-'));
+  const write = (rel, obj) => {
+    fs.mkdirSync(path.join(fx, path.dirname(rel)), { recursive: true });
+    fs.writeFileSync(path.join(fx, rel), JSON.stringify(obj), 'utf8');
+  };
+  write('p/plugin.json', { name: 'x' });                       // no licence: must be flagged
+  write('m/marketplace.json', { name: 'x' });                  // no licence: must NOT be flagged
+  write('w/marketplace.json', { name: 'x', license: 'Apache-2.0' }); // wrong value: must be flagged
+  const { licenseMismatch } = checkHygiene(fx);
+  assert.ok(licenseMismatch.some((e) => e.startsWith('p/plugin.json')),
+    'a plugin manifest with no license key must fail the presence check');
+  assert.ok(!licenseMismatch.some((e) => e.startsWith('m/marketplace.json')),
+    'a marketplace manifest with no license key must be permitted -- that is the conditional '
+    + 'section 19.3 now states, and the reason it was amended');
+  assert.ok(licenseMismatch.some((e) => e.startsWith('w/marketplace.json')),
+    'a marketplace manifest that does declare a licence must have its value checked');
+});
+
 // Section 19.3: attribution lives in ATTRIBUTIONS.md and README prose only. A
 // project name in a manifest reads as affiliation and is searchable. The whole
 // file is scanned rather than the two named fields, because no manifest field

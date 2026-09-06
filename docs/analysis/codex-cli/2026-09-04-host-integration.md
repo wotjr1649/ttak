@@ -14,6 +14,18 @@ Every claim below points at an observation. Anything this run could not reach is
 | Date of run | 2026-09-05 (§3.3), 2026-09-06 (§3.8, §3.9) |
 | Codex invocations | 36 for the original run, 24 more across the two fix rounds |
 
+> **`2977` in this document is a character count, and it is not the byte figure the READMEs
+> publish.** Every length here is `additionalContext.length` — UTF-16 code units, as the host
+> reports them. The READMEs publish `Buffer.byteLength`. `policy/invariants.md` carries two em
+> dashes at three UTF-8 bytes each, so bytes exceed characters by exactly four in every scope that
+> includes it. When these observations were taken, `compose()` produced **2981 bytes / 2977
+> characters** for the session scope and **2000 / 1996** for the subagent scope. The final fix
+> round then shortened `policy/contract.md` by four bytes, so the current composition is
+> **2977 bytes / 2973 characters** — which makes today's published byte figure numerically equal
+> to this document's character figure **by coincidence, about two different texts**. Nothing below
+> is edited for it: these are observations of commit `72fe42d` and they stay as observed.
+> Re-derive the current figures with `node scripts/measure-injection.cjs`.
+
 ## Method, and why nothing was installed into the real profile
 
 The user's real `~/.codex` was **read only** and never written. Every install went into a throwaway
@@ -456,7 +468,8 @@ other configuration source on this machine could turn it off by default.
 
 ## NOT VERIFIED
 
-Each of these is in `task-12-partB-commands.md` for the user to run.
+Each of these is in [`../task-12-partB-commands.md`](../task-12-partB-commands.md) for the user to
+run.
 
 | Item | Why isolation could not reach it |
 |---|---|

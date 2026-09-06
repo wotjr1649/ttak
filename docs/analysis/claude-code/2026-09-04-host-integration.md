@@ -15,6 +15,18 @@ Every claim below points at an observation. Anything this run could not reach is
 | Date of run | 2026-09-05 |
 | Claude invocations | 61, total `$0.3089` |
 
+> **`2977` in this document is a character count, and it is not the byte figure the READMEs
+> publish.** Every length here is `additionalContext.length` — UTF-16 code units, as the host
+> reports them. The READMEs publish `Buffer.byteLength`. `policy/invariants.md` carries two em
+> dashes at three UTF-8 bytes each, so bytes exceed characters by exactly four in every scope that
+> includes it. When these observations were taken, `compose()` produced **2981 bytes / 2977
+> characters** for the session scope and **2000 / 1996** for the subagent scope. The final fix
+> round then shortened `policy/contract.md` by four bytes, so the current composition is
+> **2977 bytes / 2973 characters** — which makes today's published byte figure numerically equal
+> to this document's character figure **by coincidence, about two different texts**. Nothing below
+> is edited for it: these are observations of commit `72fe42d` and they stay as observed.
+> Re-derive the current figures with `node scripts/measure-injection.cjs`.
+
 ## Method, and why nothing was installed
 
 The plugin was **never installed and never enabled**. No settings file was written. Every trial
@@ -232,7 +244,8 @@ plugin cache lifecycle after a real install) is **NOT VERIFIED**; see command sh
 
 ## NOT VERIFIED
 
-Each of these is in `task-12-partB-commands.md` for the user to run.
+Each of these is in [`../task-12-partB-commands.md`](../task-12-partB-commands.md) for the user to
+run.
 
 | Item | Why isolation could not reach it |
 |---|---|
