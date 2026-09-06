@@ -1,0 +1,21 @@
+name: ci
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Requirement-ID parity (AC-011)
+        run: node scripts/check-id-sets.cjs
+      - name: Deterministic tests, hygiene and manifest agreement
+        run: node --test --test-concurrency=1 tests/ttak.test.cjs
+      - name: No skipped assertions
+        run: |
+          node --test --test-concurrency=1 tests/ttak.test.cjs 2>&1 | tee /tmp/suite.log
+          grep -qE '^. skipped 0$' /tmp/suite.log
