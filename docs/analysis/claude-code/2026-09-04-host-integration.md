@@ -244,17 +244,19 @@ plugin cache lifecycle after a real install) is **NOT VERIFIED**; see command sh
 
 ## NOT VERIFIED
 
-Each of these is in [`../task-12-partB-commands.md`](../task-12-partB-commands.md) for the user to
-run.
+Each row names the sheet item that settles it, or says that none does. The sheet is
+[`../task-12-partB-commands.md`](../task-12-partB-commands.md); the user runs it by hand before
+submission, and these rows stay open until then.
 
-| Item | Why isolation could not reach it |
-|---|---|
-| Interactive-mode handling of `/ttak on` and `/ttak` | `-p` mode has no TUI; the slash-command parser may differ. |
-| How a block renders in the interactive TUI | Same. |
-| Interactive `/clear` and `/compact` | The `-p` equivalents were observed; the TUI's own commands were not. |
-| Real install (`/plugin marketplace add` + install + enable) and everything that depends on it | Installing or enabling changes host-global configuration, which this run was barred from doing. |
-| The setting surviving a host restart / real plugin data directory | Requires a real install; `--plugin-dir` state lives under `<data>/ttak-inline`. |
-| Any behaviour with a model other than `haiku` | Every trial pinned `haiku`. Hook behaviour is model-independent by construction, but this was not measured on another model. |
-| Injected text actually reaching a model response | The instrument is hook `stdout` off the host event stream, which shows what the hook emitted, not what entered the model's context. Same standard as the Codex table, which already carried this row. On **neither** host has the policy text been observed entering a model's context. |
-| The explainer's invocation syntax: `/ttak:ttak-explain` and the bare `/ttak-explain` | Neither form was invoked in any trial. Both follow the host's documented namespacing; neither was observed resolving. Command sheet item B7. |
-| Behaviour on a non-Windows platform | Single machine, Windows only. |
+| Item | Why isolation could not reach it | Settled by |
+|---|---|---|
+| Interactive-mode handling of `/ttak on` and `/ttak` | `-p` mode has no TUI; the slash-command parser may differ. | **A2** |
+| How a block renders in the interactive TUI | Same. | **A3** |
+| Interactive `/clear` and `/compact` | The `-p` equivalents were observed; the TUI's own commands were not. | **A4** |
+| Real install (`/plugin marketplace add` + install + enable) and everything that depends on it | Installing or enabling changes host-global configuration, which this run was barred from doing. | **A5** |
+| The setting surviving a host restart / real plugin data directory | Requires a real install; `--plugin-dir` state lives under `<data>/ttak-inline`. | **A5** |
+| Whether removing the plugin deletes the saved setting | Requires a real install to remove. Established for Codex — `codex plugin remove` clears the local cache, not the state file — and never checked here, though both READMEs describe removal. | **B8** |
+| The explainer's invocation syntax: `/ttak:ttak-explain` and the bare `/ttak-explain` | Neither form was invoked in any trial. Both follow the host's documented namespacing; neither was observed resolving. | **B7** |
+| Injected text actually reaching a model response | The instrument is hook `stdout` off the host event stream, which shows what the hook emitted, not what entered the model's context. Same standard as the Codex table, which already carried this row. On **neither** host has the policy text been observed entering a model's context. | **No item.** Nothing on the sheet reads a model's context on either host; closing this needs an instrument that does not exist yet. |
+| Any behaviour with a model other than `haiku` | Every trial pinned `haiku`. Hook behaviour is model-independent by construction, but this was not measured on another model. | **No item.** Out of scope for v1. |
+| Behaviour on a non-Windows platform | Single machine, Windows only. | **No item.** Needs a second machine. |

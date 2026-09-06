@@ -1,21 +1,36 @@
-# Task 12, Part B — command sheet
+# Verifying TTAK on a live host — command sheet
 
-Part A settled everything reachable without changing host configuration. What is left is here.
-Each item says what to run, what answer to look for as a yes or no, which document row it fills, and
-how many times.
+Eleven checks that finish TTAK's host verification. Everything reachable without touching host
+configuration was already measured under isolation and is recorded in
+[`claude-code/2026-09-04-host-integration.md`](claude-code/2026-09-04-host-integration.md) and
+[`codex-cli/2026-09-04-host-integration.md`](codex-cli/2026-09-04-host-integration.md). What is left
+needs a real profile, an interactive session, or a model — which is what this sheet is for. Each
+item says what to run, what answer to look for as a yes or no, which document row it fills, and how
+many times.
+
+**Who runs this: the user, by hand, before submission.** That is a deliberate arrangement, not an
+oversight. Everything that could be automated in isolation was; the rest is left to a person because
+running it means changing host configuration and installing into a real profile, and no agent on this
+project does that. **The `NOT VERIFIED` rows in the two documents above stay open until these items
+are run.** Where a row names an item here, that item is the stated condition for closing it.
 
 Paste shell lines into a Claude Code session with a leading `!`, or into a plain terminal. Items
-marked **(interactive)** are things to do inside a running session, not commands to paste.
+marked **(interactive)** are things to do inside a running session, not commands to paste. `<repo>`
+is your local clone of this repository.
 
 Read this first:
 
 - **Run section A in the order given.** A1 must come before A3, because A3 turns the setting on and
   that makes A1's check impossible to fail.
-- **Three trials is this task's standard.** Items marked **1 pass** are deliberate deviations: they
+- **Three trials is the standard here.** Items marked **1 pass** are deliberate deviations: they
   confirm something already observed 3/3 under isolation, so one pass is enough to catch a
   contradiction, not to establish a rate.
-- **B1 is not a check.** It records a defect Part A found and the fix rounds fixed, with its own
-  three-trial re-run. Nothing to do.
+- **B1 is not a check.** It records a defect the isolated run found and the fix rounds fixed, with
+  its own three-trial re-run. Nothing to do.
+- **B8 removes things, so run it last.**
+
+Provenance: written as Task 12 Part B of the TTAK v1 build, alongside the isolated run whose results
+are the two documents above; B7 and B8 were added by the whole-branch review.
 
 ---
 
@@ -105,10 +120,10 @@ Undo: `/plugin` → uninstall `ttak`, then `/plugin marketplace remove ttak`. Th
 
 ### B1 — found and fixed, nothing to run
 
-Part A observed, 3/3: on a profile where `<CODEX_HOME>/plugins/data/` does not exist, `ttak on`
-returned `{"decision":"block","reason":"TTAK could not read or write its saved setting. Nothing was
-changed."}` and created nothing. Codex never creates that directory, so TTAK could not be enabled on
-a fresh Codex install at all.
+Observed under isolation, 3/3: on a profile where `<CODEX_HOME>/plugins/data/` does not exist,
+`ttak on` returned `{"decision":"block","reason":"TTAK could not read or write its saved
+setting. Nothing was changed."}` and created nothing. Codex never creates that directory, so
+TTAK could not be enabled on a fresh Codex install at all.
 
 Fixed across two rounds: `writeState` and the notice's write create the whole path, and a missing
 path reads `absent` at any depth *provided the nearest existing ancestor is a directory* — the
@@ -252,7 +267,7 @@ Look for, per host, three things: **yes or no** — (a) do both commands succeed
 still print `{"enabled":true}` after removal — that is, **does the saved setting survive?** (c) start
 a session and confirm nothing is injected.
 
-The Codex answer to (b) is expected to be yes: the Part A re-review established that
+The Codex answer to (b) is expected to be yes: the isolated re-review established that
 `codex plugin remove` removes the local **cache**, not `plugins/data/ttak-ttak/state.json`. **The
 Claude Code answer to (b) has never been checked by anyone** — the README states it for both hosts on
 the strength of the Codex finding alone, so if Claude Code does delete its plugin data on uninstall,
@@ -266,7 +281,7 @@ Undo: reinstall per the README if you want the plugin back. To finish cleaning u
 
 ---
 
-## C. If any answer differs from Part A
+## C. If any answer differs from what the documents record
 
-Say which item, what you saw, and paste the literal text. Part A's rows are all `3/3` with no
-disagreement, so a single contradicting observation is a finding, not noise.
+Say which item, what you saw, and paste the literal text. Every row in both evidence documents is
+`3/3` with no disagreement, so a single contradicting observation is a finding, not noise.

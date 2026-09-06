@@ -235,8 +235,9 @@ codex plugin marketplace remove ttak
 cache and the marketplace command removes the listing; the state file lives in the host's plugin
 data directory and survives both, so a reinstall comes back on if it was on. **Whether Claude Code
 behaves the same way is not verified** — it is expected to, since the state file sits outside the
-plugin's own directory there too, but nobody has checked. Command sheet item B8 settles it. Either
-way, to clear the setting, delete the data directory as well:
+plugin's own directory there too, but nobody has checked — item B8 of the
+[command sheet](docs/analysis/task-12-partB-commands.md) settles it. Either way, to clear the
+setting, delete the data directory as well:
 
 ```text
 rm -rf ~/.claude/plugins/data/ttak-ttak/   # Claude Code

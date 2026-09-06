@@ -468,17 +468,18 @@ other configuration source on this machine could turn it off by default.
 
 ## NOT VERIFIED
 
-Each of these is in [`../task-12-partB-commands.md`](../task-12-partB-commands.md) for the user to
-run.
+Each row names the sheet item that settles it, or says that none does. The sheet is
+[`../task-12-partB-commands.md`](../task-12-partB-commands.md); the user runs it by hand before
+submission, and these rows stay open until then.
 
-| Item | Why isolation could not reach it |
-|---|---|
-| `SubagentStart` scope on Codex (`invariants` + `precedence`, not `contract`) | Requires the model to spawn a subagent; no credentials in a throwaway `CODEX_HOME`. |
-| Injected text actually reaching a model response | Same. |
-| `SessionStart` sources `clear` and `compact` on Codex | `codex exec` has no equivalent of the TUI's clear/compact commands. (`resume` **is** verified — §3.8.) |
-| The interactive `/hooks` trust review flow and its wording | `exec` mode has no review UI. |
-| How a blocked prompt renders in the Codex TUI | `exec --json` shows nothing; the TUI may differ. |
-| `/ttak on` in the Codex TUI | Only `codex exec` was measured. |
-| Install from a published marketplace | The declared repository is empty (F1). |
-| The explainer's invocation syntax: `$ttak:ttak-explain` | Never invoked in any trial. `codex debug prompt-input` output *contains* the string `ttak-explain`, which shows the skill is discovered, not that the `$`-prefixed form resolves. Command sheet item B7. |
-| Behaviour on a non-Windows platform | Single machine, Windows only. |
+| Item | Why isolation could not reach it | Settled by |
+|---|---|---|
+| `SubagentStart` scope on Codex (`invariants` + `precedence`, not `contract`) | Requires the model to spawn a subagent; no credentials in a throwaway `CODEX_HOME`. | **B6** |
+| `SessionStart` sources `clear` and `compact` on Codex | `codex exec` has no equivalent of the TUI's clear/compact commands. (`resume` **is** verified — §3.8.) | **B5** |
+| The interactive `/hooks` trust review flow and its wording | `exec` mode has no review UI. | **B3** |
+| How a blocked prompt renders in the Codex TUI | `exec --json` shows nothing; the TUI may differ. | **B4** |
+| Install from a published marketplace | The declared repository is empty (F1). | **B2**, then **B3** |
+| The explainer's invocation syntax: `$ttak:ttak-explain` | Never invoked in any trial. `codex debug prompt-input` output *contains* the string `ttak-explain`, which shows the skill is discovered, not that the `$`-prefixed form resolves. | **B7** |
+| `/ttak on` in the Codex TUI | Only `codex exec` was measured. | **No item.** B4 exercises the bare `ttak on` / `ttak` / `ttak off` forms only; the slash form in the TUI is unclaimed. |
+| Injected text actually reaching a model response | Requires the model to answer; no credentials in a throwaway `CODEX_HOME`. The instrument is hook `stdout` off the host event stream, which shows what the hook emitted, not what entered the model's context. | **No item.** Nothing on the sheet reads a model's context on either host; closing this needs an instrument that does not exist yet. |
+| Behaviour on a non-Windows platform | Single machine, Windows only. | **No item.** Needs a second machine. |
