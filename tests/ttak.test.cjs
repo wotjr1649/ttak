@@ -1,6 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
 const { execFileSync } = require('node:child_process');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -1615,5 +1616,73 @@ test('no upstream project is named anywhere in the shipped manifests', () => {
     for (const n of forbidden) {
       assert.ok(!n.test(raw), `${rel} names an upstream project: ${n}`);
     }
+  }
+});
+
+// The v0.1 review document records SHA-256 values for the specification files
+// and closes by requiring recomputation whenever they change; the v0.2
+// amendment section 8 step 3 made that an obligation when it hit the same
+// situation. Nothing enforced it. Round 0 of the v0.3 amendment edited both
+// files and left the record matching nothing for a commit, and the rename in
+// fix round 1 would have done it again. An obligation with no instrument is not
+// an obligation.
+//
+// Bound to `docs()` -- the same single definition the parity gate reads, and
+// the one place a rename has to land -- so a rename that does not reach the
+// hash record fails here, instead of leaving the test checking whatever the
+// table happens to list.
+const HASH_ROW = /^\| `([^`]+)` \| `([0-9a-f]{64})` \|$/;
+
+// Every SHA-256 table in the document, in order. A table starts at its own
+// header row and ends at the first line that is not a table row, so the
+// `|---|---|` separator is skipped and the historical v0.1 and v0.2 tables stay
+// separate from the live one rather than merging into a single row list.
+function hashTables(text) {
+  const tables = [];
+  let rows = null;
+  for (const line of text.split('\n')) {
+    if (/^\| *파일[^|]*\| *SHA-256 *\|$/.test(line)) { rows = []; tables.push(rows); continue; }
+    if (rows === null) continue;
+    if (!line.startsWith('|')) { rows = null; continue; }
+    const m = HASH_ROW.exec(line);
+    if (m) rows.push([m[1], m[2]]);
+  }
+  return tables;
+}
+
+test('the recorded specification hashes match the files `docs()` names', () => {
+  const rel = 'TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_REVIEW_KO.md';
+  const text = fs.readFileSync(path.join(ROOT, 'docs', rel), 'utf8');
+  const expected = Object.values(docs()).map((f) => path.basename(f)).sort();
+
+  const tables = hashTables(text);
+  assert.ok(tables.length, `${rel}: no SHA-256 table found at all`);
+
+  // The current filenames must appear in exactly one table. Two would make "the
+  // current record" ambiguous -- a fourth table appended beside the live one
+  // lets a stale copy keep satisfying this check -- and zero means the record
+  // was dropped or the rename never reached it.
+  const live = tables.filter((t) => t.some(([name]) => expected.includes(name)));
+  assert.strictEqual(live.length, 1,
+    `${rel}: the files docs() names must appear in exactly one hash table, found ${live.length}`);
+
+  // And it must be the last one, because the document's own prose says the last
+  // table is the current value. A historical table appended after it would make
+  // the document and this test disagree about which record is live.
+  assert.strictEqual(tables.indexOf(live[0]), tables.length - 1,
+    `${rel}: the current hash table must be the last one in the document`);
+
+  const rows = live[0];
+  const names = rows.map(([name]) => name);
+  assert.strictEqual(new Set(names).size, names.length,
+    `${rel}: duplicate filename row in the current hash table`);
+  assert.deepStrictEqual(names.slice().sort(), expected,
+    `${rel}: the current hash table must list exactly the files docs() names, no more and no fewer`);
+
+  for (const [name, recorded] of rows) {
+    const actual = crypto.createHash('sha256')
+      .update(fs.readFileSync(path.join(ROOT, 'docs', name))).digest('hex');
+    assert.strictEqual(actual, recorded,
+      `${name}: recorded hash is stale -- the file changed and the record in ${rel} did not`);
   }
 });

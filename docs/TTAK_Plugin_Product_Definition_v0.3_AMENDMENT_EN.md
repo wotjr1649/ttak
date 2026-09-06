@@ -273,13 +273,19 @@ requires a human ruling on `docs/COPIED_TEXT_INVENTORY.md` finding F4. It stays 
 | Persona absence, re-run | case-insensitive search for the four persona terms over `policy/`, `skills/`, `hooks/`, all four manifests and both READMEs | no match |
 | Shipped headings | `grep -n '^#' policy/*.md` | `# Response contract`, `# Invariants`, `# Precedence` |
 | Frame in packaging | search for `displayName` across the manifests | present in three of the four |
+| Deterministic suite, fix round 2 | `node --test --test-concurrency=1 tests/ttak.test.cjs` | 70 tests, 69 pass, 1 skip, 0 fail, exit 0 |
+| Hash-record guard, mutations | one recorded character changed; one specification byte changed | both fail the new test, and the tree restores byte-for-byte |
+| Hash-record guard, evasions | extra row, duplicate row, emptied table, fourth table appended, `docs()` repointed | all five fail; a heading rename with intact rows still passes |
 
 The single skip is pre-existing and unrelated: the logo asset is still the 68-byte placeholder from
 task 8. It is not touched by this amendment.
 
-The deterministic suite is not a check *of* this amendment — no test reads these documents' amended
-sentences — but it is the evidence that a document-only change stayed document-only. That is the
-claim being made, and it is the check that can falsify it.
+The deterministic suite was not, in the first round, a check *of* this amendment — no test read
+these documents' amended sentences — but it was the evidence that a document-only change stayed
+document-only. Fix round 2 changed that for one obligation: the recorded specification hashes are
+now checked mechanically against the files, and against the same `docs()` definition the parity
+gate uses, so a rename or an edit that does not reach the record fails the suite rather than
+sitting undetected until someone re-reads the file.
 
 ---
 
@@ -299,7 +305,7 @@ delivered, as §5.
 | A | **"v0.2 section 5.1 upstream attribution of `[TTAK-TRIM-009]` — Incorrect. Specification correction pending with the controller"**, when §5.1 already carried the correction in both languages: it records the rule as originating with `SRC-LEANCLARITY` and says an earlier draft credited it upstream in error | `docs/COPIED_TEXT_INVENTORY.md`, Status | Corrected. F2 itself was accurate throughout and is unchanged; only the Status row had lagged |
 | B | **"v0.2 section 19.3 direct derivation — Not satisfied … A v0.3 amendment must reconcile it"**, and F1's closing sentence, both describing this amendment as pending after it had landed | `docs/COPIED_TEXT_INVENTORY.md`, Status and F1 | Corrected to record the amendment as applied and to say what it changed. The measurements F1 rests on are untouched; `[AC-012]` still stays open on F4 |
 | C | **"Status: Design. Approved for planning; not implemented"** in the header, and a §10 that still spoke of the v0.2 amendment as awaiting application. Both were true when written | `docs/superpowers/specs/2026-09-04-ttak-design.md`, header and §10 | Corrected. The header now records the design as implemented and names the branch; §10 records the v0.2 amendment as applied and keeps the four gates it lists that are genuinely still open |
-| D | The recorded SHA-256 hashes for the specification files, which this amendment's own edits invalidated the moment they landed — a defect introduced by this work, not inherited. The record's closing line already required recomputation on any change, and the v0.2 amendment §8 step 3 made it an obligation | `docs/TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_REVIEW_KO.md` | Recomputed and re-recorded under the `v0.3` filenames, with the v0.1 and v0.2 tables kept as history in the shape that file already used |
+| D | The recorded SHA-256 hashes for the specification files, which this amendment's own edits invalidated the moment they landed — a defect introduced by this work, not inherited. The record's closing line already required recomputation on any change, and the v0.2 amendment §8 step 3 made it an obligation | `docs/TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_REVIEW_KO.md` | Recomputed and re-recorded under the `v0.3` filenames, with the v0.1 and v0.2 tables kept as history in the shape that file already used. Fix round 2 added the missing instrument: a test that reads the current table, requires its filenames to be exactly the files `docs()` names, and compares each recorded value against the file's actual hash |
 
 ---
 
