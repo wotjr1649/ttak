@@ -128,14 +128,21 @@
 | `TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_EN.md` | `a551af53526bd452624210598df2dfa98b60868f05808b509f91f5262f8ba122` |
 | `TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_KO.md` | `f24ee2ca53771cbbf62739636f7e7ad702779827ad51180eb659840e975a9780` |
 
-위 해시는 검토 당시 v0.1 전달본 기준이며 검토 기록으로 보존한다. 2026-09-04에 v0.2 개정안을 적용하면서 두 파일은 각각 `TTAK_Plugin_Product_Definition_v0.2_EN.md`와 `TTAK_Plugin_Product_Definition_v0.2_KO.md`로 이름이 바뀌었다. 아래 v0.2 해시가 위 값을 대체한다.
+위 해시는 검토 당시 v0.1 전달본 기준이며 검토 기록으로 보존한다. 2026-09-04에 v0.2 개정안을 적용하면서 두 파일은 각각 `TTAK_Plugin_Product_Definition_v0.2_EN.md`와 `TTAK_Plugin_Product_Definition_v0.2_KO.md`로 이름이 바뀌었고, 2026-09-06에 v0.3 개정안을 적용하면서 다시 `TTAK_Plugin_Product_Definition_v0.3_EN.md`와 `TTAK_Plugin_Product_Definition_v0.3_KO.md`가 되었다.
 
-| 파일 (v0.2) | SHA-256 |
+| 파일 (v0.2, 2026-09-04) | SHA-256 |
 |---|---|
 | `TTAK_Plugin_Product_Definition_v0.2_EN.md` | `cd99e412858cafb8bae300dfc0a709d75879719afffff2a9ac7d9fd8fc1d2dfa` |
 | `TTAK_Plugin_Product_Definition_v0.2_KO.md` | `22749642419ff64d862193ee5dde2189ec8e30b21626531dcd1b14ae8c0b4f05` |
 
-두 표의 해시는 모두 LF 줄바꿈 기준으로 계산했다. 파일을 수정하면 다시 계산해야 한다.
+위 v0.2 해시는 v0.3 개정안 적용 시점에 무효가 되었다. 아래 v0.3 해시가 현재 값이며, 위 두 표는 기록으로 남긴다.
+
+| 파일 (v0.3, 2026-09-06) | SHA-256 |
+|---|---|
+| `TTAK_Plugin_Product_Definition_v0.3_EN.md` | `fb03eee89a4d852b5bc238ca24ff22ebb5106e72fcc8cee48d3bfe023dc25912` |
+| `TTAK_Plugin_Product_Definition_v0.3_KO.md` | `b501c5045e6afac8b6419ec93e8860787d5ea4b80502ea5d226f03a6351f474c` |
+
+세 표의 해시는 모두 LF 줄바꿈 기준으로 계산했다. 파일을 수정하면 다시 계산해야 한다.
 
 ---
 

@@ -3,8 +3,8 @@
 | Field | Value |
 |---|---|
 | Date | 2026-09-04 |
-| Status | Design. Approved for planning; not implemented. |
-| Governs | `TTAK_Plugin_Product_Definition_v0.2_EN.md` — the v0.1 candidate with `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md` applied |
+| Status | Design. Implemented on `feat/ttak-v1`; amended on 2026-09-06 to match what shipped. |
+| Governs | `TTAK_Plugin_Product_Definition_v0.3_EN.md` — the v0.1 candidate with the v0.2 and v0.3 amendments applied. Where this document and that one conflict, **the specification governs**; see the v0.3 amendment §5 |
 | Evidence | `docs/analysis/2026-09-04_TTAK_DESIGN_REVIEW_PACKET.md` and four adversarial reviews |
 | Hosts | Claude Code `2.1.259`, Codex CLI `0.150.1` |
 | Development platform | Windows 11 Pro 26200, Git Bash, `core.autocrlf=true` |
@@ -499,7 +499,9 @@ release gate, not an optional step, and no automated instrument replaces it.
 
 ## 10. What this design does not settle
 
-The v0.2 amendment must be approved and applied to both language documents before implementation
-begins; until then the v0.1 candidate is the normative text. Marketplace prerequisites (`OPEN-13`),
-trademark clearance (`OPEN-14`), the copied-text inventory, and the persona ablation (`OPEN-12`) are
-all outside this document and each blocks a specific later gate.
+The v0.2 amendment was applied to both language documents on 2026-09-04, before implementation
+began, and the v0.3 amendment on 2026-09-06; `TTAK_Plugin_Product_Definition_v0.3_EN.md` is the
+normative text. Marketplace prerequisites (`OPEN-13`), trademark clearance (`OPEN-14`), and the
+persona ablation (`OPEN-12`) remain outside this document and each blocks a specific later gate. The
+copied-text inventory now exists as `docs/COPIED_TEXT_INVENTORY.md`; the human review it feeds has
+not been performed, so `[AC-012]` and `[LIC-007]` stay open behind it.

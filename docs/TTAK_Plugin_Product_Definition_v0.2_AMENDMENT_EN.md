@@ -1,6 +1,6 @@
 # TTAK Plugin Product Definition — v0.2 Amendment
 
-> **Applied on 2026-09-04.** This amendment was approved and applied in full per §8. The resulting normative text is `TTAK_Plugin_Product_Definition_v0.2_EN.md`, with `TTAK_Plugin_Product_Definition_v0.2_KO.md` as its official translation. This document is retained as the record of what changed and why.
+> **Applied on 2026-09-04.** This amendment was approved and applied in full per §8. The resulting normative text was `TTAK_Plugin_Product_Definition_v0.2_EN.md`, with `TTAK_Plugin_Product_Definition_v0.2_KO.md` as its official translation; the v0.3 amendment renamed both to `..._v0.3_EN.md` and `..._v0.3_KO.md` on 2026-09-06. This document is retained as the record of what changed and why.
 
 | Field | Value |
 |---|---|
@@ -306,7 +306,7 @@ This amendment has been applied. Applying it required, in order:
    cause of the twenty undeclared changes the compliance audit found; §20.2 lists it as required
    deliverable 1.
 
-Steps 1–4 completed on 2026-09-04. `TTAK_Plugin_Product_Definition_v0.2_EN.md` is now the normative text and `..._v0.2_KO.md` its official translation; step 5, the requirements traceability analysis, remains outstanding.
+Steps 1–4 completed on 2026-09-04. `TTAK_Plugin_Product_Definition_v0.2_EN.md` became the normative text and `..._v0.2_KO.md` its official translation; both were renamed to `..._v0.3_*` by the v0.3 amendment on 2026-09-06. Step 5, the requirements traceability analysis, remains outstanding.
 
 ---
 

@@ -102,7 +102,7 @@ here (see Task 12, host integration verification).
 
 `cases.jsonl` holds one row per `id` with `ac`, `prompt`, `criteria` (statements a grader can check),
 and `forbidden` (outcomes that fail it). Sixteen cases cover sixteen of the eighteen §17.2 scenario
-groups (see `docs/TTAK_Plugin_Product_Definition_v0.2_EN.md`). `ac` cites the acceptance criterion each
+groups (see `docs/TTAK_Plugin_Product_Definition_v0.3_EN.md`). `ac` cites the acceptance criterion each
 case is evidence for, from §17.4; `run.py --selftest` checks every `ac` value against the IDs actually
 defined there, so a typo or an invented ID fails loudly instead of silently mismapping a case.
 

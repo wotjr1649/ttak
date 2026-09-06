@@ -5,12 +5,12 @@
 | Field | Value |
 |---|---|
 | Status | Candidate |
-| Version | 0.2 |
+| Version | 0.3 |
 | Date | 2026-09-04 |
 | Normative language | English |
 | Source of Truth | This English document |
-| Official translation | `TTAK_Plugin_Product_Definition_v0.2_KO.md` |
-| Amendments applied | `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`, applied in full per its §8; `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md`, applied in full per its §5. The v0.3 amendment is applied in place and these filenames are unchanged — see its §5 for why |
+| Official translation | `TTAK_Plugin_Product_Definition_v0.3_KO.md` |
+| Amendments applied | `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`, applied in full per its §8; `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md`, applied in full per its §6, on which application this file and its translation were renamed from `..._v0.2_EN.md` and `..._v0.2_KO.md` |
 | Intended next stage | Claude Code and Codex CLI feasibility analysis and implementation planning |
 | Implementation status | Not started; platform-specific implementation is intentionally unspecified |
 
@@ -1027,4 +1027,4 @@ Recommended gate verdict:
 |---|---|---|---|
 | 0.1 | 2026-09-04 | Candidate | Initial consolidated product, persona, capability, scope, source, and evaluation definition |
 | 0.2 | 2026-09-04 | Candidate | Applied `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md` in full. Retired `SRC-006` and `LIC-004`; added `[TTAK-TRACK-008]` and `[TTAK-TRIM-009]`; amended twelve requirements; removed `SRC-ANTHROPIC-ELI5` and added the pinned `SRC-LEANCLARITY` row; deferred `TTAK Review` to v1.1; moved a cross-host evaluation runner and a single logo into v1 scope; added the delivered-precedence obligation and the derivation, notice, and license-string obligations |
-| 0.3 | 2026-09-06 | Candidate | Applied `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md` in full. Reconciled §5.1 and §19.3 with the shipped artifact: the direct-derivation MUST becomes a SHOULD with a recorded two-step chain permitted, and the restored-unit list drops the persona, which does not ship. No requirement ID is added, retired, or renumbered; the set stays at 157 |
+| 0.3 | 2026-09-06 | Candidate | Applied `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md` in full. Reconciled §5.1 and §19.3 with the shipped artifact: the direct-derivation MUST becomes a SHOULD with a recorded two-step chain permitted, and the restored-unit list drops the persona, which does not ship. No requirement ID is added, retired, or renumbered; the set stays at 157. Records the ruling that this specification outranks the design document. Renamed from `..._v0.2_EN.md` and `..._v0.2_KO.md` on application |

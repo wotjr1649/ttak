@@ -5,12 +5,12 @@
 | 항목 | 값 |
 |---|---|
 | 상태 | 후보 |
-| 버전 | 0.2 |
+| 버전 | 0.3 |
 | 작성일 | 2026-09-04 |
 | 기준 언어 | 영어 |
 | 기준 원문 | 영문 문서 |
-| 공식 번역본 | 이 문서 `TTAK_Plugin_Product_Definition_v0.2_KO.md` |
-| 반영한 개정안 | `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`, 해당 문서 §8 절차에 따라 전부 반영. `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md`, 해당 문서 §5 절차에 따라 전부 반영. v0.3 개정안은 파일명을 바꾸지 않고 현재 파일에 그대로 반영했다. 이유는 해당 문서 §5에 있다 |
+| 공식 번역본 | 이 문서 `TTAK_Plugin_Product_Definition_v0.3_KO.md` |
+| 반영한 개정안 | `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`, 해당 문서 §8 절차에 따라 전부 반영. `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md`, 해당 문서 §6 절차에 따라 전부 반영. 반영과 함께 이 문서와 영문 원문은 `..._v0.2_KO.md`와 `..._v0.2_EN.md`에서 이름이 바뀌었다 |
 | 다음 단계 | Claude Code와 Codex CLI의 구현 가능성 분석 및 구현 계획 수립 |
 | 구현 상태 | 미착수. 플랫폼별 구현은 의도적으로 확정하지 않음 |
 
@@ -1027,4 +1027,4 @@ Claude Code와 Codex CLI는 각자의 최신 공식 플랫폼 기능을 기준�
 |---|---|---|---|
 | 0.1 | 2026-09-04 | 후보 | 제품, 페르소나, 기능, 범위, 출처 및 평가 정의의 최초 통합본 |
 | 0.2 | 2026-09-04 | 후보 | `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`를 전부 반영했다. `SRC-006`과 `LIC-004`를 폐기하고, `[TTAK-TRACK-008]`과 `[TTAK-TRIM-009]`를 추가하고, 요구사항 열두 개를 개정했다. `SRC-ANTHROPIC-ELI5`를 제거하고 고정 커밋을 명시한 `SRC-LEANCLARITY` 행을 추가했다. `TTAK Review`를 v1.1로 연기했고, 크로스 호스트 평가 실행기와 로고 한 개를 v1 범위로 옮겼다. 우선순위 전달 의무와 파생·고지·라이선스 문자열 의무를 추가했다 |
-| 0.3 | 2026-09-06 | 후보 | `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md`를 전부 반영했다. §5.1과 §19.3을 배포된 산출물에 맞췄다. 직접 파생 의무를 권장으로 바꾸고 기록을 남기는 두 단계 연결 고리를 허용했으며, 복원 단위 목록에서 배포되지 않는 페르소나를 뺐다. 요구사항 ID는 추가·폐기·재번호 없이 157개 그대로다 |
+| 0.3 | 2026-09-06 | 후보 | `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md`를 전부 반영했다. §5.1과 §19.3을 배포된 산출물에 맞췄다. 직접 파생 의무를 권장으로 바꾸고 기록을 남기는 두 단계 연결 고리를 허용했으며, 복원 단위 목록에서 배포되지 않는 페르소나를 뺐다. 요구사항 ID는 추가·폐기·재번호 없이 157개 그대로다. 명세가 설계 문서보다 상위라는 판정을 기록했다. 반영과 함께 `..._v0.2_EN.md`, `..._v0.2_KO.md`에서 이름이 바뀌었다 |

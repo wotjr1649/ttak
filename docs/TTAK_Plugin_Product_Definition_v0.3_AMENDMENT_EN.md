@@ -1,17 +1,17 @@
 # TTAK Plugin Product Definition — v0.3 Amendment
 
-> **Applied on 2026-09-06.** This amendment was approved and applied in full per §5. It changes documents only. **No product code, policy text, manifest, README or test was touched by it, and none needs to be:** every item below is a document sentence catching up to an artifact that already shipped and was already reviewed. The resulting normative text remains `TTAK_Plugin_Product_Definition_v0.2_EN.md` with `..._v0.2_KO.md` as its official translation; §5 explains why the filenames did not move.
+> **Applied on 2026-09-06.** This amendment was approved and applied in full per §5. It changes documents only. **No product code, policy text, manifest, README or test was touched by it, and none needs to be:** every item below is a document sentence catching up to an artifact that already shipped and was already reviewed. The resulting normative text is `TTAK_Plugin_Product_Definition_v0.3_EN.md` with `..._v0.3_KO.md` as its official translation, renamed from `..._v0.2_EN.md` and `..._v0.2_KO.md` on application; §6 records the rename and the path constants it moved.
 
 | Field | Value |
 |---|---|
 | Status | Applied |
-| Amends | `TTAK_Plugin_Product_Definition_v0.2_EN.md` §5.1 and §19.3 (normative) and `..._v0.2_KO.md` (translation), and `docs/superpowers/specs/2026-09-04-ttak-design.md` §4.1, §4.4, §5.3, §5.4 and its §9 risks table |
+| Amends | `TTAK_Plugin_Product_Definition_v0.2_EN.md` §5.1 and §19.3 (normative) and `..._v0.2_KO.md` (translation), renamed on application to `..._v0.3_EN.md` and `..._v0.3_KO.md`, and `docs/superpowers/specs/2026-09-04-ttak-design.md` §4.1, §4.4, §5.3, §5.4 and its §9 risks table |
 | Date | 2026-09-06 |
 | Normative language | English. `[DOC-003]` — English edited first, Korean mirrored in the same commit, equal force in both |
 | Authority | `[HANDOFF-005]` — a platform constraint MAY trigger a proposed product amendment but MUST NOT silently rewrite a requirement. Item 4 is exactly that case; the other three are stale sentences, and this document exists so that neither kind is silent |
 | Evidence | `docs/COPIED_TEXT_INVENTORY.md`, `ATTRIBUTIONS.md`, `docs/analysis/codex-cli/2026-09-04-host-integration.md`, `docs/analysis/claude-code/2026-09-04-host-integration.md`. Cited by section throughout; **not restated here** |
 | Requirement-ID effect | **None.** No ID added, retired, renumbered or re-worded. §19.3 states on its face that its obligations "carry no separate requirement ID". `node scripts/check-id-sets.cjs` reports `ID sets match: 157 ids` before and after |
-| Applied? | Yes, on 2026-09-06. §5 gives the procedure that was followed |
+| Applied? | Yes, on 2026-09-06. §6 gives the procedure that was followed |
 
 ---
 
@@ -108,8 +108,8 @@ block, which cost no runtime tokens. It does live there —
 reached §19.3, so its sentence predates the §5.3 decision rather than competing with it. Nothing here
 turns on a design document outranking a specification — the specification is the higher-ranked
 document, and the correction is that one of its sentences was left behind. The general precedence
-question between the two documents is not settled by this amendment; the "Controller ruling"
-section of `docs/COPIED_TEXT_INVENTORY.md` raised it and left it open, and it stays open. See §7.
+question between the two documents is no longer unsettled: the "Controller ruling" section of
+`docs/COPIED_TEXT_INVENTORY.md` raised it and left it open, and **§5 settles it**.
 
 **Amended to.** Two restored units, not three. The persona is recorded separately as a brand device
 carried by the name, the logo, the READMEs and the manifests' `displayName`, with persona prose in
@@ -189,7 +189,34 @@ the bolded notice rule plus a new basis paragraph. Design §8.1's test list alre
 
 ---
 
-## 5. Application procedure
+## 5. Ruling: the specification outranks the design
+
+Item 2 turned on this and had to derive it in place. It is recorded once here so that the next
+conflict does not have to.
+
+> **The specification outranks the design.** Where the design document records a decision the
+> specification has not yet absorbed, that is a gap in the specification's currency, closed by
+> amending the specification. It is never a licence for the design to win silently.
+
+This is what §2 did rather than what it could have done. §19.3's persona clause was called **stale
+and amended**; it was not overruled by design §5.3 and left standing in the specification. Items 3
+and 4 run the other way: there the design was the document that had fallen behind the artifact, so
+the design was amended, and no specification sentence was bent to cover for it.
+
+Two consequences, because the rule is easy to over-read:
+
+- A design decision is not void for being newer than the specification. Design §5.3's persona gating
+  is a real decision and this amendment adopts it — by writing it into the specification, which is
+  the only place it becomes normative.
+- A conflict is not resolved by deciding which document is right. It is resolved by amending
+  whichever one has fallen behind the artifact, and both directions occurred here.
+
+`docs/COPIED_TEXT_INVENTORY.md`'s "Controller ruling" recorded this question as unsettled and placed
+it on the v0.3 list. The paragraph above settles it.
+
+---
+
+## 6. Application procedure
 
 Followed on 2026-09-06, in this order:
 
@@ -201,16 +228,32 @@ Followed on 2026-09-06, in this order:
    requires identical normative ID sets, checked by the automated diff rather than by hand.
 4. Design document edited: §4.1, §4.4, §5.3, §5.4 and the §9 risks row. English only — there is no
    Korean design document, and none is required: `[DOC-002]` and `[AC-011]` bind the specification.
-5. Both gates re-run and recorded in §6.
+5. Both gates re-run and recorded in §7.
+6. Fix round 1: the ruling in §5 recorded, the specification files renamed, and the stale rows
+   listed in §8 corrected rather than reported.
 
-**The specification files were not renamed to `v0.3`.** The v0.2 amendment renamed `v0.1` → `v0.2` on
-application; this one does not, for a mechanical reason: `scripts/check-id-sets.cjs` and
-`tests/ttak.test.cjs` read `docs/TTAK_Plugin_Product_Definition_v0.2_EN.md` and `..._KO.md` by exact
-path, and this amendment's own rule is that it changes no product code and no test. A rename would
-have made a document-only amendment edit the test suite. The version field in both documents
-therefore still reads `0.2`; the header's amendment row and the §24 revision history record that this
-amendment is applied in place, so the file name is not the only thing a reader has to go on. **If a
-later task renames these files, those two path constants are what it must update.**
+**The specification files were renamed to `v0.3` on application**, by `git mv`, following the
+convention the v0.2 amendment set when it renamed `v0.1` → `v0.2`. A document whose header reads
+`0.2` while its own revision history carries a `0.3` row is the same self-contradiction this
+amendment exists to remove.
+
+The rename moves file paths that are read by code, so they are enumerated here rather than left to be
+discovered. **Three references, not the two expected:**
+
+| Reference | Kind | Effect if missed |
+|---|---|---|
+| `scripts/check-id-sets.cjs`, the `docs()` helper | The only path constant for both languages | `[AC-011]`'s parity gate cannot open either document |
+| `tests/conformance/run.py`, `SPEC_EN` | Path constant, read by `--selftest`, which CI runs | `run.py --selftest` raises `FileNotFoundError`; verified by pointing it back at the old name |
+| `tests/conformance/README.md` and one comment in `run.py` | Prose | Nothing breaks; the path is simply wrong |
+
+`tests/ttak.test.cjs` has **no** path constant of its own — it imports `docs()` from
+`scripts/check-id-sets.cjs`, so the rename reaches it through that one definition. The suite's own
+guidance had assumed a second constant there; there is not one, and the single definition is why.
+
+Prose references in historical documents were left alone where they record what a file was called at
+the time of writing: `docs/superpowers/plans/2026-09-04-ttak-v1.md`'s task-0 instructions and
+`TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`'s account of the v0.1 → v0.2 rename are correct
+as history. Live pointers were updated.
 
 **`[AC-012]` is not closed by this amendment.** It required this amendment as one input, and it also
 requires a human ruling on `docs/COPIED_TEXT_INVENTORY.md` finding F4. It stays open, and so does
@@ -218,7 +261,7 @@ requires a human ruling on `docs/COPIED_TEXT_INVENTORY.md` finding F4. It stays 
 
 ---
 
-## 6. Verification
+## 7. Verification
 
 | Check | Command | Result |
 |---|---|---|
@@ -240,23 +283,28 @@ claim being made, and it is the check that can falsify it.
 
 ---
 
-## 7. Findings recorded, not fixed
+## 8. Stale statements found and corrected
 
-Read while reconciling the four items above. **None is fixed here.** Three are staleness in files this
-amendment is not scoped to touch, and one is a question the brief's list of four did not contain.
-Recorded because a list that turns out to be incomplete is worth knowing before the branch review.
+Read while reconciling the four items above, and **all fixed in fix round 1** rather than left as
+notes. The table is retained because what a document said before it was corrected is part of the
+record, and because a "pending" that describes something already shipped is the same honesty defect
+these four items exist to remove — it is not a lesser one for flattering rather than damaging.
 
-| # | Finding | Where | Why not fixed here |
+A fifth entry stood here in the first round: the specification-versus-design precedence question,
+which the "Controller ruling" placed on the v0.3 list and the first round did not deliver. It is now
+delivered, as §5.
+
+| # | What it said | Where | Corrected to |
 |---|---|---|---|
-| A | **The precedence question between the specification and the design is unsettled, and the ruling that raised it said it "joins the v0.3 list".** This amendment does not settle it. It did not have to: item 2 turns on §19.3's clause being stale, not on either document outranking the other, and §1–§4 are written so that no item depends on the answer. But the ruling asked for it and it is not delivered. | `docs/COPIED_TEXT_INVENTORY.md`, "Controller ruling" | Not among the four items this amendment was scoped to, and settling document precedence is a decision, not a reconciliation. It needs a ruling, not an edit |
-| B | The Status table row **"v0.2 section 5.1 upstream attribution of `[TTAK-TRIM-009]` — Incorrect. Specification correction pending"** is stale. §5.1 already carries the correction, in both languages: it records `[TTAK-TRIM-009]` as originating with `SRC-LEANCLARITY` and says the earlier draft credited it upstream in error | `docs/COPIED_TEXT_INVENTORY.md`, Status | It is an evidence file, out of this amendment's scope, and its finding F2 is still accurate — only the Status row lags |
-| C | The same Status table's row **"v0.2 section 19.3 direct derivation — Not satisfied … A v0.3 amendment must reconcile it"**, and the closing sentence of F1, both describe this amendment as pending. It has now landed | `docs/COPIED_TEXT_INVENTORY.md`, Status and F1 | Same reason as B. Whoever closes `[AC-012]` will have to re-read that file anyway, and it is the natural place to refresh both rows |
-| D | The design document's header still reads **"Status: Design. Approved for planning; not implemented"**, and its §10 still speaks of the v0.2 amendment as awaiting application. Both were true when written and are not now | `docs/superpowers/specs/2026-09-04-ttak-design.md`, header and §10 | Not one of the four deviations, and not a spec-artifact disagreement — a design document describing its own status at the time of writing. Flagged rather than quietly rewritten |
+| A | **"v0.2 section 5.1 upstream attribution of `[TTAK-TRIM-009]` — Incorrect. Specification correction pending with the controller"**, when §5.1 already carried the correction in both languages: it records the rule as originating with `SRC-LEANCLARITY` and says an earlier draft credited it upstream in error | `docs/COPIED_TEXT_INVENTORY.md`, Status | Corrected. F2 itself was accurate throughout and is unchanged; only the Status row had lagged |
+| B | **"v0.2 section 19.3 direct derivation — Not satisfied … A v0.3 amendment must reconcile it"**, and F1's closing sentence, both describing this amendment as pending after it had landed | `docs/COPIED_TEXT_INVENTORY.md`, Status and F1 | Corrected to record the amendment as applied and to say what it changed. The measurements F1 rests on are untouched; `[AC-012]` still stays open on F4 |
+| C | **"Status: Design. Approved for planning; not implemented"** in the header, and a §10 that still spoke of the v0.2 amendment as awaiting application. Both were true when written | `docs/superpowers/specs/2026-09-04-ttak-design.md`, header and §10 | Corrected. The header now records the design as implemented and names the branch; §10 records the v0.2 amendment as applied and keeps the four gates it lists that are genuinely still open |
+| D | The recorded SHA-256 hashes for the specification files, which this amendment's own edits invalidated the moment they landed — a defect introduced by this work, not inherited. The record's closing line already required recomputation on any change, and the v0.2 amendment §8 step 3 made it an obligation | `docs/TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_REVIEW_KO.md` | Recomputed and re-recorded under the `v0.3` filenames, with the v0.1 and v0.2 tables kept as history in the shape that file already used |
 
 ---
 
-## 8. Revision history
+## 9. Revision history
 
 | Version | Date | Status | Summary |
 |---|---|---|---|
-| 0.3 | 2026-09-06 | Applied | Second amendment, documents only. Reconciles four recorded deviations: §19.3's unsatisfiable direct-derivation MUST becomes a SHOULD with a recorded two-step chain; the restored-unit list drops the persona, which does not ship; design §5.3's frame-as-headings sentence is corrected to the manifests' `displayName`; design §4.1 and §4.4 are brought to the shipped recursive create, with the read prohibition unchanged. No requirement ID added, retired or renumbered; the set stays at 157. No product code, policy text, manifest, README or test changed |
+| 0.3 | 2026-09-06 | Applied | Second amendment. Documents, plus the file paths the rename moves. Reconciles four recorded deviations: §19.3's unsatisfiable direct-derivation MUST becomes a SHOULD with a recorded two-step chain; the restored-unit list drops the persona, which does not ship; design §5.3's frame-as-headings sentence is corrected to the manifests' `displayName`; design §4.1 and §4.4 are brought to the shipped recursive create, with the read prohibition unchanged. Records the ruling that the specification outranks the design (§5). No requirement ID added, retired or renumbered; the set stays at 157. Fix round 1 renamed the specification files to `v0.3`, moved the three path references the rename invalidates, and corrected the four stale statements in §8 rather than reporting them. No policy text, manifest, README, or test logic changed |

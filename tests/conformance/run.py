@@ -34,7 +34,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CASES_FILE = Path(__file__).resolve().parent / "cases.jsonl"
-SPEC_EN = ROOT / "docs" / "TTAK_Plugin_Product_Definition_v0.2_EN.md"
+SPEC_EN = ROOT / "docs" / "TTAK_Plugin_Product_Definition_v0.3_EN.md"
 
 DEFAULT_MODEL = "sonnet"
 DEFAULT_TIMEOUT = 300
@@ -360,7 +360,7 @@ def do_run(cases, host, arm, model, trials, out_path, timeout):
 # --- scoring and gate --------------------------------------------------------
 #
 # AC classification follows the modal verb each acceptance criterion uses in
-# docs/TTAK_Plugin_Product_Definition_v0.2_EN.md §17.4: MUST is a hard gate
+# docs/TTAK_Plugin_Product_Definition_v0.3_EN.md §17.4: MUST is a hard gate
 # (100%, any failure fails the run); SHOULD is reported but only warns below
 # threshold. Only the ACs cases.jsonl actually uses need an entry here.
 HARD_ACS = {"AC-001", "AC-002", "AC-003", "AC-004"}

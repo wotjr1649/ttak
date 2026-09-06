@@ -10,8 +10,8 @@ const ID_RE = /^- \[([A-Z][A-Z-]*-\d{3})\]/gm;
 function docs(dir) {
   const d = dir || path.join(__dirname, '..', 'docs');
   return {
-    EN: path.join(d, 'TTAK_Plugin_Product_Definition_v0.2_EN.md'),
-    KO: path.join(d, 'TTAK_Plugin_Product_Definition_v0.2_KO.md'),
+    EN: path.join(d, 'TTAK_Plugin_Product_Definition_v0.3_EN.md'),
+    KO: path.join(d, 'TTAK_Plugin_Product_Definition_v0.3_KO.md'),
   };
 }
 

@@ -58,13 +58,20 @@ runtime tokens." The brand does ship in exactly those places —
 holds: §19.3 declares itself normative and §5.3 declares nothing. The reason is that **§19.3's
 persona clause is stale.** The v0.2 amendment revised twelve requirements and never reached this one,
 so the sentence predates the decision recorded in §5.3 rather than competing with it. What is adopted
-here is the decision, not the document's rank — and **the precedence question between the
-specification and the design is itself unsettled, and joins the v0.3 list.**
+here is the decision, not the document's rank.
+
+**The general precedence question this raised is now settled**, in the same direction, by the v0.3
+amendment's §5: the specification outranks the design, and a design decision the specification has
+not yet absorbed is a gap in the specification's currency, closed by amending the specification —
+never a licence for the design to win silently. That is what happened to §19.3's persona clause: it
+was amended, not overruled.
 
 §5.3's own first sentence is inaccurate too: the operating frame does not appear as section headings,
 which are `# Precedence`, `# Invariants` and `# Response contract`. **Reconciling those three
-sentences is a v0.3 amendment item alongside the derivation requirement below. No persona text is to
-be added in order to make §19.3's sentence true.**
+sentences was a v0.3 amendment item alongside the derivation requirement below, and the amendment
+delivered it on 2026-09-06: §19.3 now names two restored units, and design §5.3 now names the
+manifests' `displayName` rather than section headings. No persona text was added in order to make
+§19.3's sentence true.**
 
 **The second — a one-step chain — is not met, and for two units it cannot be.**
 `policy/invariants.md` I2 (`[TTAK-TRIM-009]`) and `policy/contract.md` C5 (the verification-honesty
@@ -86,11 +93,16 @@ deterministic assertions by dropping the enumerated nouns. Trading verified text
 provenance line is a bad trade when every party in the chain is the same author under the same
 licence — but the option was real, and it is recorded here as declined rather than left unmentioned.
 
-**What this ruling does not do.** It does not make the artifact conform. **A v0.3 amendment must
+**What this ruling does not do.** It does not make the artifact conform. **A v0.3 amendment had to
 reconcile §19.3 with the artifact** — either by scoping the direct-derivation requirement to the
 files that meet it and recording the two-step chain for the other two, or by some other wording the
-shipped text actually satisfies. Until that amendment lands, this project ships a product that breaks
-one of its own MUSTs, and that fact belongs to `[AC-012]`, which stays open.
+shipped text actually satisfies.
+
+**That amendment landed on 2026-09-06** and took the second route: §19.3 states direct derivation as
+a SHOULD and permits the recorded two-step chain
+(`docs/TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md` §1). Between this ruling and that
+amendment the project did ship a product that broke one of its own MUSTs; it no longer does, and the
+window is recorded here rather than erased. `[AC-012]` stays open on F4 and on the human review.
 
 ## Scope
 
@@ -330,8 +342,12 @@ Consequences, separated:
 
 **Resolution.** Not remediated by rewriting. The controller ruled to accept the two-step chain,
 record it, and reconcile the requirement in a v0.3 amendment; see the ruling at the top of this file
-for the reasoning and for what the amendment must still do. `[AC-012]` stays open until that
-amendment lands and a human closes the review.
+for the reasoning. **That amendment landed on 2026-09-06**
+(`docs/TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md` §1): section 19.3 now states direct
+derivation as a SHOULD, permits the two-step chain where it is recorded, and requires a unit
+originating with `SRC-LEANCLARITY` to be recorded as originating there. Nothing measured in this
+finding changed — the 29-word run is still the 29-word run. `[AC-012]` stays open on F4 and on the
+human review.
 
 ### F2 — Two shipped rules have no upstream `SKILL.md` source at all
 
@@ -389,8 +405,8 @@ and is escalated rather than decided here.
 | `[LIC-003]` Apache-2.0 handling | Not applicable, no Apache-2.0 material |
 | `[LIC-005]` complete third-party attribution file | Satisfied by `ATTRIBUTIONS.md` |
 | `[LIC-006]` no implied endorsement | Satisfied: attribution appears only in `ATTRIBUTIONS.md` and README prose, and no manifest names an upstream project (asserted by test) |
-| v0.2 section 19.3 direct derivation | **Not satisfied** for `policy/invariants.md` and `policy/contract.md`. Ruled: amend, do not rewrite. A v0.3 amendment must reconcile it |
-| v0.2 section 5.1 upstream attribution of `[TTAK-TRIM-009]` | **Incorrect.** Specification correction pending with the controller (F2) |
+| Section 19.3 direct derivation | **Reconciled**, not satisfied as originally written. The v0.3 amendment (applied 2026-09-06) made direct derivation a SHOULD and permits the recorded two-step chain these two files have. The measurement below is unchanged; what changed is the requirement |
+| Section 5.1 upstream attribution of `[TTAK-TRIM-009]` | **Corrected** in both language documents. Section 5.1 now records the rule as originating with `SRC-LEANCLARITY`, not reaching TTAK from `SRC-IHAVEADHD`, and says an earlier draft credited it upstream in error (F2) |
 | `[LIC-007]` final licence chosen after review | **Open** — the review has its input now; F1 is ruled, F4 is not |
 | `[LIC-008]` escalate unresolved interpretation | F4 escalated |
-| `[AC-012]` licence and attribution review closed | **Open** — needs the v0.3 amendment and a human ruling on F4 |
+| `[AC-012]` licence and attribution review closed | **Open** — the v0.3 amendment has landed, so what remains is a human ruling on F4 and the review this file feeds |
