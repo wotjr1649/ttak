@@ -93,11 +93,15 @@ not a question you asked the model — it is a plugin command, and if you meant 
 gone. Add any other word (`ttak status`, `what is ttak`, `ttak.`) and it is an ordinary prompt that
 reaches the model normally.
 
-There is no slash-command form, and `/ttak` is not a synonym for it. On Claude Code `2.1.261` the
-host answers `Unknown command: /ttak` and the plugin never sees the prompt at all; on Codex CLI
-`0.153.4` — measured through `codex exec`; its interactive session is not verified — the same text
-arrives as an ordinary prompt and goes to the model. Because the two hosts disagree, the bare word is
-the only trigger.
+There is no slash-command form, and `/ttak` is not a synonym for it. What the host does with the
+sigil depends on the host, and on Claude Code also on what follows it. Through `claude -p` on
+`2.1.261`, both `/ttak` and `/ttak on` answer `Unknown command: /ttak`, 3/3. In the interactive TUI
+`/ttak on` answers the same way, 5/5 — but a bare `/ttak` submitted on its own runs this plugin's own
+`/ttak:ttak-explain` and loads the explainer instead, 4/4. The sigil and the plugin's skill namespace
+share the prefix `/ttak`, and nothing inside the plugin changes that. On Codex CLI `0.153.4` —
+measured through `codex exec`; its interactive session is not verified — the same text arrives as an
+ordinary prompt and goes to the model. In none of these does the plugin see the prompt, and the bare
+word stays the only trigger.
 
 ### What you see when a prompt is consumed depends on the host
 

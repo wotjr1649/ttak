@@ -90,8 +90,22 @@ never arrives. The bare word `ttak` stands as the only whole-prompt trigger, and
 plainly that a prompt whose entire content is `ttak` is consumed by the plugin and never reaches the
 model.
 
-Scope of the claim: this is `-p` (non-interactive) mode. The interactive TUI is **NOT VERIFIED** —
-see the command sheet, item A3.
+**Interactive TUI — command sheet A2, 2026-09-06.** One `--plugin-dir` session, read back from the
+host's own session transcript rather than off the screen.
+
+| Prompt | Host output | Hook event | Trials |
+|---|---|---|---|
+| `/ttak on` | `Unknown command: /ttak` and `Args from unknown skill: on` — two records, both `level: "warning"` | none | 5/5 |
+| `/ttak` | **runs `/ttak:ttak-explain`** — the explainer's skill body is loaded and the model acts on it | none | 4/4 |
+
+The ruling above stands: the sigil form still never reaches the hook, in every one of the nine
+trials. What does not stand is the reason both READMEs gave for it. On this surface a bare `/ttak`
+is not answered with `Unknown command` at all; it runs the plugin's own explainer, because the sigil
+and the plugin's skill namespace share the prefix `/ttak` and the completion has a candidate to
+take. `-p` has no completion, which is the shape the two measurements fit — but this run established
+the outcome, not the mechanism. A second limit belongs on the record: the transcript stores what was
+submitted, not what was typed, so that a bare `/ttak` was typed is the operator's report and not
+something these bytes show.
 
 ---
 
@@ -235,8 +249,17 @@ Three things follow, each from the bytes above:
    message appears in the stream at all.
 3. **A block is not an error**: `is_error: false`, `subtype: "success"`, process exit code 0.
 
-How this renders in the interactive TUI is **NOT VERIFIED** — `-p` mode has no TUI. See command
-sheet item A3.
+**Interactive TUI — command sheet A3, 3/3.** Three rounds of `ttak on`, `ttak`, `ttak off` on
+2026-09-06, byte-identical across rounds, read from the session transcript. Each block is recorded
+by the host as `type: "system"`, `subtype: "informational"`, `level: "warning"`, carrying
+`preventContinuation`, and the wrapping matches the `-p` bytes above exactly.
+
+So (a) the reason text does appear and (b) it is wrapped, as in `-p`. On (c) — whether the TUI
+styles it as an error — the host's own classification answers: `level` is `warning`, the same level
+it gives `Unknown command: /ttak`, which is an ordinary notice. The two are told apart by
+`preventContinuation`, which only the block carries, not by severity. Nothing in the record is an
+error class, which agrees with `-p`'s `is_error: false`. What that warning level looks like rendered
+was not separately captured; this row is the host's classification, not its pixels.
 
 ### 1.6 An ordinary prompt is never blocked
 
@@ -244,6 +267,15 @@ sheet item A3.
 |---|---|---|---|
 | `What is 2+2? Answer with the number only.` | `""` | yes, `4` | 3/3 |
 | `Say OK.` (states absent / off / on) | `""` | yes, `OK.` | 3/3 each |
+| `ttak on
+ttak
+ttak off` as one prompt (interactive TUI) | `""` | not blocked — a `user` record carries it into the conversation | 1/1 |
+
+The last row was not planned; it was found in the transcript after an operator pasted three lines as
+one prompt. It is the stronger negative control, because the prompt *contains* all three control
+words and still passes: the match is against the whole prompt, so an internal newline defeats it.
+Whether the model then answered is not observed — the turn appears to have been interrupted — but
+the prompt was accepted rather than consumed, which is what this section claims.
 
 ### 1.7 The saved setting survives a restart
 
@@ -264,13 +296,13 @@ submission, and these rows stay open until then.
 
 | Item | Why isolation could not reach it | Settled by |
 |---|---|---|
-| Interactive-mode handling of `/ttak on` and `/ttak` | `-p` mode has no TUI; the slash-command parser may differ. | **A2** |
-| How a block renders in the interactive TUI | Same. | **A3** |
+| Interactive-mode handling of `/ttak on` and `/ttak` | `-p` mode has no TUI; the slash-command parser may differ. **Settled 2026-09-06 — it does differ, and a bare `/ttak` runs the explainer. See Step 0.** | **A2** |
+| How a block renders in the interactive TUI | Same. **Settled 2026-09-06, 3/3 — see §1.5. The host classifies a block at `level: "warning"`, not as an error.** | **A3** |
 | Interactive `/clear` and `/compact` | The `-p` equivalents were observed; the TUI's own commands were not. | **A4** |
 | Real install (`/plugin marketplace add` + install + enable) and everything that depends on it | Installing or enabling changes host-global configuration, which this run was barred from doing. | **A5** |
 | The setting surviving a host restart / real plugin data directory | Requires a real install; `--plugin-dir` state lives under `<data>/ttak-inline`. | **A5** |
 | Whether removing the plugin deletes the saved setting | Requires a real install to remove. Established for Codex — `codex plugin remove` clears the local cache, not the state file — and never checked here, though both READMEs describe removal. | **B8** |
-| The explainer's invocation syntax: `/ttak:ttak-explain` and the bare `/ttak-explain` | Neither form was invoked in any trial. Both follow the host's documented namespacing; neither was observed resolving. | **B7** |
-| Injected text actually reaching a model response | The instrument is hook `stdout` off the host event stream, which shows what the hook emitted, not what entered the model's context. Same standard as the Codex table, which already carried this row. On **neither** host has the policy text been observed entering a model's context. | **No item.** Nothing on the sheet reads a model's context on either host; closing this needs an instrument that does not exist yet. |
+| The explainer's invocation syntax: `/ttak:ttak-explain` and the bare `/ttak-explain` | Neither form was invoked when this was written. **`/ttak:ttak-explain` has since been observed resolving, 5/5 — the skill body loads and the model acts on it. It was invoked with no arguments, so no explanation was produced, and the bare `/ttak-explain` is still unobserved. A lead, not the claim.** | **B7** |
+| Injected text actually reaching a model response | The instrument is hook `stdout` off the host event stream, which shows what the hook emitted, not what entered the model's context. Same standard as the Codex table, which already carried this row. On **neither** host has the policy text been observed entering a model's context. | **No item.** Nothing on the sheet reads a model's context on either host; closing this needs an instrument that does not exist yet. **One has since been found: a second session can be asked what is literally in its context, and on 2026-09-06 the first-session notice was read back verbatim that way (§1.3). That reaches the notice, which travels the same `additionalContext` channel as the policy text; the policy text itself is what A4 would read.** |
 | Any behaviour with a model other than `haiku` | Every trial pinned `haiku`. Hook behaviour is model-independent by construction, but this was not measured on another model. | **No item.** Out of scope for v1. |
 | Behaviour on a non-Windows platform | Single machine, Windows only. | **No item.** Needs a second machine. |
