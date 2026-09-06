@@ -120,10 +120,10 @@ invocation; `resume` from `claude -p --resume <session-id>`; `compact` and `clea
 
 | Source | `hook_name` | `additionalContext` | Trials |
 |---|---|---|---|
-| startup | `SessionStart:startup` | 2977 chars, contains `# Precedence`, `# Invariants`, `# Response contract` | 3/3 |
-| resume | `SessionStart:resume` | 2977 chars, same three documents | 3/3 |
-| compact | `SessionStart:compact` | 2977 chars, same three documents | 3/3 |
-| clear | `SessionStart:clear` | 2977 chars, same three documents | 3/3 |
+| startup | `SessionStart:startup` | 2977 bytes, contains `# Precedence`, `# Invariants`, `# Response contract` | 3/3 |
+| resume | `SessionStart:resume` | 2977 bytes, same three documents | 3/3 |
+| compact | `SessionStart:compact` | 2977 bytes, same three documents | 3/3 |
+| clear | `SessionStart:clear` | 2977 bytes, same three documents | 3/3 |
 
 Raw `stdout` of one `SessionStart:startup` hook_response with state `{"enabled":true}` (whitespace
 as emitted, truncated only in the middle of the policy body):
@@ -135,7 +135,29 @@ as emitted, truncated only in the middle of the policy body):
 `exit_code: 0`, `outcome: "success"`, `stderr: ""` in all twelve trials.
 
 The documents appear in the order `precedence`, `invariants`, `contract`, joined by a blank line,
-matching `compose()`'s `SCOPES.main`.
+matching `compose()`'s `SCOPES.main`. The figure is bytes; the same payload is 2973 characters, the
+difference being four bytes of multi-byte punctuation. Earlier rounds of this table said "chars"
+while counting bytes — the number was right and the unit was not.
+
+**Interactive TUI — command sheet A4, 1 pass.** Observed 2026-09-06 with two instruments that agree.
+The host's own session transcript stores what a hook injected as a `hook_additional_context`
+attachment, so the bytes can be read directly instead of inferred from what the hook emitted:
+
+| Step | `hook_additional_context` | The model, asked whether `# Response contract` is in its context |
+|---|---|---|
+| `/clear` | `SessionStart`, 2977 bytes | `Yes.` |
+| `/compact` | `SessionStart`, 2977 bytes, byte-identical to the first | `Yes.` |
+
+The two payloads hash the same, and each carries exactly one `# Precedence`, one `# Invariants` and
+one `# Response contract` — the same shape as the `-p` rows above. `/compact` refuses on a session
+that has just been cleared (`Not enough messages to compact.`), so three ordinary turns were placed
+between the two steps; they are recorded in §1.6.
+
+**The setting does not apply to the session that sets it.** A first attempt ran the steps in the
+other order — `/clear` while the state was still `{"enabled":false}`, then `ttak on`, then the
+question. The answer was `No.`, and that session's transcript holds zero `hook_additional_context`
+records. This is what the status reply already promised, "it takes effect at the next session
+start", observed rather than assumed, 1/1.
 
 ### 1.2 Nothing injected while off
 
@@ -270,6 +292,7 @@ was not separately captured; this row is the host's classification, not its pixe
 | `ttak on
 ttak
 ttak off` as one prompt (interactive TUI) | `""` | not blocked — a `user` record carries it into the conversation | 1/1 |
+| `what is 2+2`, `name three colours` — setting **on**, interactive TUI | no block record | yes, `4` and `Red, blue, green.` | 1/1 each |
 
 The last row was not planned; it was found in the transcript after an operator pasted three lines as
 one prompt. It is the stronger negative control, because the prompt *contains* all three control
@@ -298,11 +321,11 @@ submission, and these rows stay open until then.
 |---|---|---|
 | Interactive-mode handling of `/ttak on` and `/ttak` | `-p` mode has no TUI; the slash-command parser may differ. **Settled 2026-09-06 — it does differ, and a bare `/ttak` runs the explainer. See Step 0.** | **A2** |
 | How a block renders in the interactive TUI | Same. **Settled 2026-09-06, 3/3 — see §1.5. The host classifies a block at `level: "warning"`, not as an error.** | **A3** |
-| Interactive `/clear` and `/compact` | The `-p` equivalents were observed; the TUI's own commands were not. | **A4** |
+| Interactive `/clear` and `/compact` | The `-p` equivalents were observed; the TUI's own commands were not. **Settled 2026-09-06 — both inject 2977 bytes and the model reports the text present. See §1.1.** | **A4** |
 | Real install (`/plugin marketplace add` + install + enable) and everything that depends on it | Installing or enabling changes host-global configuration, which this run was barred from doing. | **A5** |
 | The setting surviving a host restart / real plugin data directory | Requires a real install; `--plugin-dir` state lives under `<data>/ttak-inline`. | **A5** |
 | Whether removing the plugin deletes the saved setting | Requires a real install to remove. Established for Codex — `codex plugin remove` clears the local cache, not the state file — and never checked here, though both READMEs describe removal. | **B8** |
 | The explainer's invocation syntax: `/ttak:ttak-explain` and the bare `/ttak-explain` | Neither form was invoked when this was written. **`/ttak:ttak-explain` has since been observed resolving, 5/5 — the skill body loads and the model acts on it. It was invoked with no arguments, so no explanation was produced, and the bare `/ttak-explain` is still unobserved. A lead, not the claim.** | **B7** |
-| Injected text actually reaching a model response | The instrument is hook `stdout` off the host event stream, which shows what the hook emitted, not what entered the model's context. Same standard as the Codex table, which already carried this row. On **neither** host has the policy text been observed entering a model's context. | **No item.** Nothing on the sheet reads a model's context on either host; closing this needs an instrument that does not exist yet. **One has since been found: a second session can be asked what is literally in its context, and on 2026-09-06 the first-session notice was read back verbatim that way (§1.3). That reaches the notice, which travels the same `additionalContext` channel as the policy text; the policy text itself is what A4 would read.** |
+| Injected text actually reaching a model response | The instrument is hook `stdout` off the host event stream, which shows what the hook emitted, not what entered the model's context. Same standard as the Codex table, which already carried this row. On **neither** host has the policy text been observed entering a model's context. | **No item.** Nothing on the sheet reads a model's context on either host; closing this needs an instrument that does not exist yet. **Settled on Claude Code, 2026-09-06 (§1.1). Two instruments were found, and they agree: the host's session transcript stores the injected bytes as a `hook_additional_context` attachment, and the model, asked, reported `# Response contract` present after both `/clear` and `/compact`. Neither existed when this row was written. Still open on Codex, where nothing is known to read either.** |
 | Any behaviour with a model other than `haiku` | Every trial pinned `haiku`. Hook behaviour is model-independent by construction, but this was not measured on another model. | **No item.** Out of scope for v1. |
 | Behaviour on a non-Windows platform | Single machine, Windows only. | **No item.** Needs a second machine. |
