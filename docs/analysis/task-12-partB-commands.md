@@ -163,8 +163,8 @@ codex plugin add ttak@ttak
 Then **(interactive)** start `codex`, run `/hooks`, and review/trust TTAK's hooks.
 
 Look for, in order:
-1. Before trusting, send `ttak on`. **Yes or no** — does anything at all happen or appear? Part A
-   observed that an untrusted plugin hook does not run and Codex says nothing about it.
+1. Before trusting, send `ttak on`. **Yes or no** — does anything at all happen or appear? The
+   isolated run observed that an untrusted plugin hook does not run and Codex says nothing about it.
 2. What `/hooks` shows: the plugin name, the three events, the command string. Copy the exact
    wording of the trust prompt — the install instructions have to name this step and should quote it.
 3. After trusting, send `ttak on`. **Yes or no** — does it answer now?
