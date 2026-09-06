@@ -359,6 +359,11 @@ One control on the deletion, because a manual cleanup would have looked identica
 commands drawn up for this run also delete `~/.claude/plugins/data/ttak-inline/` and the A1–A4
 throwaway. Both still exist, so the cleanup was not run and the removal is what took the directory.
 
+And nothing is injected afterwards. A session started after the removal fired three
+`SessionStart:startup` hooks — the restored plugins — and carried one 8444-byte
+`hook_additional_context`, which is a memory plugin's recap and not this one's. Neither
+`# Response contract` nor the first-session notice appears anywhere in that transcript.
+
 ---
 
 ## NOT VERIFIED

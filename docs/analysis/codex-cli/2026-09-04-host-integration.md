@@ -551,6 +551,11 @@ the cache directory is emptied. `~/.codex/plugins/data/ttak-ttak/state.json` sti
 `{"enabled":true}`, which is what the READMEs state. **Claude Code does the opposite** — see
 that document — so the two hosts differ and the READMEs now say so per host.
 
+Nothing is injected afterwards either. Four threads started after the removal contain no
+`# Precedence`, no `# Response contract` and no first-session notice, while `state.json` still reads
+`{"enabled":true}`. **A surviving setting does nothing on its own** — it is inert until something
+reinstalls the plugin that reads it, which is the scope of the READMEs' "a reinstall comes back on".
+
 ---
 
 ## NOT VERIFIED
