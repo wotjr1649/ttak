@@ -1779,3 +1779,67 @@ test('the recorded specification hashes match the files `docs()` names', () => {
       `${name}: recorded hash is stale -- the file changed and the record in ${rel} did not`);
   }
 });
+
+// The last unpinned cross-document link on this branch, and the one that has
+// already broken once. Both evidence documents point at the command sheet in
+// two ways: in prose ("see command sheet item A3") and, since the sheet became
+// a shipped file, in each NOT VERIFIED row's `Settled by` cell.
+//
+// The prose form drifted silently: four references named items S1, S2, S4 and
+// S5 when the sheet has only an A and a B series and never had an S one. Four
+// dead pointers in shipped documents, found by reading rather than by any
+// check. The `Settled by` column is the same shape of claim, written by the
+// same hand in the same round, so it is the same exposure -- and a row whose
+// instrument does not exist is worse than a row with no instrument named,
+// because it reads as covered.
+//
+// Nothing here judges whether an item is the *right* one for a row; that stays
+// a human reading. This asserts only that every item named exists.
+test('every command-sheet reference in the evidence documents names an item that exists', () => {
+  const sheetRel = path.join('docs', 'analysis', 'task-12-partB-commands.md');
+  const sheet = fs.readFileSync(path.join(ROOT, sheetRel), 'utf8');
+  const items = new Set((sheet.match(/^### ([AB]\d+) /gm) || [])
+    .map((h) => h.replace(/^### /, '').trim()));
+  assert.ok(items.size >= 13, `only ${items.size} items parsed from the sheet; the heading shape changed`);
+
+  for (const rel of [path.join('docs', 'analysis', 'claude-code', '2026-09-04-host-integration.md'),
+                     path.join('docs', 'analysis', 'codex-cli', '2026-09-04-host-integration.md')]) {
+    const doc = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+
+    // The relative link must resolve. A named item is no use behind a dead path.
+    const link = doc.match(/\]\((\.\.\/task-12-partB-commands\.md)\)/);
+    assert.ok(link, `${rel}: no link to the command sheet`);
+    assert.ok(fs.existsSync(path.resolve(path.dirname(path.join(ROOT, rel)), link[1])),
+      `${rel}: the command-sheet link does not resolve to a file`);
+
+    // Prose references -- the form that already drifted.
+    for (const m of doc.matchAll(/(?:command )?sheet,? item ([A-Z]\d+)/g)) {
+      assert.ok(items.has(m[1]),
+        `${rel}: prose names command sheet item ${m[1]}, which does not exist in ${sheetRel}. `
+        + `The sheet has: ${[...items].join(', ')}`);
+    }
+
+    // Settled by cells. Every NOT VERIFIED row either names existing items or
+    // says no item settles it -- never both, and never neither.
+    const table = doc.split('## NOT VERIFIED')[1];
+    assert.ok(table, `${rel}: no NOT VERIFIED section`);
+    const rows = table.split('\n').filter((l) => l.startsWith('| ') && !l.startsWith('| Item |')
+      && !l.startsWith('|---'));
+    assert.ok(rows.length >= 9, `${rel}: only ${rows.length} NOT VERIFIED rows parsed`);
+    for (const row of rows) {
+      const cells = row.split('|').map((c) => c.trim());
+      const settled = cells[cells.length - 2];
+      const named = [...settled.matchAll(/\*\*([A-Z]\d+)\*\*/g)].map((m) => m[1]);
+      const none = /\*\*No item\.\*\*/.test(settled);
+      assert.ok(named.length > 0 || none,
+        `${rel}: a NOT VERIFIED row names no item and does not say none settles it: ${cells[1]}`);
+      assert.ok(!(named.length > 0 && none),
+        `${rel}: a NOT VERIFIED row both names an item and says none settles it: ${cells[1]}`);
+      for (const id of named) {
+        assert.ok(items.has(id),
+          `${rel}: the row "${cells[1]}" is settled by ${id}, which does not exist in ${sheetRel}. `
+          + `The sheet has: ${[...items].join(', ')}`);
+      }
+    }
+  }
+});

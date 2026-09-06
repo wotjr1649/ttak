@@ -120,7 +120,7 @@ Consequences worth stating plainly:
 
 `.agents/plugins/marketplace.json` declares the plugin source as
 `{"source":"url","url":"https://github.com/wotjr1649/ttak.git","ref":"main"}`. With that manifest,
-after `codex plugin marketplace add <repo>` succeeded and `codex plugin list` showed
+after `codex plugin marketplace add <local-clone>` succeeded and `codex plugin list` showed
 `ttak@ttak  not installed`, the install failed:
 
 ```

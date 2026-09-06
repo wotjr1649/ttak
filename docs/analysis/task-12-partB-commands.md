@@ -15,8 +15,11 @@ project does that. **The `NOT VERIFIED` rows in the two documents above stay ope
 are run.** Where a row names an item here, that item is the stated condition for closing it.
 
 Paste shell lines into a Claude Code session with a leading `!`, or into a plain terminal. Items
-marked **(interactive)** are things to do inside a running session, not commands to paste. `<repo>`
-is your local clone of this repository.
+marked **(interactive)** are things to do inside a running session, not commands to paste.
+`<local-clone>` is the path to your clone of this repository — a directory on your disk, never a
+URL. **The Codex items do not use it:** `codex plugin add` resolves from `source.url` in
+`.agents/plugins/marketplace.json` and never from a local checkout, so B2 and B3 spell the
+published URL out in full. Substitute nothing there.
 
 Read this first:
 
@@ -42,7 +45,7 @@ and `state.json` in your real `~/.claude/plugins/data/ttak-inline/`, and section
 
 ```
 export PLUGIN_DATA="$(mktemp -d)/ttak-ttak"
-cd "$(mktemp -d)" && claude --setting-sources "" --model haiku --plugin-dir '<repo>'
+cd "$(mktemp -d)" && claude --setting-sources "" --model haiku --plugin-dir '<local-clone>'
 ```
 
 Keep that one session for A1–A4. `echo "$PLUGIN_DATA"` first if you want to inspect it afterwards;
@@ -100,7 +103,7 @@ injecting 2977 characters in `-p` mode, 3/3).
 This is the only Claude item that changes your configuration, and the only one that writes to your
 real profile. `/plugin` undoes it.
 
-**(interactive)** `/plugin marketplace add <repo>`, then install and enable `ttak`.
+**(interactive)** `/plugin marketplace add <local-clone>`, then install and enable `ttak`.
 Then in a session: `ttak on`. Then **quit Claude Code entirely and start it again**, and send `ttak`.
 
 Look for: **yes or no** — does the reply say `TTAK saved setting: ON.`, and does this print

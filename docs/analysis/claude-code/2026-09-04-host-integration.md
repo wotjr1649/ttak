@@ -37,7 +37,7 @@ cd <empty temp dir>
 MSYS2_ARG_CONV_EXCL="*" PLUGIN_DATA="<temp>\pd\<case>" \
 claude -p --output-format stream-json --include-hook-events --verbose \
        --setting-sources "" --model haiku [--tools ""] \
-       --plugin-dir '<repo>' "<prompt>"
+       --plugin-dir '<local-clone>' "<prompt>"
 ```
 
 - `--plugin-dir` loads a plugin directory **"for this session only"** (`claude --help`, verbatim).
