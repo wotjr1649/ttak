@@ -303,11 +303,35 @@ the prompt was accepted rather than consumed, which is what this section claims.
 ### 1.7 The saved setting survives a restart
 
 `ttak on` was sent in one process; a *separate* `claude` process was then started against the same
-`PLUGIN_DATA`. `SessionStart:startup` injected the full 2977-character policy, 3/3. State on disk is
+`PLUGIN_DATA`. `SessionStart:startup` injected the full 2977-byte policy, 3/3. State on disk is
 the only carrier — there is no in-memory session state involved.
 
-This is process-level persistence. Survival across a full host restart (reboot, or the host's own
-plugin cache lifecycle after a real install) is **NOT VERIFIED**; see command sheet item A5.
+This is process-level persistence, and it was measured with `--plugin-dir`.
+
+**Real install, real relaunch — command sheet A5, 1 pass.** Observed 2026-09-06 against the live
+profile with `PLUGIN_DATA` unset, the marketplace added from a local clone.
+
+| Step | What the host said, or recorded |
+|---|---|
+| `/plugin marketplace add <local-clone>` | `Successfully added marketplace: ttak` |
+| install and enable | `✓ Installed TTAK — Track · Trim · Adapt · Keep. Plugin is now active.` |
+| `ttak on`, same session | blocked: `TTAK saved setting: ON.` Nothing injected — the plugin was installed mid-session |
+| quit, relaunch | `SessionStart:startup`, 2977 bytes |
+| `ttak` | blocked: `TTAK saved setting: ON. It takes effect at the next session start …` |
+| `~/.claude/plugins/data/ttak-ttak/state.json` | `{"enabled":true}` |
+
+That the relaunch was a relaunch and not a `/clear` is not taken on trust. The new session's first
+record is a `hook_success` attachment naming `SessionStart:startup`, and neither session holds a
+`/clear` command record — §1.1's run shows that a `/clear` writes one.
+
+Two things here could not be reached with `--plugin-dir`. The policy text injects from a **real
+install**, every earlier measurement in this document having loaded the plugin from a directory; and
+the install confirmation renders the manifest's `displayName`, which until now had only been read out
+of the manifest file.
+
+The install landed as `scope: "local"` against the clone's own path, cached under
+`~/.claude/plugins/cache/ttak/ttak/0.1.0` and pinned to the commit that was `HEAD` at install time.
+Removal, B8, has to account for that scope; both READMEs describe removal without naming one.
 
 ---
 
@@ -322,8 +346,8 @@ submission, and these rows stay open until then.
 | Interactive-mode handling of `/ttak on` and `/ttak` | `-p` mode has no TUI; the slash-command parser may differ. **Settled 2026-09-06 — it does differ, and a bare `/ttak` runs the explainer. See Step 0.** | **A2** |
 | How a block renders in the interactive TUI | Same. **Settled 2026-09-06, 3/3 — see §1.5. The host classifies a block at `level: "warning"`, not as an error.** | **A3** |
 | Interactive `/clear` and `/compact` | The `-p` equivalents were observed; the TUI's own commands were not. **Settled 2026-09-06 — both inject 2977 bytes and the model reports the text present. See §1.1.** | **A4** |
-| Real install (`/plugin marketplace add` + install + enable) and everything that depends on it | Installing or enabling changes host-global configuration, which this run was barred from doing. | **A5** |
-| The setting surviving a host restart / real plugin data directory | Requires a real install; `--plugin-dir` state lives under `<data>/ttak-inline`. | **A5** |
+| Real install (`/plugin marketplace add` + install + enable) and everything that depends on it | Installing or enabling changes host-global configuration, which this run was barred from doing. **Settled 2026-09-06 — see §1.7. It installs, enables and injects.** | **A5** |
+| The setting surviving a host restart / real plugin data directory | Requires a real install; `--plugin-dir` state lives under `<data>/ttak-inline`. **Settled 2026-09-06 — the setting survived a quit and relaunch, and `<data>/ttak-ttak/state.json` reads `{"enabled":true}`. See §1.7.** | **A5** |
 | Whether removing the plugin deletes the saved setting | Requires a real install to remove. Established for Codex — `codex plugin remove` clears the local cache, not the state file — and never checked here, though both READMEs describe removal. | **B8** |
 | The explainer's invocation syntax: `/ttak:ttak-explain` and the bare `/ttak-explain` | Neither form was invoked when this was written. **`/ttak:ttak-explain` has since been observed resolving, 5/5 — the skill body loads and the model acts on it. It was invoked with no arguments, so no explanation was produced, and the bare `/ttak-explain` is still unobserved. A lead, not the claim.** | **B7** |
 | Injected text actually reaching a model response | The instrument is hook `stdout` off the host event stream, which shows what the hook emitted, not what entered the model's context. Same standard as the Codex table, which already carried this row. On **neither** host has the policy text been observed entering a model's context. | **No item.** Nothing on the sheet reads a model's context on either host; closing this needs an instrument that does not exist yet. **Settled on Claude Code, 2026-09-06 (§1.1). Two instruments were found, and they agree: the host's session transcript stores the injected bytes as a `hook_additional_context` attachment, and the model, asked, reported `# Response contract` present after both `/clear` and `/compact`. Neither existed when this row was written. Still open on Codex, where nothing is known to read either.** |
