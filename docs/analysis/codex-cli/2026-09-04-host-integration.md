@@ -522,6 +522,11 @@ other configuration source on this machine could turn it off by default.
 All four run on 2026-09-06 against the live profile, read back from Codex's own rollouts under
 `~/.codex/sessions/`, which store an injection as a `developer` message.
 
+**Units.** Everything above is a character count of the composition at `72fe42d`, per the note under
+the environment table. This section measures today's composition and gives **bytes**: 2977 bytes /
+2973 characters for the session scope, 2000 / 1996 for the subagent scope. The two `2977`s in this
+document are not the same number about the same text.
+
 **B5 — re-injection happens.** Thread `01a0771e` took **two** main-scope injections, 2977 bytes
 each, at 14:28:34 and 14:28:53, and the context question answered `Yes` and `yes` after them.
 `startup` fires once per thread, so the second is a `clear`/`compact`-class source. **Which one is

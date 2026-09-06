@@ -120,10 +120,10 @@ invocation; `resume` from `claude -p --resume <session-id>`; `compact` and `clea
 
 | Source | `hook_name` | `additionalContext` | Trials |
 |---|---|---|---|
-| startup | `SessionStart:startup` | 2977 bytes, contains `# Precedence`, `# Invariants`, `# Response contract` | 3/3 |
-| resume | `SessionStart:resume` | 2977 bytes, same three documents | 3/3 |
-| compact | `SessionStart:compact` | 2977 bytes, same three documents | 3/3 |
-| clear | `SessionStart:clear` | 2977 bytes, same three documents | 3/3 |
+| startup | `SessionStart:startup` | 2977 chars, contains `# Precedence`, `# Invariants`, `# Response contract` | 3/3 |
+| resume | `SessionStart:resume` | 2977 chars, same three documents | 3/3 |
+| compact | `SessionStart:compact` | 2977 chars, same three documents | 3/3 |
+| clear | `SessionStart:clear` | 2977 chars, same three documents | 3/3 |
 
 Raw `stdout` of one `SessionStart:startup` hook_response with state `{"enabled":true}` (whitespace
 as emitted, truncated only in the middle of the policy body):
@@ -135,18 +135,21 @@ as emitted, truncated only in the middle of the policy body):
 `exit_code: 0`, `outcome: "success"`, `stderr: ""` in all twelve trials.
 
 The documents appear in the order `precedence`, `invariants`, `contract`, joined by a blank line,
-matching `compose()`'s `SCOPES.main`. The figure is bytes; the same payload is 2973 characters, the
-difference being four bytes of multi-byte punctuation. Earlier rounds of this table said "chars"
-while counting bytes — the number was right and the unit was not.
+matching `compose()`'s `SCOPES.main`.
 
 **Interactive TUI — command sheet A4, 1 pass.** Observed 2026-09-06 with two instruments that agree.
 The host's own session transcript stores what a hook injected as a `hook_additional_context`
-attachment, so the bytes can be read directly instead of inferred from what the hook emitted:
+attachment, so the payload can be read directly instead of inferred from what the hook emitted.
+
+**Units, because this section now holds two of them.** The rows above are character counts of the
+composition as it stood at `72fe42d`, per the note under the environment table. The rows below are
+of today's composition and are given both ways, so neither figure has to be reconciled with the
+other by a reader:
 
 | Step | `hook_additional_context` | The model, asked whether `# Response contract` is in its context |
 |---|---|---|
-| `/clear` | `SessionStart`, 2977 bytes | `Yes.` |
-| `/compact` | `SessionStart`, 2977 bytes, byte-identical to the first | `Yes.` |
+| `/clear` | `SessionStart`, 2977 bytes / 2973 characters | `Yes.` |
+| `/compact` | byte-identical to the first | `Yes.` |
 
 The two payloads hash the same, and each carries exactly one `# Precedence`, one `# Invariants` and
 one `# Response contract` — the same shape as the `-p` rows above. `/compact` refuses on a session
@@ -303,7 +306,7 @@ the prompt was accepted rather than consumed, which is what this section claims.
 ### 1.7 The saved setting survives a restart
 
 `ttak on` was sent in one process; a *separate* `claude` process was then started against the same
-`PLUGIN_DATA`. `SessionStart:startup` injected the full 2977-byte policy, 3/3. State on disk is
+`PLUGIN_DATA`. `SessionStart:startup` injected the full 2977-character policy, 3/3. State on disk is
 the only carrier — there is no in-memory session state involved.
 
 This is process-level persistence, and it was measured with `--plugin-dir`.
