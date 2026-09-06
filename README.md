@@ -58,9 +58,19 @@ codex plugin marketplace add wotjr1649/ttak
 codex plugin add ttak@ttak
 ```
 
-Codex **asks you to review and trust the plugin's hooks through `/hooks` before any of them run**.
-Installing is not enough; until that trust review is done, TTAK does nothing at all and says nothing
-about why. Hooks are on by default: on Codex CLI `0.153.4` they ran with no `[features]` block in
+Codex **will not run a plugin's hooks until you enable them, and installing is not enough.** TTAK
+declares three — session start, user prompt submit, subagent start — and each is enabled separately.
+The CLI's `/hooks` lists them per event with an installed and an active count; the ChatGPT desktop
+app's hook settings list the plugin by name with one toggle per event. The run behind this paragraph
+used the desktop app. Turn all three on.
+
+Until they are on, the failure is worse than silence. `ttak on` is not consumed by the plugin, so it
+reaches the model as an ordinary prompt — and the model may answer as though it had worked. In one
+observed run it read the explainer's own skill file and replied that it had turned an explain mode
+on. Nothing had been saved. **If `ttak` does not answer with `TTAK saved setting: …`, the hooks are
+not enabled yet.**
+
+Hooks are on by default: on Codex CLI `0.153.4` they ran with no `[features]` block in
 `~/.codex/config.toml` at all, three trials, so `[features] hooks = true` is only needed if you have
 turned the feature off. Whether an older Codex required it is **not verified**. Codex has no
 per-project enablement: the plugin applies to the whole user profile until you remove it (see

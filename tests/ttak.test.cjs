@@ -1213,7 +1213,17 @@ const README_PINS = {
     // F-A: /\/hooks/ also matched require('./hooks/ttak.cjs') in the size
     // command, so deleting the whole 395-character trust-review paragraph
     // left the suite green.
-    trustReview: "trust the plugin's hooks through `/hooks` before any of them run",
+    //
+    // B3, 2026-09-06: the sentence this pinned described a CLI trust prompt the
+    // run never saw -- enabling happened through per-event toggles instead. The
+    // obligation is unchanged, so the pin moves to the wording that carries it.
+    trustReview: "will not run a plugin's hooks until you enable them, and installing is not enough",
+    // B3 also found the trap the old sentence understated. Before the hooks are
+    // enabled the prompt reaches the model, which may answer as though it had
+    // worked, so "does nothing and says nothing" was wrong in the direction that
+    // costs a reader most. Pinned separately: this is the only line that tells
+    // one how to distinguish a real save from a model that merely says so.
+    falseConfirm: 'does not answer with `TTAK saved setting: …`, the hooks are not enabled yet',
     // F-B: the section carrying "8 of 24" holds five of the six file-wide
     // `ponytail` occurrences, so a section-scoped /ponytail/i survived
     // replacing the advice sentence with one that drops the plugin's name.
@@ -1244,7 +1254,8 @@ const README_PINS = {
       + 'correctness guarantee.',
   },
   'README.ko.md': {
-    trustReview: '통해 플러그인 훅을 검토하고 신뢰하도록 요구합니다',
+    trustReview: '훅을 활성화하기 전에는 플러그인 훅을 실행하지 않으며, 설치만으로는 부족합니다',
+    falseConfirm: '`TTAK saved setting: …`으로 답하지 않는다면 훅이 아직 활성화되지 않은 것입니다',
     advice: 'TTAK을 `ponytail`과 함께 사용하는 것은 권장하지 않습니다',
     // fix round 5, NEW-3: `두 호스트 모두 6회 중 6회` reads distributively --
     // six per host, twelve in total. The English `6 of 6 across both hosts`
@@ -1275,7 +1286,10 @@ test('both READMEs publish the inherited measurements, including the negative on
       `${name}: the section carrying the composition figure must advise, in one sentence that names `
       + `the plugin, against running the two together: "${pin.advice}"`);
     assert.ok(flat.includes(pin.trustReview),
-      `${name}: the Codex hook trust-review sentence is missing: "${pin.trustReview}"`);
+      `${name}: the Codex hook enablement sentence is missing: "${pin.trustReview}"`);
+    assert.ok(flat.includes(pin.falseConfirm),
+      `${name}: the reader must be told how to tell a real save from a model that only says so: `
+      + `"${pin.falseConfirm}"`);
     assert.ok(flat.includes(pin.gateCause),
       `${name}: the behaviour-gate cause must name the denominator each 6 of 6 belongs to, and `
       + `that the revision built to fix it also failed: "${pin.gateCause}"`);

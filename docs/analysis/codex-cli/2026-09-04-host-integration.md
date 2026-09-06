@@ -404,8 +404,34 @@ A blocked turn never attempts the API call at all. Process exit code `0`.
 
 Nothing carries `TTAK saved setting: ON.`. In `codex exec` a user who sends `ttak on` sees a turn
 complete silently and gets no confirmation that anything happened. This is a sharp divergence from
-Claude Code, which surfaces the reason as a warning line plus the result text. Whether the
-interactive TUI renders it is **NOT VERIFIED** — command sheet item B4.
+Claude Code, which surfaces the reason as a warning line plus the result text.
+
+**The interactive TUI does render it — command sheet B4, 2026-09-06.** `ttak` and `ttak on` each
+came back on screen as:
+
+```
+● Blocked by hook
+  └ TTAK saved setting: ON. It takes effect at the next session start – …
+```
+
+So the product question this section opened is closed, and closed the good way: a user who sends
+`ttak on` in the Codex TUI does get told. Two differences from Claude Code are worth carrying into
+the READMEs. Codex says `Blocked by hook` where Claude Code says
+`UserPromptSubmit operation blocked by hook:`, and **Codex does not echo the original prompt back**.
+
+**The rollout does not record the block.** `~/.codex/sessions/…/rollout-*.jsonl` holds the
+first-session notice and the policy injection as `developer` messages, but no record of either
+blocked turn — the screen was the only witness, which is consistent with `exec --json` carrying
+nothing either. One consequence for anyone reading this later: **Codex has no `level` for a block to
+be classified at, so Claude Code's `level: "warning"` must not be carried across.** The one thing
+observed about how it looks is that the bullet is red, which is the operator's report of the screen
+and is all there is.
+
+That last point was nearly recorded wrongly. Asked whether Codex's block came out at
+`level: "warning"`, an agent ran ripgrep over this repository, found §1.5 of the Claude Code
+document, and answered yes citing `claude-code/2026-09-04-host-integration.md:256`. The rollout of
+that turn holds the grep output, so the route is on the record: it read our documentation of one
+host and answered a question about the other.
 
 ### 3.7 `/hooks` trust review is required, and the failure is silent
 
@@ -420,7 +446,34 @@ An untrusted plugin hook does not run and Codex does not say so in `exec --json`
 instructions must state the `/hooks` trust review as a required step, because the symptom of
 skipping it is a plugin that is installed, enabled, and completely inert with no diagnostic.
 
-The interactive `/hooks` review flow itself is **NOT VERIFIED** — see command sheet item B3.
+**Command sheet B3, 2026-09-06.** Installed from the published marketplace URL, then enabled, then
+exercised.
+
+1. **Before enabling, the failure is worse than silent.** `ttak on` was not consumed, so it reached
+   the model as an ordinary prompt — and the model read the explainer's own skill file and replied
+   that it had turned an explain mode on. Nothing was saved. Under `exec --json` this shows up as
+   silence; in the TUI it shows up as a confirmation that is not true, which is the shape a user
+   actually meets.
+2. **Enabling is per event, and there is more than one surface.** The CLI's `/hooks` lists each
+   lifecycle event with an installed and an active count — TTAK's three showed 2 installed and 1
+   active while inactive. This run enabled them from the ChatGPT desktop app's hook settings, which
+   lists the plugin by its `displayName` with one toggle per event: session start, user prompt
+   submit, subagent start, scoped to all projects. The operator reports the CLI can do it too; that
+   path was not exercised here, so this document does not claim what it looks like.
+3. **After enabling, it answers.** `ttak`, `ttak on` and `ttak off` all block with their reason
+   text — §3.6.
+
+The per-event shape explains an asymmetry in the artefacts that is otherwise hard to read: at
+22:57:02 the `SessionStart` hook ran and wrote `.notified`, while at 22:58:48 `UserPromptSubmit` did
+not run at all. Separate toggles make that state reachable. **This run did not watch the toggles
+change**, so that is the mechanism the evidence fits and not one it establishes.
+
+No wording is quoted for a trust prompt because none was seen. The install instructions cannot cite
+one; they name the requirement and the surfaces instead.
+
+Injection was observed on this host as well: the first-session notice and, once the setting was on,
+the full policy — 2977 bytes, the same payload as Claude Code — both arriving as `developer`
+messages in the rollout.
 
 ### 3.8 `SessionStart:resume` is reachable, and `--ephemeral` was what hid it
 
@@ -476,10 +529,10 @@ submission, and these rows stay open until then.
 |---|---|---|
 | `SubagentStart` scope on Codex (`invariants` + `precedence`, not `contract`) | Requires the model to spawn a subagent; no credentials in a throwaway `CODEX_HOME`. | **B6** |
 | `SessionStart` sources `clear` and `compact` on Codex | `codex exec` has no equivalent of the TUI's clear/compact commands. (`resume` **is** verified — §3.8.) | **B5** |
-| The interactive `/hooks` trust review flow and its wording | `exec` mode has no review UI. | **B3** |
-| How a blocked prompt renders in the Codex TUI | `exec --json` shows nothing; the TUI may differ. | **B4** |
-| Install from a published marketplace | The declared repository is empty (F1). | **B2**, then **B3** |
+| The interactive `/hooks` trust review flow and its wording | `exec` mode has no review UI. **Partly settled 2026-09-06 (§3.7): enabling is per event and this run did it from the desktop app's hook settings. No trust prompt was seen, so no wording is quoted. The CLI path is reported to exist and stays unexercised.** | **B3** |
+| How a blocked prompt renders in the Codex TUI | `exec --json` shows nothing; the TUI may differ. **Settled 2026-09-06 (§3.6): it renders. `Blocked by hook` plus the reason, no echo of the original prompt, and no record of it in the rollout.** | **B4** |
+| Install from a published marketplace | The declared repository is empty (F1). **Settled 2026-09-06: pushed, then installed from the published URL.** | **B2**, then **B3** |
 | The explainer's invocation syntax: `$ttak:ttak-explain` | Never invoked in any trial. `codex debug prompt-input` output *contains* the string `ttak-explain`, which shows the skill is discovered, not that the `$`-prefixed form resolves. | **B7** |
 | `/ttak on` in the Codex TUI | Only `codex exec` was measured. | **No item.** B4 exercises the bare `ttak on` / `ttak` / `ttak off` forms only; the slash form in the TUI is unclaimed. |
-| Injected text actually reaching a model response | Requires the model to answer; no credentials in a throwaway `CODEX_HOME`. The instrument is hook `stdout` off the host event stream, which shows what the hook emitted, not what entered the model's context. | **No item.** Nothing on the sheet reads a model's context on either host; closing this needs an instrument that does not exist yet. |
+| Injected text actually reaching a model response | Requires the model to answer; no credentials in a throwaway `CODEX_HOME`. The instrument is hook `stdout` off the host event stream, which shows what the hook emitted, not what entered the model's context. **An instrument was found: Codex's own rollout stores the injected text as a `developer` message in the conversation, and on 2026-09-06 the notice and the full 2977-byte policy were both read out of it (§3.7). That is the text in the conversation the model was given; whether a model's answer reflects it is a further question and is B5's and B6's.** | **No item.** The injection into the conversation is settled; what a model's answer reflects is a different claim and no sheet item makes it. |
 | Behaviour on a non-Windows platform | Single machine, Windows only. | **No item.** Needs a second machine. |
