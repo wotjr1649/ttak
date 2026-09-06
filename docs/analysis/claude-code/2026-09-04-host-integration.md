@@ -166,6 +166,20 @@ on Windows also covers "an ancestor is a file", so the status prompt answered a 
 an unusable path. Reads and writes now both require the nearest existing ancestor to be a directory.
 See the codex-cli document §3.3.
 
+**Interactive TUI, 1 pass — command sheet A1.** Observed live on 2026-09-06 in a session started
+with `--plugin-dir` and a throwaway `PLUGIN_DATA`. On the first turn the notice was present in that
+session's context, quoted back verbatim from `SessionStart` additional context, and `PLUGIN_DATA`
+held a 0-byte `.notified` and no `state.json`. After `/clear` and a second `hello` the notice was
+absent from the injected context and `PLUGIN_DATA` was unchanged. The host again created
+`~/.claude/plugins/data/ttak-inline/` empty, 134 ms before the hook's own write, so the TUI path
+takes the leaf-exists-and-is-empty row above as well.
+
+Method, and its limit. The context answers came from the observed session's own model over a
+cross-session message, not from a person reading the screen, and the probe had to quote the notice
+line in order to ask about it — so it was asked to separate that quotation from injected context,
+and it did. What a human sees rendered is a different question, and it belongs to A2 and A3 rather
+than to this row.
+
 ### 1.4 Subagent scope
 
 Forced with `--agents '{"probe":{…}}' --tools Task` and a prompt instructing one `Task` call.
