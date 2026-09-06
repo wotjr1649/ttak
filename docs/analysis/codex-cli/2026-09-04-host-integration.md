@@ -517,6 +517,40 @@ themselves evidence for the first line. The feature is on by default and the fla
 someone who has turned it off. **NOT VERIFIED:** whether an older Codex required it, and whether any
 other configuration source on this machine could turn it off by default.
 
+### 3.10 B5, B6, B7 and B8 on a real profile
+
+All four run on 2026-09-06 against the live profile, read back from Codex's own rollouts under
+`~/.codex/sessions/`, which store an injection as a `developer` message.
+
+**B5 — re-injection happens.** Thread `01a0771e` took **two** main-scope injections, 2977 bytes
+each, at 14:28:34 and 14:28:53, and the context question answered `Yes` and `yes` after them.
+`startup` fires once per thread, so the second is a `clear`/`compact`-class source. **Which one is
+not settled here:** unlike Claude Code, a Codex rollout does not record the `SessionStart` source,
+and the operator's account is what names the command.
+
+**B6 — the payload is scoped correctly, and it does not isolate.** The subagent thread
+(`01a0771f`, nickname `Harvey`, `depth: 1`) took a `SubagentStart` payload of **2000 bytes carrying
+`# Precedence` and `# Invariants` and no `# Response contract`** — exactly what the design asks for,
+and matching `measure-injection.cjs`'s `subagent` figure.
+
+But its `session_meta` reads `thread_source: "subagent"` with `forked_from_id` and
+`parent_thread_id` both naming the parent, and the parent's history is replayed into the fork —
+including the parent's own 2977-byte main injection, which does carry `# Response contract`. **So on
+Codex a narrower `SubagentStart` payload does not produce a narrower subagent context.** The
+subagent returned no result and was shut down, so there is no model-side corroboration; this rests
+on the fork's own records, and what a forked thread actually sends to the model is one step further
+than what its rollout stores.
+
+**B7 — `$ttak:ttak-explain what a mutex is` resolves and answers.** The model announced it was using
+the skill and produced the explanation. First time any of the three published invocation forms has
+been observed doing its job on this host.
+
+**B8 — removal succeeds and the setting survives.** `codex plugin remove` and
+`codex plugin marketplace remove` both succeeded; `codex plugin list` no longer names the plugin and
+the cache directory is emptied. `~/.codex/plugins/data/ttak-ttak/state.json` still reads
+`{"enabled":true}`, which is what the READMEs state. **Claude Code does the opposite** — see
+that document — so the two hosts differ and the READMEs now say so per host.
+
 ---
 
 ## NOT VERIFIED
@@ -527,12 +561,12 @@ submission, and these rows stay open until then.
 
 | Item | Why isolation could not reach it | Settled by |
 |---|---|---|
-| `SubagentStart` scope on Codex (`invariants` + `precedence`, not `contract`) | Requires the model to spawn a subagent; no credentials in a throwaway `CODEX_HOME`. | **B6** |
-| `SessionStart` sources `clear` and `compact` on Codex | `codex exec` has no equivalent of the TUI's clear/compact commands. (`resume` **is** verified — §3.8.) | **B5** |
+| `SubagentStart` scope on Codex (`invariants` + `precedence`, not `contract`) | Requires the model to spawn a subagent; no credentials in a throwaway `CODEX_HOME`. **Settled 2026-09-06 (§3.10): the payload is 2000 bytes and correctly scoped. It does not isolate — Codex forks the parent thread, so the parent's `# Response contract` comes with it.** | **B6** |
+| `SessionStart` sources `clear` and `compact` on Codex | `codex exec` has no equivalent of the TUI's clear/compact commands. (`resume` **is** verified — §3.8.) **Partly settled 2026-09-06 (§3.10): a second main-scope injection arrives mid-thread and the model reports the text. Codex records no source, so which of the two commands produced it rests on the operator's account.** | **B5** |
 | The interactive `/hooks` trust review flow and its wording | `exec` mode has no review UI. **Partly settled 2026-09-06 (§3.7): enabling is per event and this run did it from the desktop app's hook settings. No trust prompt was seen, so no wording is quoted. The CLI path is reported to exist and stays unexercised.** | **B3** |
 | How a blocked prompt renders in the Codex TUI | `exec --json` shows nothing; the TUI may differ. **Settled 2026-09-06 (§3.6): it renders. `Blocked by hook` plus the reason, no echo of the original prompt, and no record of it in the rollout.** | **B4** |
 | Install from a published marketplace | The declared repository is empty (F1). **Settled 2026-09-06: pushed, then installed from the published URL.** | **B2**, then **B3** |
-| The explainer's invocation syntax: `$ttak:ttak-explain` | Never invoked in any trial. `codex debug prompt-input` output *contains* the string `ttak-explain`, which shows the skill is discovered, not that the `$`-prefixed form resolves. | **B7** |
+| The explainer's invocation syntax: `$ttak:ttak-explain` | Never invoked in any trial. `codex debug prompt-input` output *contains* the string `ttak-explain`, which shows the skill is discovered, not that the `$`-prefixed form resolves. **Settled 2026-09-06 (§3.10): it resolves, and the explainer answers.** | **B7** |
 | `/ttak on` in the Codex TUI | Only `codex exec` was measured. | **No item.** B4 exercises the bare `ttak on` / `ttak` / `ttak off` forms only; the slash form in the TUI is unclaimed. |
 | Injected text actually reaching a model response | Requires the model to answer; no credentials in a throwaway `CODEX_HOME`. The instrument is hook `stdout` off the host event stream, which shows what the hook emitted, not what entered the model's context. **An instrument was found: Codex's own rollout stores the injected text as a `developer` message in the conversation, and on 2026-09-06 the notice and the full 2977-byte policy were both read out of it (§3.7). That is the text in the conversation the model was given; whether a model's answer reflects it is a further question and is B5's and B6's.** | **No item.** The injection into the conversation is settled; what a model's answer reflects is a different claim and no sheet item makes it. |
 | Behaviour on a non-Windows platform | Single machine, Windows only. | **No item.** Needs a second machine. |

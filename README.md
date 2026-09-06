@@ -119,15 +119,16 @@ Observed on live hosts, three trials each
 (`docs/analysis/claude-code/2026-09-04-host-integration.md`,
 `docs/analysis/codex-cli/2026-09-04-host-integration.md`):
 
-- **Claude Code `2.1.261`, `claude -p --output-format stream-json`** shows the plugin's reply,
-  framed by the host: a line reading `UserPromptSubmit operation blocked by hook:`, then the reply,
-  then `Original prompt: <what you typed>`. It is not flagged as an error. **How the interactive
-  session renders this is not verified** — that is where most people will meet it, and the framing
-  may differ or be absent.
+- **Claude Code `2.1.261`** shows the plugin's reply framed by the host: a line reading
+  `UserPromptSubmit operation blocked by hook:`, then the reply, then
+  `Original prompt: <what you typed>`. The interactive session frames it the same way, three trials,
+  and it is not flagged as an error either place — the host records it at the same level it gives an
+  ordinary notice like `Unknown command`.
 - **Codex CLI `0.153.4`** shows **nothing** in `codex exec --json` — the turn completes with zero
-  tokens and the reply text appears nowhere in the output. The interactive Codex UI is **not yet
-  verified**; if it behaves the same way, `ttak on` there gives you no confirmation and looks like a
-  message that vanished. The codex-cli document above tracks that open item.
+  tokens and the reply text appears nowhere in the output. **The interactive UI does show it**, as
+  `Blocked by hook` followed by the reply. Two differences from Claude Code: the frame is shorter,
+  and Codex does not echo your prompt back. So `ttak on` gives you a confirmation on both hosts
+  interactively, and on neither under `-p`/`exec`.
 
 In both cases the model never received the prompt.
 
@@ -142,11 +143,12 @@ On Claude Code the bare `/ttak-explain` also resolves, but that slot can be take
 model-invocable skill with the same bare name, so the namespaced form is the one to use. Both hosts
 may also invoke it on their own when a request matches its description.
 
-**None of those three invocation forms is verified.** They follow each host's documented
-namespacing, and Codex's `debug prompt-input` output does contain the string `ttak-explain`, which
-shows the skill is discovered — not that any of the three resolves. Both evidence documents track
-this as `NOT VERIFIED`. If a form does not work, ask for the explanation in plain language instead:
-the host-invoked route needs no syntax.
+**Two of the three are verified; the bare form is not.** `/ttak:ttak-explain what a mutex is` on
+Claude Code and `$ttak:ttak-explain what a mutex is` on Codex both resolve and produce the
+explanation. The bare `/ttak-explain` remains unverified, and not for want of trying: typed twice on
+Claude Code, the host recorded the namespaced form both times, so there is no submission of the bare
+form to judge. **Use the namespaced form.** If one does not work, ask for the explanation in plain
+language instead — the host-invoked route needs no syntax.
 
 ## What is measured
 
@@ -255,11 +257,11 @@ codex plugin marketplace remove ttak
 
 **On Codex, removal does not delete the saved setting.** `codex plugin remove` removes the local
 cache and the marketplace command removes the listing; the state file lives in the host's plugin
-data directory and survives both, so a reinstall comes back on if it was on. **Whether Claude Code
-behaves the same way is not verified** — it is expected to, since the state file sits outside the
-plugin's own directory there too, but nobody has checked — item B8 of the
-[command sheet](docs/analysis/task-12-partB-commands.md) settles it. Either way, to clear the
-setting, delete the data directory as well:
+data directory and survives both, so a reinstall comes back on if it was on. **Claude Code does the
+opposite.** Uninstalling there removes `~/.claude/plugins/data/ttak-ttak/` along with the plugin, so
+a reinstall comes back off. This was expected to match Codex and does not; it was checked on
+2026-09-06 and the two hosts differ. To clear the setting yourself on Codex, or to be sure of it on
+either host, delete the data directory as well:
 
 ```text
 rm -rf ~/.claude/plugins/data/ttak-ttak/   # Claude Code

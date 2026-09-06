@@ -333,6 +333,32 @@ The install landed as `scope: "local"` against the clone's own path, cached unde
 `~/.claude/plugins/cache/ttak/ttak/0.1.0` and pinned to the commit that was `HEAD` at install time.
 Removal, B8, has to account for that scope; both READMEs describe removal without naming one.
 
+### 1.8 The explainer's invocation, and what removal takes with it
+
+**B7, and one of the two forms could not be reached.** `/ttak:ttak-explain what a mutex is` resolves
+and answers: the skill body loads and an explanation follows, twice on 2026-09-06. The bare
+`/ttak-explain` was typed twice and **the transcript records `/ttak:ttak-explain` both times**, with
+`what a mutex is` in `command-args`. So the namespaced form is settled and the bare form is not: no
+submission of it exists to judge.
+
+That is the same shape as Step 0's finding. A completion sits between the keystrokes and the
+submission, and the transcript stores the submission — so the bare form may have been replaced
+before it was sent, or may never have been typed. Nothing here distinguishes those, and the READMEs
+should not claim the bare form works on the strength of this run.
+
+**B8 — removal, and the two hosts disagree.** `/plugin` uninstalled the plugin and
+`/plugin marketplace remove ttak` answered `✔ Removed 1 marketplace`; `installed_plugins.json` no
+longer names `ttak@ttak`. **`~/.claude/plugins/data/ttak-ttak/` is gone with it, `state.json` and
+all.** Codex keeps its equivalent — see the codex-cli document — so a reinstall comes back **off**
+here and **on** there.
+
+Both READMEs expected the two hosts to match, and said so while marking the Claude Code half
+unverified. The expectation was wrong; the sentence is now split per host.
+
+One control on the deletion, because a manual cleanup would have looked identical: the cleanup
+commands drawn up for this run also delete `~/.claude/plugins/data/ttak-inline/` and the A1–A4
+throwaway. Both still exist, so the cleanup was not run and the removal is what took the directory.
+
 ---
 
 ## NOT VERIFIED
@@ -348,8 +374,8 @@ submission, and these rows stay open until then.
 | Interactive `/clear` and `/compact` | The `-p` equivalents were observed; the TUI's own commands were not. **Settled 2026-09-06 — both inject 2977 bytes and the model reports the text present. See §1.1.** | **A4** |
 | Real install (`/plugin marketplace add` + install + enable) and everything that depends on it | Installing or enabling changes host-global configuration, which this run was barred from doing. **Settled 2026-09-06 — see §1.7. It installs, enables and injects.** | **A5** |
 | The setting surviving a host restart / real plugin data directory | Requires a real install; `--plugin-dir` state lives under `<data>/ttak-inline`. **Settled 2026-09-06 — the setting survived a quit and relaunch, and `<data>/ttak-ttak/state.json` reads `{"enabled":true}`. See §1.7.** | **A5** |
-| Whether removing the plugin deletes the saved setting | Requires a real install to remove. Established for Codex — `codex plugin remove` clears the local cache, not the state file — and never checked here, though both READMEs describe removal. | **B8** |
-| The explainer's invocation syntax: `/ttak:ttak-explain` and the bare `/ttak-explain` | Neither form was invoked when this was written. **`/ttak:ttak-explain` has since been observed resolving, 5/5 — the skill body loads and the model acts on it. It was invoked with no arguments, so no explanation was produced, and the bare `/ttak-explain` is still unobserved. A lead, not the claim.** | **B7** |
+| Whether removing the plugin deletes the saved setting | Requires a real install to remove. Established for Codex — `codex plugin remove` clears the local cache, not the state file — and never checked here, though both READMEs describe removal. **Settled 2026-09-06 (§1.8): it does delete it. The two hosts differ, and the expectation the READMEs carried was wrong.** | **B8** |
+| The explainer's invocation syntax: `/ttak:ttak-explain` and the bare `/ttak-explain` | Neither form was invoked when this was written. **The namespaced form is settled (§1.8): it resolves and answers. The bare `/ttak-explain` is not — it was typed twice and the transcript records the namespaced form both times, so no submission of the bare form exists to judge.** | **B7** |
 | Injected text actually reaching a model response | The instrument is hook `stdout` off the host event stream, which shows what the hook emitted, not what entered the model's context. Same standard as the Codex table, which already carried this row. On **neither** host has the policy text been observed entering a model's context. | **No item.** Nothing on the sheet reads a model's context on either host; closing this needs an instrument that does not exist yet. **Settled on Claude Code, 2026-09-06 (§1.1). Two instruments were found, and they agree: the host's session transcript stores the injected bytes as a `hook_additional_context` attachment, and the model, asked, reported `# Response contract` present after both `/clear` and `/compact`. Neither existed when this row was written. Still open on Codex, where nothing is known to read either.** |
 | Any behaviour with a model other than `haiku` | Every trial pinned `haiku`. Hook behaviour is model-independent by construction, but this was not measured on another model. | **No item.** Out of scope for v1. |
 | Behaviour on a non-Windows platform | Single machine, Windows only. | **No item.** Needs a second machine. |
