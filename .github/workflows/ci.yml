@@ -14,8 +14,10 @@ jobs:
       - name: Requirement-ID parity (AC-011)
         run: node scripts/check-id-sets.cjs
       - name: Deterministic tests, hygiene and manifest agreement
-        run: node --test --test-concurrency=1 tests/ttak.test.cjs
-      - name: No skipped assertions
         run: |
-          node --test --test-concurrency=1 tests/ttak.test.cjs 2>&1 | tee /tmp/suite.log
-          grep -qE '^. skipped 0$' /tmp/suite.log
+          set -o pipefail
+          node --test --test-concurrency=1 --test-reporter=tap tests/ttak.test.cjs 2>&1 | tee /tmp/suite.log
+      - name: No skipped assertions
+        run: grep -qE '^. skipped 0$' /tmp/suite.log
+      - name: Cross-host conformance selftest
+        run: python3 tests/conformance/run.py --selftest
