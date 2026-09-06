@@ -1,5 +1,7 @@
 # TTAK — Track · Trim · Adapt · Keep
 
+<img src="assets/logo.png" alt="TTAK" width="128" align="right">
+
 An opt-in instruction set for Claude Code and Codex CLI, plus one audience-adaptive explainer skill.
 It changes what the model is told. **It is not known to change what the model does well**: no
 measurement in this project or in the predecessor it is built from has shown an improvement in model

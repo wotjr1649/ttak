@@ -185,6 +185,18 @@ SOFTWARE.
 
 ---
 
+## Brand image
+
+`assets/logo.png` is a 512×512 area-averaged downsample of an image generated with ChatGPT from the
+author's own prompts. It is **not** derived from any of the four upstream projects above, and no
+third party holds a claim recorded here. The full-size original is not committed; the reduction was
+performed with a one-off stdlib-only script, so the shipped file cannot be re-derived from anything
+in this repository. Whatever rights attach to the output are governed by OpenAI's terms of use at
+the time it was generated; this record does not characterise them.
+
+It is listed here because this project records the provenance of everything it ships. Nothing
+obliged the entry.
+
 ## TTAK's own licence
 
 TTAK ships under MIT (`LICENSE`, and one identical licence string in every manifest and skill

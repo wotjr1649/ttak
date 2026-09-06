@@ -1,5 +1,7 @@
 # TTAK — Track · Trim · Adapt · Keep
 
+<img src="assets/logo.png" alt="TTAK" width="128" align="right">
+
 Claude Code와 Codex CLI를 위한 선택적(opt-in) 지침 세트와, 독자에 맞춰 설명을 조정하는 스킬 하나.
 모델에게 주어지는 텍스트를 바꿉니다. **모델이 더 잘하게 만든다고 알려진 바는 없습니다**: 이 프로젝트에서도,
 이 프로젝트가 물려받은 이전 플러그인에서도 출력 품질이 개선되었다는 측정 결과는 없으며, 이전 플러그인의

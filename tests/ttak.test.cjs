@@ -995,23 +995,20 @@ test('the codex manifest has no hooks field and a complete interface block', () 
   }
 });
 
-// The Codex interface.logo doubles as the marketplace listing image, and
-// assets/logo.png is currently the authorised Task 8 placeholder (68 bytes,
-// 1x1 -- see task-8-report.md). A missing/zero-byte file is already caught
-// above; the realistic failure is shipping the placeholder itself, which
-// nothing else catches. Skipped rather than left failing, with the exact
-// unskip condition named, so a submission-time run still shows a named
-// "skipped" line instead of silently omitting the check.
-test('the listing logo meets the minimum size for a real marketplace listing',
-  { skip: 'assets/logo.png is still the Task 8 68-byte 1x1 placeholder -- remove this skip once ' +
-    'it is replaced with a real >=128x128 mark (see task-8-report.md, fix round 1, finding 4)' },
-  () => {
-    const b = fs.readFileSync(path.join(ROOT, 'assets', 'logo.png'));
-    const width = b.readUInt32BE(16);
-    const height = b.readUInt32BE(20);
-    assert.ok(width >= 128 && height >= 128,
-      `assets/logo.png is ${width}x${height}, below the 128x128 listing floor`);
-  });
+// The Codex interface.logo doubles as the marketplace listing image. A
+// missing/zero-byte file is already caught above; the realistic failure is
+// shipping a placeholder, which nothing else catches. This test carried a
+// `skip` for as long as assets/logo.png was the Task 8 68-byte 1x1 stub, which
+// is why CI was deliberately red until a real mark landed. The mark is now a
+// 512x512 RGBA image and the skip is gone -- if this ever needs skipping
+// again, that is a decision to argue for, not one to inherit.
+test('the listing logo meets the minimum size for a real marketplace listing', () => {
+  const b = fs.readFileSync(path.join(ROOT, 'assets', 'logo.png'));
+  const width = b.readUInt32BE(16);
+  const height = b.readUInt32BE(20);
+  assert.ok(width >= 128 && height >= 128,
+    `assets/logo.png is ${width}x${height}, below the 128x128 listing floor`);
+});
 
 test('attributions reproduce each upstream notice as published', () => {
   const a = fs.readFileSync(path.join(ROOT, 'ATTRIBUTIONS.md'), 'utf8');
