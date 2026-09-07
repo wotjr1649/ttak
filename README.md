@@ -280,9 +280,9 @@ directory this plugin writes.
 TTAK is under the MIT licence (see `LICENSE`).
 
 `[LIC-007]` requires that the final licence be confirmed by a copied-content review rather than
-assumed. That review's input now exists — [`docs/COPIED_TEXT_INVENTORY.md`](docs/COPIED_TEXT_INVENTORY.md)
+assumed. That review has been done — [`docs/COPIED_TEXT_INVENTORY.md`](docs/COPIED_TEXT_INVENTORY.md)
 tracks every paragraph of shipped instruction text to the file and pinned revision it derives from —
-and it records items that are not yet closed. MIT is the expected outcome, not a closed decision.
+and its two open findings were ruled on 2026-09-07. MIT is confirmed by that review, not assumed.
 
 **The derivation is not one step for all of it.** `policy/precedence.md` and the explainer skill are
 written from the upstream sources directly. `policy/invariants.md` and `policy/contract.md` reproduce

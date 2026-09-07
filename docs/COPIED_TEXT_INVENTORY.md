@@ -3,9 +3,12 @@
 `[LIC-001]` requires that copied source text be tracked. `ATTRIBUTIONS.md` is a notice file and does
 not satisfy that requirement; this is the tracking file. `[LIC-007]` (choose the final licence only
 after the copied-content review) and `[AC-012]` (close the licence and attribution review before
-redistribution) are blocked until the review this file feeds has been performed by a human.
+redistribution) were blocked until the review this file feeds had been performed by a human. **That
+review is done.** Its two open findings, F1 and F4, are both ruled, and both gates closed on
+2026-09-07.
 
-**This file records what was measured. It does not close `[AC-012]`.** See *Findings* at the end.
+**This file records what was measured, and now also the two rulings that closed the review.** Each
+ruling sits with the finding it rules on. See *Findings* at the end.
 
 ## Controller ruling: v0.2 §19.3 is not satisfied, and is not being fixed by rewriting
 
@@ -102,7 +105,8 @@ shipped text actually satisfies.
 a SHOULD and permits the recorded two-step chain
 (`docs/TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md` §1). Between this ruling and that
 amendment the project did ship a product that broke one of its own MUSTs; it no longer does, and the
-window is recorded here rather than erased. `[AC-012]` stays open on F4 and on the human review.
+window is recorded here rather than erased. `[AC-012]` stayed open on F4 and on the human review
+until both were ruled on 2026-09-07.
 
 ## Scope
 
@@ -373,8 +377,8 @@ for the reasoning. **That amendment landed on 2026-09-06**
 (`docs/TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md` §1): section 19.3 now states direct
 derivation as a SHOULD, permits the two-step chain where it is recorded, and requires a unit
 originating with `SRC-PRIOR` to be recorded as originating there. Nothing measured in this
-finding changed — the 29-word run is still the 29-word run. `[AC-012]` stays open on F4 and on the
-human review.
+finding changed — the 29-word run is still the 29-word run. `[AC-012]` stayed open on F4 and on the
+human review until both were ruled on 2026-09-07.
 
 ### F2 — Two shipped rules have no upstream `SKILL.md` source at all
 
@@ -418,20 +422,30 @@ was read for a holder and names none either: its `## License` section, L144-146,
 as published and states the fact; it does not repair it, because naming a holder the file does not
 name would be a false attribution statement. TTAK ships no reproduced expression from this source
 (every `skills/ttak-explain/SKILL.md` row above is re-expression or original, longest body run three
-words), so nothing turns on it today. Under `[LIC-008]` this is an unresolved licence interpretation
-and is escalated rather than decided here.
+words), so nothing turns on it today. Under `[LIC-008]` this was an unresolved licence
+interpretation, escalated rather than decided in this file.
+
+**Ruled 2026-09-07: the current state is accepted.** Two reasons, and neither is that the question
+went away. The exposure is nil in the strict sense that nothing TTAK distributes reproduces
+expression from this source, so no shipped byte depends on that `LICENSE` naming a holder. And
+reproducing the notice as published while recording the gap is the most an attribution file can
+accurately do here: the alternative is asserting a holder that no upstream file names, which is the
+false statement this finding exists to avoid. Seeking clarification upstream is not a precondition
+for shipping and stays available if the exposure ever changes. This is a ruling on TTAK's own
+record, not legal advice; `[LIC-008]` stands unchanged as a standing obligation for the next
+unresolved interpretation.
 
 ## Status
 
 | Requirement | State |
 |---|---|
 | `[LIC-001]` copied text tracked | Satisfied by this file |
-| `[LIC-002]` MIT notices retained for copied material | Satisfied, four notices verbatim in `ATTRIBUTIONS.md` |
+| `[LIC-002]` MIT notices retained for copied material | Satisfied, three notices verbatim in `ATTRIBUTIONS.md` |
 | `[LIC-003]` Apache-2.0 handling | Not applicable, no Apache-2.0 material |
 | `[LIC-005]` complete third-party attribution file | Satisfied by `ATTRIBUTIONS.md` |
 | `[LIC-006]` no implied endorsement | Satisfied: attribution appears only in `ATTRIBUTIONS.md` and README prose, and no manifest names an upstream project (asserted by test) |
 | Section 19.3 direct derivation | **Reconciled**, not satisfied as originally written. The v0.3 amendment (applied 2026-09-06) made direct derivation a SHOULD and permits the recorded two-step chain these two files have. The measurement below is unchanged; what changed is the requirement |
 | Section 5.1 upstream attribution of `[TTAK-TRIM-009]` | **Corrected** in both language documents. Section 5.1 now records the rule as originating with `SRC-PRIOR`, not reaching TTAK from `SRC-IHAVEADHD`, and says an earlier draft credited it upstream in error (F2) |
-| `[LIC-007]` final licence chosen after review | **Open** — the review has its input now; F1 is ruled, F4 is not |
-| `[LIC-008]` escalate unresolved interpretation | F4 escalated |
-| `[AC-012]` licence and attribution review closed | **Open** — the v0.3 amendment has landed, so what remains is a human ruling on F4 and the review this file feeds |
+| `[LIC-007]` final licence chosen after review | **Closed** 2026-09-07 — the review has been performed against this inventory and both its findings are ruled (F1 by the v0.3 amendment, F4 just above). MIT is the selected licence, confirmed in the required order rather than assumed |
+| `[LIC-008]` escalate unresolved interpretation | Satisfied for F4: escalated, then ruled 2026-09-07 (see F4). The obligation itself stands for any future interpretation |
+| `[AC-012]` licence and attribution review closed | **Closed** 2026-09-07 — the v0.3 amendment landed, this inventory gave the review its input, and the human ruling on F4 has been given |

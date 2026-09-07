@@ -7,8 +7,8 @@ only, not affiliation (`[LIC-006]`).
 
 Which TTAK paragraph derives from which source line — the `[LIC-001]` tracking record — is in
 [`docs/COPIED_TEXT_INVENTORY.md`](docs/COPIED_TEXT_INVENTORY.md). This file is the notice file; that
-one is the tracking file, and it records two open items that `[LIC-007]` and `[AC-012]` still need a
-human ruling on.
+one is the tracking file. It records the two findings, F1 and F4, that `[LIC-007]` and `[AC-012]`
+needed a human ruling on; both were ruled on 2026-09-07 and both gates are closed.
 
 Each notice below is reproduced **verbatim as published** at the pinned revision. One of them is
 unusual; it is reproduced anyway, and the reason is stated in that section.
@@ -115,7 +115,10 @@ SOFTWARE.
   carries no `license` key in its frontmatter, so its licence coverage rests on this file alone. The
   repository `README.md` was read at the same revision for a holder and names none either: its
   `## License` section, L144-146, is the single word `MIT`. This is recorded as an unresolved licence
-  question under `[LIC-008]` in the inventory, and is escalated rather than decided here.
+  question under `[LIC-008]` in the inventory as F4, where it was ruled on 2026-09-07: the state is
+  accepted as published, because TTAK ships no reproduced expression from this source and inserting
+  a holder would be the false statement. It is still not decided here — this file reproduces, the
+  inventory rules.
 - Notice, reproduced verbatim from `LICENSE` at that revision:
 
 ```
@@ -147,7 +150,7 @@ SOFTWARE.
 ## Brand image
 
 `assets/logo.png` is a 512×512 area-averaged downsample of an image generated with ChatGPT from the
-author's own prompts. It is **not** derived from any of the four upstream projects above, and no
+author's own prompts. It is **not** derived from any of the three upstream projects above, and no
 third party holds a claim recorded here. The full-size original is not committed; the reduction was
 performed with a one-off stdlib-only script, so the shipped file cannot be re-derived from anything
 in this repository. Whatever rights attach to the output are governed by OpenAI's terms of use at
@@ -160,6 +163,5 @@ obliged the entry.
 
 TTAK ships under MIT (`LICENSE`, and one identical licence string in every manifest and skill
 frontmatter). `[LIC-007]` requires that this choice be confirmed by the copied-content review rather
-than assumed. The inventory that review needs now exists; it records two items
-(`docs/COPIED_TEXT_INVENTORY.md`, findings F1 and F4) that a human has not yet ruled on. MIT remains
-the expected outcome, not a closed decision, and `[AC-012]` is not closed.
+than assumed. That review's input exists as `docs/COPIED_TEXT_INVENTORY.md`, and its two findings,
+F1 and F4, were ruled on 2026-09-07. MIT is confirmed, and `[AC-012]` is closed.

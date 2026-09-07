@@ -1049,7 +1049,7 @@ test('attributions reproduce each upstream notice as published', () => {
   //
   // fix round 5, NEW-1: round 4 walked the blocks by index and never bound one
   // to its source, so swapping two holders, blanking `ponytail`'s, or writing
-  // `Ayoub Ghriss` into `leanclarity`'s all stayed green. The holder line is
+  // `Ayoub Ghriss` into the holder-less one all stayed green. The holder line is
   // the one fact MIT requires preserved and the one section 19.3 forbids
   // altering by name. Read each block out of its own source's section and
   // check the holder recorded for that source.
@@ -1071,8 +1071,8 @@ test('attributions reproduce each upstream notice as published', () => {
     // fix round 5, NEW-4: a holder inserted on the next line passed both the
     // old positive (`\s*$` ends the line happily) and the old negative (which
     // needed a literal space). Every published notice puts a blank line here,
-    // so requiring one closes both the same-line and next-line forms, for all
-    // four sources rather than only for the holder-less one.
+    // so requiring one closes both the same-line and next-line forms, for every
+    // source rather than only for the holder-less one.
     assert.strictEqual(lines[at + 1], '',
       `${source}: nothing may follow its copyright line but a blank line`);
     for (const part of [
@@ -1541,7 +1541,7 @@ test('the copied-text inventory tracks both i-have-adhd pins and the reproduced-
   // changed, not because the measurement was re-read. Restating C7 in
   // `[RESP-007]`'s conditional-positive form broke the 12-word run that was
   // both C7's per-unit figure and the file's file-wide maximum; the maximum is
-  // now C8's 9-word run. Re-derived against `SRC-LEANCLARITY`
+  // now C8's 9-word run. Re-derived against `SRC-PRIOR`
   // `policies/guidance.md` at the pinned `7dfe5b2`, with the same
   // case-folded, punctuation-stripped longest-contiguous-run instrument the
   // Method section describes -- validated by reproducing every unchanged
@@ -1562,7 +1562,7 @@ test('the copied-text inventory tracks both i-have-adhd pins and the reproduced-
       `${file}: the F1 file-wide table must report ${w} w against its own source`);
   }
 
-  // fix round 3, C4, widened in round 4: this file exists to hold two licence
+  // fix round 3, C4, widened in round 4: this file existed to hold two licence
   // gates open, and nothing stopped a future edit from closing them in the
   // Status table. Round 3 pinned the one gate that had been named by
   // instance; both belong here, because the class is what matters.
@@ -1570,12 +1570,20 @@ test('the copied-text inventory tracks both i-have-adhd pins and the reproduced-
   // fix round 5, NEW-5: /\*\*Open\*\*/ anywhere in the row read a token, not a
   // state -- `Closed — was **Open**, now signed off` passed it. Read the
   // state cell and require it to open with the marker.
+  //
+  // 2026-09-07: the owner ruled F4, and both gates closed with it, so the
+  // marker this reads flips. The guard does not go away with it -- a
+  // closure that names no ruling date is the same silent edit round 3 was
+  // written against, and a state cell cannot show that the ruling exists
+  // at all. Require the date in the cell and the ruling in F4's own text.
   for (const id of ['[LIC-007]', '[AC-012]']) {
     const row = inv.split('\n').find((l) => l.startsWith(`| \`${id}\``));
     assert.ok(row, `no ${id} row in the inventory Status table`);
-    assert.match(row.split('|')[2].trim(), /^\*\*Open\*\*/,
-      `${id} is closed by a human ruling, not by editing its state cell`);
+    assert.match(row.split('|')[2].trim(), /^\*\*Closed\*\* 2026-09-07\b/,
+      `${id} was closed by a human ruling; its state cell must name the date it was ruled`);
   }
+  assert.match(inv, /\*\*Ruled 2026-09-07: the current state is accepted\.\*\*/,
+    'the F4 ruling that closed both gates must be recorded in the finding, not only in Status');
   for (const f of ['policy/precedence.md', 'policy/invariants.md', 'policy/contract.md',
                    'skills/ttak-explain/SKILL.md']) {
     assert.ok(inv.includes(f), `not inventoried: ${f}`);
