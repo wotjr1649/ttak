@@ -74,6 +74,17 @@ alongside the checker's own source hash. And a checker/judge disagreement **held
 its condition's count** until the row was re-read — one row, `R21`, where the screener was the one
 that was wrong; the re-read and its reasoning are in the row as `grade.held_out_resolved`.
 
+A second grader ran over all 72 graded rows afterwards — the 40 ablation rows and this run's 32 —
+using Codex `gpt-5.6-luna`, one call per row, seed `20260911`, blind to arm, condition, policy hash,
+the screener's verdict and the first grader's. It is recorded as `grade.second_recheck` and **it
+changed no verdict**. Agreement 67/72 = 93.1%, Cohen's κ = 0.854; 40/40 on the ablation and 27/32
+here. All five disagreements have the second grader failing a row the first passed.
+
+`grade.second` beside it is an earlier, discarded run of the same pass in batches of eight. Keep it
+only as the evidence for why the per-row version exists: because 40 of the 72 rows are one case,
+that case appeared in every batch and the grader crossed criteria between rows, getting six of 72
+rows wrong against the per-row pass. Use `second_recheck`.
+
 **What it is not.** One judge, one pass, from the same model family as the subject, blind to the arm
 label but not to the treatment itself — a policy that suppresses scaffolding is often visible in the
 response. No second grader, no inter-rater agreement figure. The verdicts to re-read first are the

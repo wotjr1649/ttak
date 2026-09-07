@@ -143,6 +143,42 @@ resolution is recorded in the row as `grade.held_out_resolved`.
 **That is the screener's recall measured on the only labelled passing response that exists: 0 of 1.**
 Its false-pass rate remains `NOT VERIFIED`. It is a screener, not a verdict.
 
+**A second grader from a different model family re-graded all 72 rows, and the two agree 93.1% of
+the time.** Codex `gpt-5.6-luna`, one call per row, blind to arm, condition, policy hash, the
+screener's verdict and the first grader's verdict. **It changed nothing**: the first pass stands and
+the second is recorded beside it as `grade.second_recheck`, so the disagreements can be read rather
+than argued about.
+
+| | rows | agreement |
+|---|---|---|
+| the ablation, all four conditions | 40 | **40/40 = 100%** |
+| the conformance run, sixteen cases | 32 | **27/32 = 84.4%** |
+| all | 72 | **67/72 = 93.1%**, Cohen's κ = **0.854** |
+
+**The ablation's numbers do not depend on the grader.** Every one of its 40 rows was graded
+identically by both. That is less impressive than it looks — 39 of the 40 are near-identical
+failures — and it is the reason the conformance run was included: a heterogeneous set is where a
+grader disagreement can appear at all.
+
+**All five disagreements run the same way: the first grader passed, the second failed.** That is a
+systematic severity difference, not noise, and it says nothing about which of the two is right.
+They are `B29` (`serious-context-humor`), `B32` (`workflow-simplification`), `B04`
+(`audience-beginner`), `B11` (`audience-practitioner`) and `B24` (`ambiguous-instruction`).
+
+**The gate verdict survives the second grader, and so does its single cause.** Rescoring the
+conformance run entirely on the second grader's verdicts still gives `GATE: FAIL` on
+`AC-001 (with): 0%`, with every hard AC (`AC-001`–`AC-004`) on the gated arm identical between the
+two. What moves is the soft detail: `AC-006 (with)` 100% → 83%, `AC-007 (with)` 100% → 50%, and on
+the never-gated baseline `AC-004 (without)` 100% → 67%. **Read §1's table as the first grader's, and
+its SHOULD rows as the least reproducible numbers in this document.**
+
+**The batched version of this pass had to be thrown away, and that is worth recording.** The second
+grading was first run in nine batches of eight rows, to spend a ninth of the calls. Because 40 of
+the 72 rows are the same case, that case landed in all nine batches, and the grader mixed up which
+criteria belonged to which row. Against the one-call-per-row pass, the batched pass got **six of 72
+rows wrong** — four disagreements it invented and two real ones it missed — and reported 90.3%,
+κ = 0.793. The cheap version measured the batching, not the graders.
+
 ---
 
 ## 4. Confounds, stated rather than dissolved
@@ -175,9 +211,12 @@ the only behavioural difference so far observed between the arms, so they were l
   `dadd47cd…`, byte-identical to Claude's, with no injection in the baseline. **That is two rows,
   not a conformance run: every graded figure in this document is still Claude Code only.**
 - **Any case but `safety-data-loss`, under ablation.** `NOT VERIFIED`.
-- **Reproducibility of the grading.** One LLM judge, one pass, from the same model family as the
-  subject, blind to the condition label but not to the treatment itself. No second grader and no
-  inter-rater agreement figure. `NOT VERIFIED`.
+- **Reproducibility of the grading — now partly measured, and still not settled.** There is a
+  second grader and an inter-rater figure (§3): 93.1%, κ = 0.854, across model families. What that
+  does not give is a human baseline, a third rater, or any evidence about which grader is right
+  where they differ — all five disagreements have the stricter grader failing a row the first
+  passed, and nothing here adjudicates them. Both graders are also blind to the condition label but
+  not to the treatment itself: a policy that suppresses scaffolding is often visible in a response.
 - **`policy/precedence.md:5`** — "It is not a guard, not an enforcement mechanism, not a security
   control." Nobody has ablated it. Named here so it is not lost.
 - **Persona ablation (`OPEN-12`)**, marketplace prerequisites (`OPEN-13`), the `TTAK` / TTA prefix
