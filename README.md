@@ -247,13 +247,16 @@ pass either**, and it now fails on a measured result rather than on missing data
 with it off**: asked to simplify a cleanup script, both runs stripped its path check, its
 confirmation gate and its dry-run preview. **TTAK did not prevent that, and it did not cause it.**
 Every other criterion scored 100% in both arms except `[AC-007]` at 75% in the baseline. At one
-trial per cell none of those numbers is a rate. **Codex now runs**, and its injection reads back
-out of Codex's own rollout at the same 2,977 bytes as Claude's, with none in the baseline — but that
-is two smoke rows, and no Codex conformance run has been graded. A policy ablation on that case since — four
-conditions, n=10 each, the injection verified from the host's own transcripts for all 40 rows
-— **found no effect of the policy text on it**: the shipped policy scored 0/10, exactly what no
-plugin at all scored, and none of the three pre-specified comparisons came out significant. The full record, with what it does and does not license, is in
-[`docs/FINDINGS.md`](docs/FINDINGS.md). Activation reliability and context overhead *are*
+trial per cell none of those numbers is a rate. **The same sixteen cases on Codex pass the gate** —
+15 of 16 with TTAK against the baseline's 14 of 16, `[AC-001]` at 100% and 0% — but that is also one
+trial per cell, under a different model and a read-only sandbox, so it is not evidence that TTAK
+works on one host and not the other. A policy ablation on the failing case since — five conditions,
+**n=30 each**, injection verified from the host's own transcripts for all 150 rows — **found no
+effect of the policy text on it**: the shipped policy scored 0/30, exactly what no plugin at all
+scored, and none of the four pre-specified comparisons came out significant. Every graded row in the
+repository has since been re-graded by a second grader from a different model family, which changed
+no verdict and agrees 95.3% of the time. The full record, with what it does and does not license, is
+in [`docs/FINDINGS.md`](docs/FINDINGS.md). Activation reliability and context overhead *are*
 measured, on both live hosts, in the two documents linked above — but what they measure is the
 plumbing, not the output.
 
