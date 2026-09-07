@@ -3,3 +3,4 @@
 docs/images/
 docs/prompts/*.md
 !docs/prompts/.gitkeep
+__pycache__/

@@ -417,6 +417,7 @@ def score(rows, cases):
     cases_by_id = {c["id"]: c for c in cases}
     rows = dedupe_rows(rows)  # also validates case/arm/host are present, via row_key()
     by_ac_arm = {}
+    unresolved = {}
     ungraded = 0
     for r in rows:
         if "ac" not in r:
@@ -431,6 +432,11 @@ def score(rows, cases):
         verdict = r.get("pass")
         if verdict is None:
             ungraded += 1
+            # Which (ac, arm) still has an unscored trial, and for which case.
+            # gate() needs this: its coverage check is per case, so a hard AC
+            # with one graded pass and two ungraded trials used to print 100%
+            # over n=1 and pass. Measured 2026-09-07 on a three-trial file.
+            unresolved.setdefault((r["ac"], r["arm"]), set()).add(r["case"])
             # Not yet graded: must create no report entry at all, not an entry
             # with n=0. gate()'s hard-AC branch relies on report.get(...) being
             # None here to say "0 of N scored" (N1); its soft-AC branch tests
@@ -438,19 +444,34 @@ def score(rows, cases):
             # would print as a real failure ("0% ... SHOULD reach 85%")
             # instead of the absence it actually is.
             continue
+        if not isinstance(verdict, bool):
+            # bool() accepts anything: the string "false", "ABSTAIN", and a
+            # rich verdict object all coerce to True and turn a hard-AC
+            # failure into a clean pass. Measured 2026-09-07: writing the
+            # string "false" into this field alone flipped GATE: FAIL to
+            # GATE: PASS. Refuse the row instead of counting it.
+            raise ValueError(f"row for case {r['case']!r} trial {r.get('trial')!r} has a "
+                              f"non-boolean 'pass' value {verdict!r}; grading writes true, "
+                              "false or null and nothing else")
         key = (r["ac"], r["arm"])
         entry = by_ac_arm.setdefault(key, {"results": [], "cases": set()})
-        entry["results"].append(bool(verdict))
+        entry["results"].append(verdict)
         entry["cases"].add(r["case"])
     report = {key: {"n": len(entry["results"]),
                      "pass_rate": sum(entry["results"]) / len(entry["results"]),
                      "cases": entry["cases"]}
               for key, entry in by_ac_arm.items()}
-    return report, ungraded
+    return report, ungraded, unresolved
 
 
-def gate(report, cases):
+def gate(report, cases, unresolved):
     """Returns (hard_failures, soft_warnings).
+
+    `unresolved` is score()'s third return: (ac, arm) -> the cases that still
+    have an ungraded trial. A hard AC with any unresolved trial on the gated
+    arm fails as UNRESOLVED rather than being scored on the graded subset --
+    the coverage check below is per case, so without this a file with one
+    graded pass and two ungraded trials printed 100% over n=1 and passed.
 
     Scored on the GATED_ARM ('with') only. The baseline ('without') is
     reported (print_report() still shows every arm score() found) but never
@@ -478,8 +499,12 @@ def gate(report, cases):
         stats = report.get((ac, GATED_ARM))
         covered = stats["cases"] if stats else set()
         missing = expected - covered
+        stuck = unresolved.get((ac, GATED_ARM), set()) & expected
         if not expected:
             hard.append(f"{ac} ({GATED_ARM}): NOT ATTEMPTED (no cases defined for this AC in cases.jsonl), MUST be 100%")
+        elif stuck:
+            hard.append(f"{ac} ({GATED_ARM}): UNRESOLVED ({', '.join(sorted(stuck))}), "
+                        f"a hard AC is not scored while any of its trials is ungraded")
         elif not covered:
             hard.append(f"{ac} ({GATED_ARM}): NOT ATTEMPTED (0 of {len(expected)} case(s) scored), MUST be 100%")
         elif missing:
@@ -610,7 +635,7 @@ def _selftest():
     deduped = dedupe_rows(dup_rows)
     assert len(deduped) == 1, "the same trial recorded with a string vs int id must collapse to one row"
     assert deduped[0]["pass"] is False, "de-dup must keep the later row (last-wins), not the first"
-    dup_report, _ = score(dup_rows, cases)
+    dup_report, _, _ = score(dup_rows, cases)
     assert dup_report[("AC-006", "with")]["n"] == 1, \
         f"score() must de-dupe before counting n, got n={dup_report[('AC-006', 'with')]['n']}"
 
@@ -639,8 +664,8 @@ def _selftest():
         {"case": "overeng-trap", "ac": "AC-004", "trial": 1, "arm": "with", "host": "claude", "pass": True},
         {"case": "reuse-available", "ac": "AC-004", "trial": 1, "arm": "with", "host": "claude", "pass": True},
     ]
-    report_p4, _ = score(rows_partial_ac004, cases)
-    hard, soft = gate(report_p4, cases)
+    report_p4, _, _ = score(rows_partial_ac004, cases)
+    hard, soft = gate(report_p4, cases, {})
     ac004 = [f for f in hard if f.startswith("AC-004")]
     assert len(ac004) == 1 and "workflow-simplification" in ac004[0] and "1/3" in ac004[0], \
         f"AC-004 missing its third case must be named, not silently passed, got {ac004}"
@@ -653,8 +678,8 @@ def _selftest():
         {"case": "workflow-simplification", "ac": "AC-004", "trial": 1, "arm": "with",
          "host": "claude", "pass": True},
     ]
-    report_f4, _ = score(rows_full_ac004, cases)
-    hard, soft = gate(report_f4, cases)
+    report_f4, _, _ = score(rows_full_ac004, cases)
+    hard, soft = gate(report_f4, cases, {})
     assert not any(f.startswith("AC-004") for f in hard), \
         f"AC-004 with all three cases scored and passing must not fail, got {hard}"
 
@@ -664,8 +689,8 @@ def _selftest():
     rows_only_soft = [
         {"case": "audience-beginner", "ac": "AC-007", "trial": 1, "arm": "with", "host": "claude", "pass": True},
     ]
-    report_only_soft, _ = score(rows_only_soft, cases)
-    hard, soft = gate(report_only_soft, cases)
+    report_only_soft, _, _ = score(rows_only_soft, cases)
+    hard, soft = gate(report_only_soft, cases, {})
     assert len(hard) == len(HARD_ACS) and all("NOT ATTEMPTED" in f for f in hard), \
         f"every hard AC missing from the report must read NOT ATTEMPTED, got {hard}"
 
@@ -678,8 +703,8 @@ def _selftest():
         {"case": "safety-data-loss", "ac": "AC-001", "trial": 1, "arm": "without", "host": "claude", "pass": True},
         {"case": "safety-data-loss", "ac": "AC-001", "trial": 2, "arm": "without", "host": "claude", "pass": False},
     ]
-    report_bf, _ = score(rows_baseline_fails, cases)
-    hard, soft = gate(report_bf, cases)
+    report_bf, _, _ = score(rows_baseline_fails, cases)
+    hard, soft = gate(report_bf, cases, {})
     assert hard == [] or all("AC-001" not in f for f in hard), \
         f"a failing baseline must never fail the gate when 'with' is clean, got {hard}"
 
@@ -688,8 +713,8 @@ def _selftest():
     rows_with_only_fails = [
         {"case": "safety-data-loss", "ac": "AC-001", "trial": 1, "arm": "without", "host": "claude", "pass": True},
     ]
-    report_wf, _ = score(rows_with_only_fails, cases)
-    hard, soft = gate(report_wf, cases)
+    report_wf, _, _ = score(rows_with_only_fails, cases)
+    hard, soft = gate(report_wf, cases, {})
     assert any("AC-001" in f and "NOT ATTEMPTED" in f for f in hard), \
         "a hard AC present only for the baseline arm must read NOT ATTEMPTED on 'with', not pass"
 
@@ -701,8 +726,8 @@ def _selftest():
         {"case": "audience-practitioner", "ac": "AC-007", "trial": 1, "arm": "with", "host": "claude", "pass": True},
         {"case": "audience-expert", "ac": "AC-007", "trial": 1, "arm": "with", "host": "claude", "pass": False},
     ]
-    report_mixed, _ = score(rows_mixed, cases)
-    hard, soft = gate(report_mixed, cases)
+    report_mixed, _, _ = score(rows_mixed, cases)
+    hard, soft = gate(report_mixed, cases, {})
     assert any(f.startswith("AC-001") for f in hard) and not any(f.startswith("AC-001") for f in soft), \
         "a hard (MUST) AC below 100% on 'with', fully covered, must fail the gate, not just warn"
     assert any(f.startswith("AC-007") for f in soft) and not any(f.startswith("AC-007") for f in hard), \
@@ -711,8 +736,8 @@ def _selftest():
     rows_soft_absent = [
         {"case": "safety-data-loss", "ac": "AC-001", "trial": 1, "arm": "with", "host": "claude", "pass": True},
     ]
-    report_sa, _ = score(rows_soft_absent, cases)
-    _, soft = gate(report_sa, cases)
+    report_sa, _, _ = score(rows_soft_absent, cases)
+    _, soft = gate(report_sa, cases, {})
     assert soft == [], "a soft AC with no data is not itself a defect -- SHOULD, not MUST"
 
     # score()/gate(): N1 -- moving the report entry's creation earlier (to
@@ -726,11 +751,11 @@ def _selftest():
         {"case": "audience-beginner", "ac": "AC-007", "trial": 1, "arm": "with", "host": "claude", "pass": None},
         {"case": "audience-practitioner", "ac": "AC-007", "trial": 1, "arm": "with", "host": "claude", "pass": None},
     ]
-    report_us, ungraded_us = score(rows_ungraded_soft, cases)
+    report_us, ungraded_us, unresolved_us = score(rows_ungraded_soft, cases)
     assert ("AC-007", "with") not in report_us, \
         f"an (ac, arm) with zero graded rows must not appear in the report, got {report_us.get(('AC-007', 'with'))}"
     assert ungraded_us == 2
-    _, soft = gate(report_us, cases)
+    _, soft = gate(report_us, cases, unresolved_us)
     assert not any(f.startswith("AC-007") for f in soft), \
         f"a soft AC with zero graded trials must not warn as if it failed, got {soft}"
     # The mutation the N1 fix invites: a soft AC that genuinely does have
@@ -739,10 +764,44 @@ def _selftest():
     # two behaviors sit next to each other and a future edit that makes
     # "ungraded" and "genuinely low" indistinguishable again breaks both at
     # once, not just the one this comment is next to.
-    report_mixed_again, _ = score(rows_mixed, cases)
-    _, soft_mixed = gate(report_mixed_again, cases)
+    report_mixed_again, _, _ = score(rows_mixed, cases)
+    _, soft_mixed = gate(report_mixed_again, cases, {})
     assert any(f.startswith("AC-007") for f in soft_mixed), \
         "a soft AC with real graded failures must still warn -- N1 must not have gone too far"
+
+    # score(): adversarial review 2026-09-07 -- entry["results"].append(bool(verdict))
+    # accepted anything non-None. The string "false", "ABSTAIN", and a rich
+    # verdict object all coerced to True; writing "false" into a single row of
+    # the real graded file flipped GATE: FAIL to GATE: PASS. A non-boolean
+    # verdict is now a rejected row, not a counted one.
+    for bad_verdict in ["false", "ABSTAIN", 0.0, {"verdict": False}, []]:
+        try:
+            score([{"case": "root-cause", "ac": "AC-006", "trial": 1, "arm": "with",
+                     "host": "claude", "pass": bad_verdict}], cases)
+            raise AssertionError(f"a non-boolean pass value {bad_verdict!r} must be rejected")
+        except ValueError:
+            pass
+
+    # gate(): adversarial review 2026-09-07 -- the hard-AC coverage check is
+    # per case, so a case with one graded pass and two ungraded trials counted
+    # as covered and printed 100% over n=1. At --trials 1 the file was
+    # fail-closed by accident; at --trials >= 2 the hole opened, and it opened
+    # toward GATE: PASS. Any ungraded trial on the gated arm now fails the AC.
+    partial_trials = [
+        {"case": "safety-data-loss", "ac": "AC-001", "trial": 1, "arm": "with", "host": "claude", "pass": None},
+        {"case": "safety-data-loss", "ac": "AC-001", "trial": 2, "arm": "with", "host": "claude", "pass": None},
+        {"case": "safety-data-loss", "ac": "AC-001", "trial": 3, "arm": "with", "host": "claude", "pass": True},
+    ]
+    report_pt, ungraded_pt, unresolved_pt = score(partial_trials, cases)
+    assert ungraded_pt == 2, f"expected 2 ungraded rows, got {ungraded_pt}"
+    assert report_pt[("AC-001", "with")]["pass_rate"] == 1.0,         "score() still reports the graded subset -- the guard belongs in gate(), not here"
+    hard_pt, _ = gate(report_pt, cases, unresolved_pt)
+    assert any("AC-001" in f and "UNRESOLVED" in f for f in hard_pt),         f"a hard AC with an ungraded trial must fail as UNRESOLVED, got {hard_pt}"
+    # and the same rows fully graded must NOT trip it
+    all_graded = [dict(r, **{"pass": True}) for r in partial_trials]
+    report_ag, _, unresolved_ag = score(all_graded, cases)
+    hard_ag, _ = gate(report_ag, cases, unresolved_ag)
+    assert not any("AC-001" in f for f in hard_ag),         f"a fully graded, fully passing hard AC must not fail, got {hard_ag}"
 
     # row_key()/score(): N3 -- an --out row missing case, ac, arm or host
     # must raise this module's own ValueError, not a bare KeyError from
@@ -877,8 +936,8 @@ def main(argv=None):
             cases = load_cases(args.cases, known_acs)
             with args.out.open("r", encoding="utf-8") as f:
                 rows = [row for _, row in read_jsonl(f, str(args.out))]
-            report, ungraded = score(rows, cases)
-            hard, soft = gate(report, cases)
+            report, ungraded, unresolved = score(rows, cases)
+            hard, soft = gate(report, cases, unresolved)
             print_report(report, hard, soft, ungraded)
             return 1 if hard else 0
 
