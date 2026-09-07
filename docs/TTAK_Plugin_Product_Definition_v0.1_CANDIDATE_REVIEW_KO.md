@@ -139,8 +139,8 @@
 
 | 파일 (v0.3, 2026-09-06) | SHA-256 |
 |---|---|
-| `TTAK_Plugin_Product_Definition_v0.3_EN.md` | `aaae078191f8e74bcecd32869b081f3089854038cd2c15f7c010ee1ff703f7a3` |
-| `TTAK_Plugin_Product_Definition_v0.3_KO.md` | `4da4c00b13f0740c7dbb9d1cf2c251559f50ffb583a71a2d09e5dcb6d25e112d` |
+| `TTAK_Plugin_Product_Definition_v0.3_EN.md` | `9381b56833fddce556e63283994554d371545e193ec83e392bc4e21fd04bc1b2` |
+| `TTAK_Plugin_Product_Definition_v0.3_KO.md` | `2ff0934a8d80ff7563bb6878bcac5b7eed225db0aa510223427861c103023569` |
 
 세 표의 해시는 모두 LF 줄바꿈 기준으로 계산했다. 파일을 수정하면 다시 계산해야 한다.
 

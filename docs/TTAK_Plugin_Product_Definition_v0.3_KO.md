@@ -150,9 +150,8 @@ TTAK의 성공은 사용자가 다음 조건을 만족하는 **가장 작은 완
 | `SRC-PONYTAIL` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | [`2ed6c52`](https://github.com/DietrichGebert/ponytail/commit/2ed6c52c9d7e5e56942508591085fd45dea277d3), 2026-08-07 | [Core skill](https://github.com/DietrichGebert/ponytail/blob/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail/SKILL.md), [review skill](https://github.com/DietrichGebert/ponytail/blob/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail-review/SKILL.md) | [MIT LICENSE](https://github.com/DietrichGebert/ponytail/blob/2ed6c52c9d7e5e56942508591085fd45dea277d3/LICENSE) |
 | `SRC-IHAVEADHD` | [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) | [`58494af`](https://github.com/ayghri/i-have-adhd/commit/58494af57962b2d7a996b4d419474380a299af5e), 2026-09-01 | [Core skill](https://github.com/ayghri/i-have-adhd/blob/58494af57962b2d7a996b4d419474380a299af5e/skills/i-have-adhd/SKILL.md) | [MIT LICENSE](https://github.com/ayghri/i-have-adhd/blob/58494af57962b2d7a996b4d419474380a299af5e/LICENSE) |
 | `SRC-DREAMBIG-ELI5` | [DreambigOu/ELI5](https://github.com/DreambigOu/ELI5) | [`a766623`](https://github.com/DreambigOu/ELI5/commit/a766623b062331fdde53467001379b4ddf3acc2f), 2026-03-18 | [Core skill](https://github.com/DreambigOu/ELI5/blob/a766623b062331fdde53467001379b4ddf3acc2f/skills/eli5/SKILL.md), [README 및 평가 설명](https://github.com/DreambigOu/ELI5/blob/a766623b062331fdde53467001379b4ddf3acc2f/README.md) | [MIT LICENSE](https://github.com/DreambigOu/ELI5/blob/a766623b062331fdde53467001379b4ddf3acc2f/LICENSE) |
-| `SRC-LEANCLARITY` | [wotjr1649/leanclarity](https://github.com/wotjr1649/leanclarity) | [`7dfe5b2`](https://github.com/wotjr1649/leanclarity/commit/7dfe5b2e25166e91069034038ac59121f771e844), 2026-08-31 | [`policies/guidance.md`](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/policies/guidance.md), [`policies/engineering.md`](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/policies/engineering.md), [측정 근거 기록](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/docs/evidence/LeanClarity_v1.0_GO_EVIDENCE.md) | [MIT LICENSE](https://github.com/wotjr1649/leanclarity/blob/7dfe5b2e25166e91069034038ac59121f771e844/LICENSE) |
 
-`SRC-LEANCLARITY`는 TTAK이 대체하는 저자 본인의 이전 플러그인이다. 고정 커밋은 `v1.0.3` 태그 이후의 커밋이며, 이 명세가 인용하는 측정값을 담고 있는 커밋이다. 해당 커밋의 Manifest는 여전히 버전 `1.0.2`로 선언하므로 이 버전 문자열만으로는 출처 기준을 식별할 수 없고, 인용 기준으로 사용하지 않는다. `v1.0.2` 태그 자체는 수정된 안전 수치보다 앞선다. 그 수치는 24회 중 13회에서 24회 중 8회로 낮춘 공개 정정이며 `v1.0.3` 태그가 가리키는 커밋에서 반영되었다. 따라서 태그를 인용하면 해당 수치가 없는 릴리스를 인용하게 된다. 이 원본에서 파생한 산출물은 다음으로 한정하여 열거한다.
+`SRC-PRIOR`는 TTAK에 흡수된 저자 본인의 이전 플러그인이다. 제3자 의무가 발생하지 않으므로 고정 커밋도, 링크도, 재수록 고지도 두지 않는다. 그 저장소는 은퇴 예정이며, 해석되지 않을 인용은 인용이 없는 것보다 나쁘다. 따라서 이 원본의 텍스트는 독립적으로 검증할 수 없고, 이에 기대는 수치에는 그 사실을 함께 적는다. 다만 이력을 남겨야 하는 수치가 하나 있다. 이 명세가 인용하는 안전 수치는 24회 중 13회에서 24회 중 8회로 낮춘 공개 정정이며, 이전 수치를 지우지 않고 나란히 남긴다. 이 원본에서 각색한 산출물은 다음으로 한정하여 열거한다.
 
 - `[TTAK-TRACK-008]`. `SRC-IHAVEADHD`의 디버그 나선 예외로서 이 원본에 전달된 규칙을 여기서 복원한 것이다.
 - `[TTAK-TRIM-009]`. 이 원본이 자신의 상류 분해 문서에서 상류 출처가 없다고 스스로 분류한 규칙이며, `SRC-IHAVEADHD`가 아니라 이 원본에서 비롯한다. 이 절의 이전 초안은 이를 해당 프로젝트의 것으로 잘못 표기했다.
@@ -873,7 +872,7 @@ TTAK은 다음을 조정한다.
 - `SRC-PONYTAIL`에는 MIT 라이선스가 있다.
 - `SRC-IHAVEADHD`에는 MIT 라이선스가 있다.
 - `SRC-DREAMBIG-ELI5`에는 MIT 라이선스가 있다.
-- `SRC-LEANCLARITY`에는 고정 커밋 기준 MIT 라이선스가 있다.
+- `SRC-PRIOR`에는 고정 커밋 기준 MIT 라이선스가 있다.
 - `DreambigOu/ELI5`의 LICENSE는 `Copyright (c) 2026`으로 표기되어 있으며 저작권자 이름이 없다.
 
 ### 19.2 필수 처리
@@ -892,10 +891,10 @@ TTAK은 다음을 조정한다.
 
 다음 의무는 규범이며 별도의 요구사항 ID를 갖지 않는다. `[SRC-001]`~`[SRC-005]`와 `[LIC-001]`~`[LIC-008]`을 어떻게 충족할지를 한정하는 조항이다.
 
-- 정책 문구는 상위 `SKILL.md` 파일에서 직접 파생하는 것을 권장한다. 그러지 않고 `SRC-LEANCLARITY`의 정책 파일을 거쳐 TTAK에 들어온 경우 그 두 단계 연결 고리를 허용하되 반드시 기록해야 한다. 아래 고정 커밋 기록 항목이 요구하는 고정 커밋 두 개가 모두 출처 기록에 있어야 하며, `SRC-LEANCLARITY`에서 비롯한 단위는 갖고 있지도 않은 상위 출처로 표기하지 말고 그 원본에서 비롯했다고 반드시 기록해야 한다. 모든 단위에 직접 파생을 요구할 수는 없다. 배포된 단위 두 개 — `policy/invariants.md` I2(`[TTAK-TRIM-009]`)와 `policy/contract.md` C5(검증 정직성 조항) — 에는 파생할 상위 문장 자체가 없기 때문이다. 라이선스 결과는 어느 쪽이든 같다. 연결 고리의 모든 당사자가 동일한 저자이고 동일한 라이선스다. 측정값, 연결 고리 및 이 문구가 반영하는 판정은 `docs/COPIED_TEXT_INVENTORY.md`의 "Controller ruling"과 F1, F2에 있다. 기록은 `ATTRIBUTIONS.md`의 `wotjr1649/leanclarity`에 있다.
-- TTAK은 `SRC-LEANCLARITY`가 의도적으로 버린 단위 두 개를 복원한다. 우선순위 조항은 `policy/precedence.md`로, 사용자 권한 조항은 `policy/invariants.md` I7의 두 번째 문장으로 배포한다. 페르소나는 여기에 포함되지 않으며 페르소나 문구는 어디에도 배포하지 않는다. 페르소나는 이름, 로고, README, Manifest의 `displayName`이 담는 브랜드 장치이며, 주입 문구에 페르소나 문장을 넣는 것은 `OPEN-12` 실험 결과를 조건으로 한다.
+- 정책 문구는 상위 `SKILL.md` 파일에서 직접 파생하는 것을 권장한다. 그러지 않고 `SRC-PRIOR`의 정책 파일을 거쳐 TTAK에 들어온 단위는 허용하되 반드시 기록해야 하며, `SRC-PRIOR`에서 비롯한 단위는 갖고 있지도 않은 상위 출처로 표기하지 말고 그 원본에서 비롯했다고 반드시 기록해야 한다. 모든 단위에 직접 파생을 요구할 수는 없다. 배포된 단위 두 개 — `policy/invariants.md` I2(`[TTAK-TRIM-009]`)와 `policy/contract.md` C5(검증 정직성 조항) — 에는 파생할 상위 문장 자체가 없기 때문이다. `SRC-PRIOR`는 저자 본인의 저작물이므로 귀속 의무가 발생하지 않는다. 따라서 귀속 출처로 기록하지 않으며, 상위 출처에 닿는 연결 고리는 한 단계다. 측정값과 이 문구가 반영하는 판정은 `docs/COPIED_TEXT_INVENTORY.md`의 F1, F2에 있다. 기록은 `ATTRIBUTIONS.md`에 있다.
+- TTAK은 `SRC-PRIOR`가 의도적으로 버린 단위 두 개를 복원한다. 우선순위 조항은 `policy/precedence.md`로, 사용자 권한 조항은 `policy/invariants.md` I7의 두 번째 문장으로 배포한다. 페르소나는 여기에 포함되지 않으며 페르소나 문구는 어디에도 배포하지 않는다. 페르소나는 이름, 로고, README, Manifest의 `displayName`이 담는 브랜드 장치이며, 주입 문구에 페르소나 문장을 넣는 것은 `OPEN-12` 실험 결과를 조건으로 한다.
 - `ATTRIBUTIONS.md`는 각 상위 원본의 고지를 **공개된 그대로** 재현해야 한다. `DreambigOu/ELI5`의 LICENSE는 저작권자 이름 없이 `Copyright (c) 2026`으로 적혀 있으므로 사실 관계를 덧붙여 그대로 재현해야 하며, 이름을 넣어 "바로잡아서는" 안 된다. 저작권자를 지어내는 것은 허위 출처 표기다.
-- `ATTRIBUTIONS.md`는 각 파생 산출물이 어느 상위 커밋을 거쳤는지 반드시 기록한다. `SRC-LEANCLARITY`를 거쳐 TTAK에 들어온 산출물은 그 원본의 상위 고정 커밋과 §5.1의 고정 커밋을 모두 기록에 남긴다.
+- `ATTRIBUTIONS.md`는 각 파생 산출물이 어느 상위 커밋을 거쳤는지 반드시 기록한다. `SRC-PRIOR`를 거쳐 TTAK에 들어온 산출물은 그 원본의 상위 고정 커밋과 §5.1의 고정 커밋을 모두 기록에 남긴다.
 - Review 관련 자료를 가져오는 경우 `skills/ponytail-review/SKILL.md`를 파생 출처로 반드시 명시한다. 여기에는 그 파일의 "간결한 산출물은 통과시킨다" 규칙에 대응하는 `[CAP-REVIEW-007]`도 포함된다.
 - `LICENSE`, 두 플러그인 Manifest, 모든 `SKILL.md` frontmatter, 그리고 `license` 필드를 가진 마켓플레이스 Manifest 각각에서 라이선스 문자열 하나가 반드시 동일해야 하며, 이를 CI 검사로 강제한다. 현재 두 마켓플레이스 Manifest는 라이선스를 선언하지 않는다. 따라서 검사는 플러그인 Manifest에는 키를 요구하고, 선언된 곳에서는 값을 검사한다.
 - 배포하는 분석 문서와 명세 문서는 라이선스가 확정되지 않은 원본의 문구를 인용해서는 안 된다.
@@ -1008,7 +1007,7 @@ Claude Code와 Codex CLI는 각자의 최신 공식 플랫폼 기능을 기준�
 다음 조건을 만족하면 플랫폼 구현 가능성 분석에 전달할 수 있다.
 
 - 영문과 한글 문서의 요구사항 ID 집합이 일치한다.
-- 상위 원본 저장소 세 곳과 `SRC-LEANCLARITY`의 커밋과 출처를 명확히 고정했다.
+- 상위 원본 저장소 세 곳과 `SRC-PRIOR`의 커밋과 출처를 명확히 고정했다.
 - 적대적 검토에서 해결되지 않은 치명적 제품 모순이 없다.
 - 라이선스 표기 차이를 암묵적으로 단정하지 않고 미확정 항목으로 기록했다.
 - 구현 세부사항을 플랫폼 의존 항목으로 유지했다.
@@ -1026,6 +1025,6 @@ Claude Code와 Codex CLI는 각자의 최신 공식 플랫폼 기능을 기준�
 | 버전 | 작성일 | 상태 | 내용 |
 |---|---|---|---|
 | 0.1 | 2026-09-04 | 후보 | 제품, 페르소나, 기능, 범위, 출처 및 평가 정의의 최초 통합본 |
-| 0.2 | 2026-09-04 | 후보 | `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`를 전부 반영했다. `SRC-006`과 `LIC-004`를 폐기하고, `[TTAK-TRACK-008]`과 `[TTAK-TRIM-009]`를 추가하고, 요구사항 열두 개를 개정했다. `SRC-ANTHROPIC-ELI5`를 제거하고 고정 커밋을 명시한 `SRC-LEANCLARITY` 행을 추가했다. `TTAK Review`를 v1.1로 연기했고, 크로스 호스트 평가 실행기와 로고 한 개를 v1 범위로 옮겼다. 우선순위 전달 의무와 파생·고지·라이선스 문자열 의무를 추가했다 |
+| 0.2 | 2026-09-04 | 후보 | `TTAK_Plugin_Product_Definition_v0.2_AMENDMENT_EN.md`를 전부 반영했다. `SRC-006`과 `LIC-004`를 폐기하고, `[TTAK-TRACK-008]`과 `[TTAK-TRIM-009]`를 추가하고, 요구사항 열두 개를 개정했다. `SRC-ANTHROPIC-ELI5`를 제거하고 고정 커밋을 명시한 `SRC-PRIOR` 행을 추가했다. `TTAK Review`를 v1.1로 연기했고, 크로스 호스트 평가 실행기와 로고 한 개를 v1 범위로 옮겼다. 우선순위 전달 의무와 파생·고지·라이선스 문자열 의무를 추가했다 |
 | 0.3 | 2026-09-06 | 후보 | `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md`를 전부 반영했다. §5.1과 §19.3을 배포된 산출물에 맞췄다. 직접 파생 의무를 권장으로 바꾸고 기록을 남기는 두 단계 연결 고리를 허용했으며, 복원 단위 목록에서 배포되지 않는 페르소나를 뺐다. 요구사항 ID는 추가·폐기·재번호 없이 157개 그대로다. 명세가 설계 문서보다 상위라는 판정을 기록했다. 반영과 함께 `..._v0.2_EN.md`, `..._v0.2_KO.md`에서 이름이 바뀌었다 |
 | 0.3.1 | 2026-09-06 | 후보 | 전체 브랜치 검토 이후의 최종 수정 라운드. `TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md` §9를 반영했다. §19.3의 라이선스 문자열 의무는 이제 두 플러그인 Manifest, 모든 `SKILL.md` frontmatter, 그리고 **`license` 필드를 가진** 마켓플레이스 Manifest를 가리킨다. `tests/lint/check-hygiene.cjs`가 줄공 강제해 온 범위이며, 이전 문장은 모든 마켓플레이스 Manifest를 가리컰으나 둘 다 라이선스를 선언하지 않는다. `[AC-012]`의 사유도 바로잡았다. `[LIC-001]` 복사 문구 목록은 존재하므로 남은 것은 F4에 대한 사람의 판단과 그 목록을 입력으로 삼는 검토다. 게이트는 열린 상태로 남는다. 요구사항 ID는 추가·폐기·재번호 없이 157개 그대로다 |
