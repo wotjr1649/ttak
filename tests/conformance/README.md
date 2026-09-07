@@ -279,13 +279,27 @@ here as ``https://github.com/wotjr1649/ttak.git, ref `main` `` — so the Codex 
 `dadd47cd012f2a3a0094da27ac11ead312e85ab178aace8a85aeecf27c6bd2d2`, byte-identical to the working
 tree's policy, because `main` was clean at the time. That will not stay true by itself.
 
-#### What a Codex run needs beyond the fixture, and does not have
+#### What a Codex run needed beyond the fixture — resolved 2026-09-07
 
-Provisioned and attempted 2026-09-07 on codex-cli `0.153.4`: one case, `with` arm, hooks permitted.
-It produced no usable row, for two reasons.
+**The Codex arm runs.** One case, both arms, through `run.py` on codex-cli `0.153.4`: exit 0 on
+both, and the `with` row's injection reads back out of Codex's own rollout at **2,977 bytes**,
+sha256 `dadd47cd012f2a3a0094da27ac11ead312e85ab178aace8a85aeecf27c6bd2d2` — byte-identical to what
+Claude Code injects — with **no injection at all** in the baseline row. Rows in
+`runs/2026-09-07-codex-smoke.jsonl`; `verify_injection.py --codex-fixtures` is what read them.
+Measured cost of the injection on this host: 13,288 input tokens against the baseline's 12,020.
 
-**There are no credentials inside the isolation.** Codex reads its authentication out of
-`CODEX_HOME` — the same directory this design replaces with a fresh one. The probe reached
+**This is two rows, not a conformance run.** Nothing about TTAK's behaviour on Codex has been
+graded, and every graded figure in this repository is still Claude Code only.
+
+Getting there took four fixes, and three of them would each have produced a confident wrong number
+rather than an error. They are recorded because that is the failure mode this instrument exists to
+avoid.
+
+Below is what the first attempt hit, and what each one turned out to be.
+
+**1. There were no credentials inside the isolation.** *Fixed: one provisioned home per arm, one
+`codex login` into each.* Codex reads its authentication out of `CODEX_HOME` — the same directory
+this design replaces with a fresh one. The probe reached
 `wss://api.openai.com/v1/responses`, got `401 Unauthorized` with *Missing bearer or basic
 authentication in header* on every retry of both the WebSocket and the HTTPS transport, and exited
 1 after 18 seconds. **Both arms are affected**, not only `with`: the `without` arm creates an empty
@@ -313,16 +327,42 @@ The credential-free routes were checked and none of them reaches a figure:
 - `--oss` with a local provider needs one installed; neither `ollama` nor `lmstudio` is present on
   this machine, and a local model would answer a different question than the Claude arm did.
 
-**`--model` was passing a Claude alias to Codex.** `--model sonnet` was neither rejected nor
+**2. `--model` was passing a Claude alias to Codex.** *Fixed earlier: `--model` is required for
+`--host codex`.* `--model sonnet` was neither rejected nor
 honoured: Codex printed *Model metadata for `sonnet` not found. Defaulting to fallback metadata*
 and carried on. A row recorded under a model that never ran is worse than no row, so `--model` is
 now required for `--host codex` and the run refuses to start without one. `DEFAULT_MODEL` stays
 Claude-only and says so.
 
-**Whether TTAK injects on Codex under this runner is `NOT VERIFIED`.** Hooks were permitted for the
-probe — `--dangerously-bypass-hook-trust` announced itself in the output — but the turn died at
-authentication, and the fixture's `sessions/` directory holds no rollout at all, so there is no
-transcript to read. This is not a negative result. Nothing was observed.
+**3. `--ignore-user-config` was emptying the `with` arm.** *Fixed: the flag is gone from
+`CODEX_BASE`.* It was there as the Codex counterpart of Claude's `--setting-sources ''`. It is not
+one. `codex plugin add` writes the registration into `$CODEX_HOME/config.toml` —
+`[marketplaces.ttak]` and `[plugins."ttak@ttak"] enabled = true` — which is exactly the file that
+flag refuses to read, so the plugin never loaded and the arm was the baseline wearing a `with`
+label. Measured against the fixture: with the flag, no hook ran at all; without it,
+`hook: UserPromptSubmit Completed`. **The isolation was never coming from that flag** — it comes
+from `CODEX_HOME` pointing at a fixture that holds nothing but a marketplace entry, a plugin cache
+and auth. `codex_fixture_problem()` now refuses to run against the operator's own home, which is
+the guard that actually carries that weight.
+
+**4. The `with` arm was turning TTAK on in a directory the hook never reads.** *Fixed: the state is
+seeded at `<CODEX_HOME>/plugins/data/ttak-ttak/state.json`.* `run.py` pointed `PLUGIN_DATA` at a
+per-trial temp directory, which works on Claude and cannot work on Codex —
+`docs/analysis/codex-cli/2026-09-04-host-integration.md` recorded, over six runs that dumped the
+hook's own environment, that **Codex sets `PLUGIN_DATA` itself and overrides an externally supplied
+one**. So the plugin loaded, the hook ran, read `absent`, and emitted nothing. A `with` arm with the
+plugin loaded and switched off is the baseline again, and it exits 0.
+
+**5. `--ephemeral` left nothing to verify against.** *Fixed: the flag is gone from `CODEX_BASE`.*
+It means "run without persisting session files to disk", so Codex wrote no rollout and the
+injection could not be read back — and a rate nobody can trace to an observed injection is not a
+rate this project reports. Dropping it writes rollouts into `CODEX_HOME`, which is safe only
+because that home is a throwaway fixture; §3.8 of the host-integration analysis made the same trade
+for the same reason.
+
+Two of these — 3 and 4 — produce **exit 0, a plausible response, and a silently empty treatment
+arm**. Neither would have shown up in the rows. Both were caught by asking the model whether its
+instructions contained a heading named `Invariants`, and then by reading the rollout.
 
 `<fixtures>` defaults to `<tmp>/ttak-conformance` (`CODEX_FIXTURES` in `run.py`) and is overridden
 with `--codex-fixtures`. **Prefer a path outside both the temp directory and this repository.**

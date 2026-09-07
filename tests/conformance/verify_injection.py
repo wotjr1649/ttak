@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify, from the host's own session transcript, what each trial was given.
 
-    python verify_injection.py --in <run.jsonl> [--projects <dir>]
+    python verify_injection.py --in <run.jsonl> [--projects <dir>] [--codex-fixtures <dir>]
 
 `run.py` records `policy_sha256`: which policy text a trial *pointed at*. That
 is not the same claim as the host having injected it, and the runner is the
@@ -23,6 +23,19 @@ Transcripts are located by session id, which is a uuid and unique across
 projects, rather than by re-deriving the host's directory-naming rule from the
 trial's cwd. The rule is the host's business and it is not this tool's to
 mirror; the cwd is recorded in the row for a reader who wants to look by hand.
+
+The two hosts record it differently and neither is this tool's choice:
+
+  claude  ~/.claude/projects/<per-cwd dir>/<session id>.jsonl, and the
+          injection is an attachment of type `hook_additional_context`.
+  codex   <CODEX_HOME>/sessions/<Y>/<M>/<D>/rollout-<ts>-<thread id>.jsonl,
+          and the injection is an ordinary `response_item` string. Codex
+          does not label it as hook output, so it is found by its first
+          heading -- `# Precedence`, the first file of SCOPES.main. That is
+          a narrower test than Claude's and it is stated rather than hidden:
+          a policy whose first file changed name would read as absent here.
+          Codex also writes nothing at all under `--ephemeral`, which is why
+          `run.py` no longer passes it.
 
 Standard library only. Invokes nothing.
 """
@@ -50,15 +63,71 @@ def read_rows(path):
     return rows
 
 
+POLICY_FIRST_HEADING = "# Precedence"
+
+
 def session_id(row):
+    """The host's own id for the turn. Claude puts one JSON object on stdout;
+    Codex streams JSONL and announces the thread in its first event."""
+    stdout = row.get("stdout") or ""
+    if row.get("host") == "codex":
+        for line in stdout.splitlines():
+            line = line.strip()
+            if not line or "thread.started" not in line:
+                continue
+            try:
+                rec = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if rec.get("type") == "thread.started" and rec.get("thread_id"):
+                return rec["thread_id"]
+        return None
     try:
-        return json.loads(row.get("stdout") or "")["session_id"]
+        return json.loads(stdout)["session_id"]
     except (ValueError, KeyError, TypeError):
         return None
 
 
-def find_transcript(projects, sid):
+def find_transcript(row, sid, projects, codex_fixtures):
+    if row.get("host") == "codex":
+        if codex_fixtures is None:
+            return None
+        return next(iter(sorted(Path(codex_fixtures).glob(f"*/sessions/**/*{sid}.jsonl"))), None)
     return next(iter(sorted(projects.glob(f"*/{sid}.jsonl"))), None)
+
+
+def codex_injections(transcript):
+    """Codex records the injected text as an ordinary response item, with no
+    marker saying a hook produced it. Found by its first heading; see the
+    module docstring for what that costs."""
+    out = []
+    seen = set()
+
+    def walk(node):
+        if isinstance(node, str):
+            text = node.strip()
+            if text.startswith(POLICY_FIRST_HEADING) and text not in seen:
+                seen.add(text)
+                data = text.encode("utf-8")
+                out.append(("(codex response_item)", len(data),
+                            hashlib.sha256(data).hexdigest()))
+        elif isinstance(node, dict):
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v)
+
+    with transcript.open("r", encoding="utf-8") as f:
+        for raw in f:
+            line = raw.strip()
+            if not line or POLICY_FIRST_HEADING not in line:
+                continue
+            try:
+                walk(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+    return out
 
 
 def injections(transcript):
@@ -89,14 +158,18 @@ def injections(transcript):
     return out
 
 
-def check_row(row, projects):
+def check_row(row, projects, codex_fixtures=None):
     sid = session_id(row)
     if sid is None:
-        return False, "no session_id in stdout"
-    transcript = find_transcript(projects, sid)
+        return False, "no session id in stdout"
+    transcript = find_transcript(row, sid, projects, codex_fixtures)
     if transcript is None:
-        return False, f"no transcript for session {sid} under {projects}"
-    found = injections(transcript)
+        where = codex_fixtures if row.get("host") == "codex" else projects
+        if where is None:
+            return False, "no --codex-fixtures given, so the rollout cannot be located"
+        return False, f"no transcript for session {sid} under {where}"
+    found = (codex_injections(transcript) if row.get("host") == "codex"
+             else injections(transcript))
     expected = row.get("policy_sha256")
 
     if expected is None:
@@ -119,7 +192,11 @@ def main(argv=None):
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--in", dest="in_path", type=Path, required=True, action="append",
                    help="a run file; repeat for several")
-    p.add_argument("--projects", type=Path, default=DEFAULT_PROJECTS)
+    p.add_argument("--projects", type=Path, default=DEFAULT_PROJECTS,
+                   help="where Claude Code keeps its per-cwd transcript directories")
+    p.add_argument("--codex-fixtures", type=Path, default=None,
+                   help="the directory holding the two Codex homes, whose sessions/ trees "
+                        "carry the rollouts")
     args = p.parse_args(argv)
 
     failures = 0
@@ -129,7 +206,7 @@ def main(argv=None):
             print(f"### {path.name}")
             for row in read_rows(path):
                 total += 1
-                ok, why = check_row(row, args.projects)
+                ok, why = check_row(row, args.projects, args.codex_fixtures)
                 failures += 0 if ok else 1
                 print("  {arm:<7} trial={t:<3} policy={pol:<8} {mark} {why}".format(
                     arm=row.get("arm"), t=row.get("trial"),

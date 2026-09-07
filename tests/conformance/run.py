@@ -69,7 +69,36 @@ CODEX_HOME_NAMES = {"with": "codex-home-with", "without": "codex-home-without"}
 # loudly instead of silently shipping a leaky baseline.
 
 CLAUDE_BASE = ["claude", "-p", "--output-format", "json", "--setting-sources", ""]
-CODEX_BASE = ["codex", "exec", "--ephemeral", "--ignore-user-config",
+
+# `--ignore-user-config` used to be here, as the Codex counterpart of Claude's
+# `--setting-sources ''`. It is not one, and it silently emptied the `with`
+# arm: `codex plugin add` writes the registration into `$CODEX_HOME/config.toml`
+# --
+#     [marketplaces.ttak] ...
+#     [plugins."ttak@ttak"] enabled = true
+#
+# -- which is precisely the file that flag refuses to read, so the plugin was
+# never loaded and the arm was the baseline under a `with` label. Measured
+# 2026-09-07 on codex-cli 0.153.4 against the provisioned fixture: with the
+# flag, no hook ran at all; without it, `hook: UserPromptSubmit Completed`.
+#
+# Codex's isolation is `CODEX_HOME` itself. It points at a fixture that holds
+# nothing but the marketplace registration, the plugin cache and auth, so
+# there is no operator config, no global AGENTS.md and no history to ignore --
+# which is why dropping the flag costs no isolation here. The guard that
+# matters is codex_fixture_problem() refusing to run against a home that looks
+# like the operator's own.
+# `--ephemeral` was also here, and it had to go for a different reason: it
+# means "run without persisting session files to disk", so nothing is written
+# for the analysis step to read. Claude's injection is verified out of the
+# host's own transcript; under --ephemeral the Codex arm has no equivalent
+# record, and a rate nobody can trace back to an observed injection is a rate
+# this project does not report. Dropping it writes rollouts into CODEX_HOME,
+# which is why it is only safe against the throwaway fixture -- the same trade
+# docs/analysis/codex-cli/2026-09-04-host-integration.md Sec 3.8 made, for the
+# same reason. Each `codex exec` still starts its own thread; the rollout is a
+# log, not state a later trial reads.
+CODEX_BASE = ["codex", "exec",
               "--sandbox", "read-only", "--skip-git-repo-check", "--json"]
 
 # Required as contiguous subsequences, not mere membership: a check for
@@ -80,7 +109,7 @@ CODEX_BASE = ["codex", "exec", "--ephemeral", "--ignore-user-config",
 # REQUIRED pairs a flag with the value immediately after it.
 REQUIRED = {
     "claude": [["-p"], ["--output-format", "json"], ["--setting-sources", ""]],
-    "codex": [["exec"], ["--ephemeral"], ["--ignore-user-config"],
+    "codex": [["exec"],
               ["--sandbox", "read-only"], ["--skip-git-repo-check"], ["--json"]],
 }
 
@@ -151,6 +180,22 @@ def seed_state_on(plugin_data_dir):
         json.dumps({"enabled": True}) + "\n", encoding="utf-8", newline="\n")
 
 
+# Codex sets the hook process's environment itself and its values win over
+# anything this runner exports: PLUGIN_DATA is forced to
+# <CODEX_HOME>/plugins/data/<plugin>-<marketplace>. Recorded, with a dump of
+# the hook's own environment over six runs, in
+# docs/analysis/codex-cli/2026-09-04-host-integration.md. Seeding a temp
+# directory therefore turns TTAK on nowhere the hook will ever look, and the
+# `with` arm runs with the plugin loaded and switched off -- the baseline
+# again, under a `with` label, which is the one result this instrument must
+# never produce silently.
+CODEX_PLUGIN_DATA_LEAF = Path("plugins") / "data" / "ttak-ttak"
+
+
+def codex_plugin_data(home):
+    return Path(home) / CODEX_PLUGIN_DATA_LEAF
+
+
 def codex_home(arm, fixtures=None):
     return Path(fixtures or CODEX_FIXTURES) / CODEX_HOME_NAMES[arm]
 
@@ -160,6 +205,19 @@ def codex_fixture_problem(arm, fixtures=None):
     call rather than discovered as a 401 per trial: an unauthenticated home
     fails every trial identically and costs a full run to find out."""
     home = codex_home(arm, fixtures)
+    default_home = Path.home() / ".codex"
+    try:
+        is_operator_home = home.resolve() == default_home.resolve()
+    except OSError:
+        is_operator_home = False
+    if is_operator_home:
+        # Without --ignore-user-config -- see CODEX_BASE for why it had to go --
+        # the operator's own home would bring their config.toml, their global
+        # AGENTS.md and their history into both arms. Measured 2026-09-07:
+        # `codex debug prompt-input` from an empty cwd renders 18,832 bytes
+        # against the operator's home and 15,158 against a fixture.
+        return (f"{home} is the operator's own CODEX_HOME; a run there would load their "
+                f"config and global AGENTS.md into both arms")
     if not home.is_dir():
         return f"no fixture directory at {home}"
     if not (home / "auth.json").exists():
@@ -390,8 +448,15 @@ def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout
         cwd_dir.mkdir()
         plugin_data_dir = None
         if arm == "with":
-            plugin_data_dir = trial_dir / "plugin-data"
-            seed_state_on(plugin_data_dir)
+            if host == "codex":
+                # Not the temp directory: Codex overrides PLUGIN_DATA, so the
+                # state has to go where Codex will point the hook. It lives in
+                # the fixture and therefore persists across trials, which is
+                # the same trade the fixture itself makes.
+                seed_state_on(codex_plugin_data(codex_home(arm, codex_fixtures)))
+            else:
+                plugin_data_dir = trial_dir / "plugin-data"
+                seed_state_on(plugin_data_dir)
 
         cmd = build_command(host, arm, model, case["prompt"], plugin_dir)
         env = build_env(plugin_data_dir)
@@ -653,6 +718,18 @@ def _selftest():
     for host in ("claude", "codex"):
         for arm in ("with", "without"):
             build_command(host, arm, "test-model", "hello")  # raises via assert_isolated on failure
+
+    # --ignore-user-config must stay out of the Codex command: it refuses to
+    # read $CODEX_HOME/config.toml, which is the file `codex plugin add` writes
+    # the plugin registration into, so its presence empties the `with` arm.
+    for arm in ("with", "without"):
+        cmd = build_command("codex", arm, "m", "p")
+        assert "--ignore-user-config" not in cmd, \
+            "--ignore-user-config would unload the plugin the with arm exists to load"
+        assert "--ephemeral" not in cmd, \
+            "--ephemeral leaves no rollout, and an unverifiable injection is an unreportable rate"
+    assert codex_plugin_data(Path("H")) == Path("H") / "plugins" / "data" / "ttak-ttak", \
+        "the state path Codex forces PLUGIN_DATA to; see the host-integration analysis"
 
     assert "--plugin-dir" in build_command("claude", "with", "m", "p")
     assert "--plugin-dir" not in build_command("claude", "without", "m", "p")
@@ -1078,6 +1155,14 @@ def _selftest():
             "the two arms must not share one home, or the baseline loads the plugin"
 
         assert "no fixture directory" in codex_fixture_problem("without", fixtures)
+
+        # The operator's own home is refused outright, whichever arm asks.
+        for arm in ("with", "without"):
+            problem = codex_fixture_problem(arm, Path.home() / ".codex" / "..codex-selftest")
+            assert problem is not None  # the sentinel path does not exist either
+        home_fixtures = Path.home()
+        problem = codex_fixture_problem("with", home_fixtures)
+        assert problem is not None, "a nonexistent home must still be refused"
 
         for arm in ("with", "without"):
             codex_home(arm, fixtures).mkdir(parents=True)

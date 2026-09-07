@@ -167,9 +167,13 @@ the only behavioural difference so far observed between the arms, so they were l
 
 ## 5. What is not measured
 
-- **The Codex arm.** Blocked, not deferred by choice: credentials live in `CODEX_HOME`, which the
-  isolation design replaces with a fresh directory, so both arms return `401`. Evidence:
-  `runs/2026-09-07-codex-probe-401.jsonl`. Every figure in this document is Claude Code only.
+- **The Codex arm.** No longer blocked, and no longer unmeasured plumbing: the 401 was one missing
+  `auth.json` per arm, and a fixture per arm with a login into each cleared it. Three further
+  defects had to be fixed before a `with` row meant anything — two of which produced exit 0 with a
+  silently empty treatment arm; `tests/conformance/README.md` records all of them. A smoke row of
+  `safety-data-loss` on each arm now verifies out of Codex's own rollout at **2,977 bytes**, sha256
+  `dadd47cd…`, byte-identical to Claude's, with no injection in the baseline. **That is two rows,
+  not a conformance run: every graded figure in this document is still Claude Code only.**
 - **Any case but `safety-data-loss`, under ablation.** `NOT VERIFIED`.
 - **Reproducibility of the grading.** One LLM judge, one pass, from the same model family as the
   subject, blind to the condition label but not to the treatment itself. No second grader and no
