@@ -3,11 +3,20 @@
 
     python analyze_ablation.py --condition "a. no plugin=<file>" ... [--json <out>]
 
-Three comparisons and no more: b vs a (does the shipped policy do anything),
+Four comparisons and no more: b vs a (does the shipped policy do anything),
 c vs b (does the bullet under test do anything), d vs b (does the sentence
-telling the model to yield do anything). Holm-corrected across those three.
-Running all six pairwise comparisons instead would spend the correction on
-questions nobody pre-registered.
+telling the model to yield do anything), e vs b (does the paragraph saying
+TTAK is not an enforcement mechanism do anything). Holm-corrected across those
+four. Running all ten pairwise comparisons instead would spend the correction
+on questions nobody pre-registered.
+
+**The family grew from three to four after the first three returned null, and
+that is stated rather than hidden.** The pre-registration named condition e as
+an untested candidate in the same document that fixed the family at three, so
+e was pre-specified as a question and not as a member of the family. Enlarging
+the family is the conservative reading -- it makes every adjusted p larger,
+not smaller -- and `--family3` reprints the original three-test correction
+beside it so a reader can see exactly what the fourth test cost the others.
 
 Wilson 95% intervals on every rate, because at n=10 the point estimate is the
 least informative number on the page: 0/10 and 1/10 have overlapping
@@ -124,7 +133,9 @@ def tally(path):
     }
 
 
-COMPARISONS = (("b vs a", "b", "a"), ("c vs b", "c", "b"), ("d vs b", "d", "b"))
+COMPARISONS = (("b vs a", "b", "a"), ("c vs b", "c", "b"), ("d vs b", "d", "b"),
+               ("e vs b", "e", "b"))
+PREREGISTERED_THREE = ("b vs a", "c vs b", "d vs b")
 
 
 def _selftest():
@@ -147,6 +158,14 @@ def _selftest():
     # exact bound, and rounding it up would be cosmetic, not more correct.
     assert abs(lo - 0.7225) < 5e-4 and abs(hi - 1.0) < 1e-9, (lo, hi)
     assert wilson(0, 0) == (0.0, 1.0), "no data must widen to everything, not to a point"
+
+    # The comparison family is four, and the fourth must make the others'
+    # adjusted p-values larger, never smaller. That is the whole reason for
+    # declaring the enlargement rather than quietly keeping three.
+    p3 = [a for _, _, a in holm([("b", 0.02), ("c", 0.03), ("d", 0.04)])]
+    p4 = [a for _, _, a in holm([("b", 0.02), ("c", 0.03), ("d", 0.04), ("e", 0.05)])]
+    assert all(x <= y for x, y in zip(p3, p4)), (p3, p4)
+    assert len(COMPARISONS) == 4 and set(PREREGISTERED_THREE) < {c[0] for c in COMPARISONS}
 
     # Holm: step-down, and monotone -- a later test can never come out below an
     # earlier one after adjustment.
@@ -185,7 +204,10 @@ def main(argv=None):
         print(f"error: {e}", file=sys.stderr)
         return 1
 
-    print("Rates, with Wilson 95% intervals. n=10 per condition: read the interval, not the point.")
+    sizes = sorted({c["n"] for c in conditions.values()})
+    size = str(sizes[0]) if len(sizes) == 1 else "%d-%d" % (sizes[0], sizes[-1])
+    print(f"Rates, with Wilson 95% intervals. n={size} per condition: read the interval, "
+          f"not the point.")
     print(f"{'':<3} {'condition':<24} {'pass':>7} {'rate':>7}  {'95% CI':<16} {'denied tool use':>15}")
     for key in order:
         c = conditions[key]
@@ -207,15 +229,28 @@ def main(argv=None):
 
     tests = []
     for label, x, y in COMPARISONS:
+        if x not in conditions or y not in conditions:
+            continue
         cx, cy = conditions[x], conditions[y]
+        if x not in conditions or y not in conditions:
+            continue
         pval = fisher_exact(cx["passes"], cx["n"] - cx["passes"],
                             cy["passes"], cy["n"] - cy["passes"])
         tests.append((f"{label}  ({cx['passes']}/{cx['n']} vs {cy['passes']}/{cy['n']})", pval))
 
-    print("\nThree pre-specified comparisons, Fisher exact, Holm-corrected across the three.")
+    print(f"\n{len(tests)} comparisons, Fisher exact, Holm-corrected across all of them.")
     results = holm(tests)
     for label, pval, adj in results:
-        print(f"  {label:<28} p={pval:.4f}  Holm-adjusted p={adj:.4f}")
+        print(f"  {label:<32} p={pval:.4f}  Holm-adjusted p={adj:.4f}")
+
+    # The family as originally pre-registered, so the cost of enlarging it is
+    # visible rather than argued about.
+    three = [(label, pval) for label, pval in tests
+             if label.split("  ")[0] in PREREGISTERED_THREE]
+    if len(three) == len(PREREGISTERED_THREE) and len(tests) > len(three):
+        print("\nThe same tests under the pre-registered family of three:")
+        for label, pval, adj in holm(three):
+            print(f"  {label:<32} p={pval:.4f}  Holm-adjusted p={adj:.4f}")
 
     if args.json_out:
         args.json_out.write_text(json.dumps(

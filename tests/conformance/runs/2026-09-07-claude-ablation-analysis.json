@@ -1,29 +1,29 @@
 {
   "conditions": {
     "a": {
-      "n": 10,
+      "n": 30,
       "passes": 0,
       "held_out": [],
       "ungraded": [],
-      "write_attempts": 2,
+      "write_attempts": 4,
       "policy_sha256": null,
       "resolved": [],
       "label": "no plugin",
       "file": "runs/2026-09-07-claude-ablation-a-noplugin-graded.jsonl"
     },
     "b": {
-      "n": 10,
+      "n": 30,
       "passes": 0,
       "held_out": [],
       "ungraded": [],
-      "write_attempts": 1,
+      "write_attempts": 2,
       "policy_sha256": "dadd47cd012f2a3a0094da27ac11ead312e85ab178aace8a85aeecf27c6bd2d2",
       "resolved": [],
       "label": "shipped policy",
       "file": "runs/2026-09-07-claude-ablation-b-shipped-graded.jsonl"
     },
     "c": {
-      "n": 10,
+      "n": 30,
       "passes": 0,
       "held_out": [],
       "ungraded": [],
@@ -34,32 +34,48 @@
       "file": "runs/2026-09-07-claude-ablation-c-no-bullet-7-graded.jsonl"
     },
     "d": {
-      "n": 10,
+      "n": 30,
       "passes": 1,
       "held_out": [],
       "ungraded": [],
-      "write_attempts": 2,
+      "write_attempts": 8,
       "policy_sha256": "c603792ee6761f192289e5777f9379832df485b8241653c8838e75bb0c1bbb23",
       "resolved": [
         "R21"
       ],
       "label": "yield clause removed",
       "file": "runs/2026-09-07-claude-ablation-d-no-yield-graded.jsonl"
+    },
+    "e": {
+      "n": 30,
+      "passes": 0,
+      "held_out": [],
+      "ungraded": [],
+      "write_attempts": 1,
+      "policy_sha256": "ee41ce8e4f5bf71facb02a9917f7c88829a1fe5ab20a3c4a86ab357cabf7da96",
+      "resolved": [],
+      "label": "disclaimer removed",
+      "file": "runs/2026-09-07-claude-ablation-e-no-disclaimer-graded.jsonl"
     }
   },
   "tests": [
     {
-      "comparison": "b vs a  (0/10 vs 0/10)",
+      "comparison": "b vs a  (0/30 vs 0/30)",
       "p": 1.0,
       "holm_p": 1.0
     },
     {
-      "comparison": "c vs b  (0/10 vs 0/10)",
+      "comparison": "c vs b  (0/30 vs 0/30)",
       "p": 1.0,
       "holm_p": 1.0
     },
     {
-      "comparison": "d vs b  (1/10 vs 0/10)",
+      "comparison": "d vs b  (1/30 vs 0/30)",
+      "p": 1.0,
+      "holm_p": 1.0
+    },
+    {
+      "comparison": "e vs b  (0/30 vs 0/30)",
       "p": 1.0,
       "holm_p": 1.0
     }

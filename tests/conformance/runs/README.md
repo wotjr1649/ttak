@@ -7,7 +7,8 @@ same rows with a `pass` verdict and a `grade` object added; those are the files 
 |---|---|
 | `2026-09-07-claude-t1b.jsonl` / `-graded.jsonl` | **The current run.** Claude Code `2.1.263`, 16 cases × 1 trial × both arms, 32 rows, all exit 0, `$1.32`, 637 s. Run after `safety-data-loss` and `overeng-trap` were repaired (below), so every case is exercised and nothing is `null` |
 | `2026-09-07-claude-t1.jsonl` / `-graded.jsonl` | The run before it, on the same day and the same CLI. Identical except that those two cases still carried the broken prompts, so four rows are `null`. Kept because the repair is a change to what the instrument asks, and the earlier answers to the earlier question are the evidence for making it |
-| `2026-09-07-claude-ablation-*.jsonl` / `-graded.jsonl` | **The policy ablation.** Four conditions on `safety-data-loss` only, n=10 each, 40 rows, all exit 0, `$1.41`, 341 s. `a-noplugin` is the baseline; `b-shipped`, `c-no-bullet-7` and `d-no-yield` load the same plugin through `--plugin-dir` and differ only in the policy bytes, recorded per row as `policy_sha256`. The un-graded files here already carry `grade.checker`: the screener ran over them in place before grading, which is the order the protocol requires. `2026-09-07-claude-ablation-analysis.json` is the output of `analyze_ablation.py` over the four graded files. The reading is in `docs/FINDINGS.md` |
+| `2026-09-07-codex-t1.jsonl` / `-graded.jsonl` | **The Codex conformance run.** codex-cli `0.153.4`, `gpt-5.6-luna`, 16 cases × 1 trial × both arms, 32 rows, all exit 0. Injection verified 32/32 out of Codex's own rollouts. `GATE: PASS` on the `with` arm, 15/16 against the baseline's 14/16 — **at one trial per cell**, and under a different model and a read-only sandbox than the Claude runs. See `docs/FINDINGS.md` §1 |
+| `2026-09-07-claude-ablation-*.jsonl` / `-graded.jsonl` | **The policy ablation.** Five conditions on `safety-data-loss` only, n=30 each, 150 rows, all exit 0. `a-noplugin` is the baseline; `b-shipped`, `c-no-bullet-7`, `d-no-yield` and `e-no-disclaimer` load the same plugin through `--plugin-dir` and differ only in the policy bytes, recorded per row as `policy_sha256`. The un-graded files here already carry `grade.checker`: the screener ran over them in place before grading, which is the order the protocol requires. `2026-09-07-claude-ablation-analysis.json` is the output of `analyze_ablation.py` over the four graded files. The reading is in `docs/FINDINGS.md` |
 | `2026-09-07-codex-probe-401.jsonl` | One row, Codex `with` arm: exit 1, `401 Unauthorized` on every retry of both transports, plus the fallback-metadata warning for a model id Codex does not know. Evidence for the parent README's Codex section. No rollout was written, so it says nothing about whether the hook injected |
 | `2026-09-07-claude-t1-voided.jsonl` | The first attempt of all, kept as the evidence for the decode defect in the parent README: 30 of its 32 rows carry `"exit_code": 0` with `"stdout": null` and `"error": null` — a run that captured nothing, recorded as a run that succeeded |
 
@@ -74,11 +75,15 @@ alongside the checker's own source hash. And a checker/judge disagreement **held
 its condition's count** until the row was re-read — one row, `R21`, where the screener was the one
 that was wrong; the re-read and its reasoning are in the row as `grade.held_out_resolved`.
 
-A second grader ran over all 72 graded rows afterwards — the 40 ablation rows and this run's 32 —
-using Codex `gpt-5.6-luna`, one call per row, seed `20260911`, blind to arm, condition, policy hash,
-the screener's verdict and the first grader's. It is recorded as `grade.second_recheck` and **it
-changed no verdict**. Agreement 67/72 = 93.1%, Cohen's κ = 0.854; 40/40 on the ablation and 27/32
-here. All five disagreements have the second grader failing a row the first passed.
+A second grader ran over every graded row in the repository — 214 of them, across the ablation and
+both hosts' conformance runs — using Codex `gpt-5.6-luna`, one call per row, blind to arm,
+condition, host, policy hash, the screener's verdict and the first grader's. It is recorded as
+`grade.second_recheck` and **it changed no verdict**. Agreement 203/213 = 95.3%, Cohen's κ = 0.876,
+with one row the second grader declined to call. By corpus: 150/150 on the ablation, 27/32 on the
+Claude conformance run, 26/31 on the Codex one. All ten disagreements have the second grader
+failing a row the first passed, on both hosts at the same rate — see `docs/FINDINGS.md` §3, which
+reads the two conformance κ values against their base rates and records the case defect two of the
+disagreements exposed.
 
 `grade.second` beside it is an earlier, discarded run of the same pass in batches of eight. Keep it
 only as the evidence for why the per-row version exists: because 40 of the 72 rows are one case,
