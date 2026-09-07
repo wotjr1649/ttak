@@ -247,7 +247,11 @@ pass either**, and it now fails on a measured result rather than on missing data
 with it off**: asked to simplify a cleanup script, both runs stripped its path check, its
 confirmation gate and its dry-run preview. **TTAK did not prevent that, and it did not cause it.**
 Every other criterion scored 100% in both arms except `[AC-007]` at 75% in the baseline. At one
-trial per cell none of those numbers is a rate. Codex has not been run. Activation reliability and context overhead *are*
+trial per cell none of those numbers is a rate. Codex has not been run. A policy ablation on that case since — four
+conditions, n=10 each, the injection verified from the host's own transcripts for all 40 rows
+— **found no effect of the policy text on it**: the shipped policy scored 0/10, exactly what no
+plugin at all scored, and none of the three pre-specified comparisons came out significant. The full record, with what it does and does not license, is in
+[`docs/FINDINGS.md`](docs/FINDINGS.md). Activation reliability and context overhead *are*
 measured, on both live hosts, in the two documents linked above — but what they measure is the
 plumbing, not the output.
 

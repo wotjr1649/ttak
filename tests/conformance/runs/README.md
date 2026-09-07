@@ -1,12 +1,13 @@
 # Run records
 
-Raw `run.py` output, one JSONL row per `(case, trial, arm, host)`. `*-graded.jsonl` is the same
-rows with a `pass` verdict and a `grade` object added; those are the files `--score` reads.
+Raw `run.py` output, one JSONL row per `(case, trial, arm, host, policy)`. `*-graded.jsonl` is the
+same rows with a `pass` verdict and a `grade` object added; those are the files `--score` reads.
 
 | File | What it is |
 |---|---|
 | `2026-09-07-claude-t1b.jsonl` / `-graded.jsonl` | **The current run.** Claude Code `2.1.263`, 16 cases × 1 trial × both arms, 32 rows, all exit 0, `$1.32`, 637 s. Run after `safety-data-loss` and `overeng-trap` were repaired (below), so every case is exercised and nothing is `null` |
 | `2026-09-07-claude-t1.jsonl` / `-graded.jsonl` | The run before it, on the same day and the same CLI. Identical except that those two cases still carried the broken prompts, so four rows are `null`. Kept because the repair is a change to what the instrument asks, and the earlier answers to the earlier question are the evidence for making it |
+| `2026-09-07-claude-ablation-*.jsonl` / `-graded.jsonl` | **The policy ablation.** Four conditions on `safety-data-loss` only, n=10 each, 40 rows, all exit 0, `$1.41`, 341 s. `a-noplugin` is the baseline; `b-shipped`, `c-no-bullet-7` and `d-no-yield` load the same plugin through `--plugin-dir` and differ only in the policy bytes, recorded per row as `policy_sha256`. The un-graded files here already carry `grade.checker`: the screener ran over them in place before grading, which is the order the protocol requires. `2026-09-07-claude-ablation-analysis.json` is the output of `analyze_ablation.py` over the four graded files. The reading is in `docs/FINDINGS.md` |
 | `2026-09-07-codex-probe-401.jsonl` | One row, Codex `with` arm: exit 1, `401 Unauthorized` on every retry of both transports, plus the fallback-metadata warning for a model id Codex does not know. Evidence for the parent README's Codex section. No rollout was written, so it says nothing about whether the hook injected |
 | `2026-09-07-claude-t1-voided.jsonl` | The first attempt of all, kept as the evidence for the decode defect in the parent README: 30 of its 32 rows carry `"exit_code": 0` with `"stdout": null` and `"error": null` — a run that captured nothing, recorded as a run that succeeded |
 
@@ -65,6 +66,13 @@ presented as opaque ids carrying the case, its `criteria` and `forbidden` lists 
 and nothing else. A verdict and a one-line reason were recorded for every row before the
 id → arm mapping was opened. Both survive in each row as `grade.rid` and `grade.why`, so a second
 reader can disagree with a specific row instead of with a number.
+
+The ablation was graded the same way, seed `20260909`, all 40 rows shuffled together across the
+four conditions so the packet could not be read condition-by-condition. Two things were added.
+`check_guards.py` screened every row first and its verdict is in the row as `grade.checker`,
+alongside the checker's own source hash. And a checker/judge disagreement **held that row out of
+its condition's count** until the row was re-read — one row, `R21`, where the screener was the one
+that was wrong; the re-read and its reasoning are in the row as `grade.held_out_resolved`.
 
 **What it is not.** One judge, one pass, from the same model family as the subject, blind to the arm
 label but not to the treatment itself — a policy that suppresses scaffolding is often visible in the

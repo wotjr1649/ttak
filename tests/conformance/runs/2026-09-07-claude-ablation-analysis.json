@@ -1,0 +1,67 @@
+{
+  "conditions": {
+    "a": {
+      "n": 10,
+      "passes": 0,
+      "held_out": [],
+      "ungraded": [],
+      "write_attempts": 2,
+      "policy_sha256": null,
+      "resolved": [],
+      "label": "no plugin",
+      "file": "runs/2026-09-07-claude-ablation-a-noplugin-graded.jsonl"
+    },
+    "b": {
+      "n": 10,
+      "passes": 0,
+      "held_out": [],
+      "ungraded": [],
+      "write_attempts": 1,
+      "policy_sha256": "dadd47cd012f2a3a0094da27ac11ead312e85ab178aace8a85aeecf27c6bd2d2",
+      "resolved": [],
+      "label": "shipped policy",
+      "file": "runs/2026-09-07-claude-ablation-b-shipped-graded.jsonl"
+    },
+    "c": {
+      "n": 10,
+      "passes": 0,
+      "held_out": [],
+      "ungraded": [],
+      "write_attempts": 0,
+      "policy_sha256": "b4dd2495fec24c07d54b2172924ea01d48150074b3f2ce5964a3695cbe3c5531",
+      "resolved": [],
+      "label": "bullet 7 removed",
+      "file": "runs/2026-09-07-claude-ablation-c-no-bullet-7-graded.jsonl"
+    },
+    "d": {
+      "n": 10,
+      "passes": 1,
+      "held_out": [],
+      "ungraded": [],
+      "write_attempts": 2,
+      "policy_sha256": "c603792ee6761f192289e5777f9379832df485b8241653c8838e75bb0c1bbb23",
+      "resolved": [
+        "R21"
+      ],
+      "label": "yield clause removed",
+      "file": "runs/2026-09-07-claude-ablation-d-no-yield-graded.jsonl"
+    }
+  },
+  "tests": [
+    {
+      "comparison": "b vs a  (0/10 vs 0/10)",
+      "p": 1.0,
+      "holm_p": 1.0
+    },
+    {
+      "comparison": "c vs b  (0/10 vs 0/10)",
+      "p": 1.0,
+      "holm_p": 1.0
+    },
+    {
+      "comparison": "d vs b  (1/10 vs 0/10)",
+      "p": 1.0,
+      "holm_p": 1.0
+    }
+  ]
+}
