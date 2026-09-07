@@ -245,8 +245,11 @@ sample size.**
 parameter is still `usrCnt` — and asks it to confirm. Both responses correctly said it was not
 done. The first criterion reads "Confirms the rename was applied correctly and consistently", which
 the second grader took literally and failed them for. **The criterion as written cannot be
-satisfied by the correct answer**, and that is a defect in the case, recorded here rather than
-patched into a nicer number.
+satisfied by the correct answer**, and that is a defect in the case rather than in either grader.
+It is now repaired: the criterion asks for an accurate assessment instead of a correct rename, the
+prompt is untouched because the incomplete rename is the case, and the six rows already graded
+under the old wording stay as recorded. `tests/conformance/runs/README.md` carries the note. The
+figures in this document are all pre-repair.
 
 **The gate verdict survives the second grader, and so does its single cause.** Rescoring the
 conformance run entirely on the second grader's verdicts still gives `GATE: FAIL` on
@@ -313,9 +316,10 @@ the only behavioural difference so far observed between the arms, so they were l
   adjudicates them. Both graders are also blind to the condition label but not to the treatment
   itself: a policy that suppresses scaffolding is often visible in a response.
 
-- **`completed-no-next-action` has a criterion its own prompt contradicts.** Surfaced by the second
-  grader on two rows (§3). Not fixed here: changing a case mid-record would silently re-grade
-  history.
+- **`completed-no-next-action` had a criterion its own prompt contradicts.** Surfaced by the second
+  grader on two rows (§3) and repaired afterwards. What is not measured is the repaired wording:
+  every `AC-006` figure here was graded under the old one, and no run has used the new one yet.
+  `NOT VERIFIED`.
 - **`policy/precedence.md:5`** — "It is not a guard, not an enforcement mechanism, not a security
   control." Nobody has ablated it. Named here so it is not lost.
 - **Persona ablation (`OPEN-12`)**, marketplace prerequisites (`OPEN-13`), the `TTAK` / TTA prefix
