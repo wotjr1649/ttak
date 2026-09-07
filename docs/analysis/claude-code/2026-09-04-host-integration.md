@@ -12,7 +12,7 @@ Every claim below points at an observation. Anything this run could not reach is
 | OS | Windows 11 Pro 10.0.26200, Git Bash (MSYS2) |
 | Model pinned for every trial | `haiku` → resolved `claude-haiku-4-5-20251001` |
 | Repository commit under test | `72fe42d` on `feat/ttak-v1`. **Every observation in this document is pre-fix.** The fix rounds that followed (`9e4eb01` and fix round 2, the commit carrying this sentence) changed only the branch taken when part of the plugin data path is missing, and Claude Code pre-creates that path (§1.3), so it is not on this host's path. That is reasoning, not a re-observation. The final fix round then changed the `ttak` status reply, which §-tables below quote verbatim as observed: it named two of the four `SessionStart` sources the matcher covers when the observations in this document show all four injecting. The quoted strings are left as observed and are historical from that round on. |
-| Date of run | 2026-09-05 |
+| Date of run | 2026-09-05 for everything measured under `-p`. **The interactive rows — Step 0's TUI table, §1.1's A4 block, §1.3's A1 block, §1.5's A3 block, §1.7's A5 block and §1.8 — were measured on 2026-09-06 against the repository's `main`, not against `72fe42d`, and each says so where it appears.** |
 | Claude invocations | 61, total `$0.3089` |
 
 > **`2977` in this document is a character count, and it is not the byte figure the READMEs

@@ -8,11 +8,19 @@ needs a real profile, an interactive session, or a model — which is what this 
 item says what to run, what answer to look for as a yes or no, which document row it fills, and how
 many times.
 
+**Status, 2026-09-07: every item that had a check to run has been run.** A1–A5 and B2–B8 are
+settled and recorded in the two evidence documents above; B1 never had anything to run. Two
+threads stay open and both are operator accounts rather than artefacts — which command produced
+B5's second injection, since a Codex rollout records no `SessionStart` source, and what the input
+line did when the bare `/ttak-explain` was typed. The sheet is kept as the procedure that was
+followed, so a later reader can re-run any item rather than take the results on trust.
+
 **Who runs this: the user, by hand, before submission.** That is a deliberate arrangement, not an
 oversight. Everything that could be automated in isolation was; the rest is left to a person because
 running it means changing host configuration and installing into a real profile, and no agent on this
-project does that. **The `NOT VERIFIED` rows in the two documents above stay open until these items
-are run.** Where a row names an item here, that item is the stated condition for closing it.
+project does that. **The `NOT VERIFIED` rows in the two documents above stayed open until these
+items were run.** Where a row names an item here, that item was the stated condition for closing it,
+and each such row now records what closed it.
 
 Paste shell lines into a Claude Code session with a leading `!`, or into a plain terminal. Items
 marked **(interactive)** are things to do inside a running session, not commands to paste.

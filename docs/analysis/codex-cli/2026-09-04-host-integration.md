@@ -11,7 +11,7 @@ Every claim below points at an observation. Anything this run could not reach is
 | Node | `v24.19.0` |
 | OS | Windows 11 Pro 10.0.26200, Git Bash (MSYS2) |
 | Repository commit under test | `72fe42d` on `feat/ttak-v1` for Steps 2 and 3.1–3.2 and §3.7; `9e4eb01` (the fix) for §3.3; `9e4eb01` for §3.8 and §3.9. The final fix round then changed the `ttak` status reply, which §-tables below quote verbatim as observed: it named two of the four `SessionStart` sources the matcher covers when the observations in this document show all four injecting. The quoted strings are left as observed and are historical from that round on. |
-| Date of run | 2026-09-05 (§3.3), 2026-09-06 (§3.8, §3.9) |
+| Date of run | 2026-09-05 (§3.3), 2026-09-06 (§3.8, §3.9). **§3.6's B4 block, §3.7's B3 block and §3.10 were measured on 2026-09-06 against a real profile and the repository's `main`, not against `72fe42d`.** |
 | Codex invocations | 36 for the original run, 24 more across the two fix rounds |
 
 > **`2977` in this document is a character count, and it is not the byte figure the READMEs

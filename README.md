@@ -216,7 +216,13 @@ Measured from the shipped `policy/*.md` files:
 These are byte counts taken directly from the shipped files with the composition the hook performs,
 plus a token approximation at four characters per token — an estimate, not an exact token count.
 Reproduce both with `node scripts/measure-injection.cjs`. The figures in this table fail the suite if
-the policy files or this table drift from what that command prints. Host tooling is not used for this
+the policy files or this table drift from what that command prints.
+
+**The subagent row is what TTAK injects, not what a subagent ends up holding.** On Codex a subagent
+is a fork of the thread that spawned it, so the parent's conversation — including the parent's own
+2,977-byte injection, response contract and all — is carried into it alongside the 2,000. Narrowing
+the payload does not narrow the context there, and no hook can undo it: a hook adds text, it cannot
+remove text already in a conversation. Observed 2026-09-06 and recorded in the codex-cli document. Host tooling is not used for this
 number because `claude plugin details` does not count hook-injected content.
 
 ## What v1 claims, and what it does not
