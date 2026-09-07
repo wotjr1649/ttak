@@ -127,6 +127,24 @@ def assert_isolated(host, cmd, model):
         raise AssertionError(f"{host} command must pin --model to the requested model, never inherit a default: {cmd!r}")
 
 
+# Windows caps a command line at 32,767 characters and the failure is opaque:
+# CreateProcess raises WinError 206, "the filename or extension is too long",
+# before the host process exists at all. Measured 2026-09-07, when a 39,309
+# character grading packet was passed as an argument. Case prompts are an
+# order of magnitude under this ceiling today; a future case need not be, and
+# the error it would raise names neither the case nor the cause.
+COMMAND_LINE_LIMIT = 30000
+
+
+def assert_fits_command_line(host, cmd):
+    total = sum(len(a) for a in cmd) + len(cmd)
+    if total > COMMAND_LINE_LIMIT:
+        raise ValueError(
+            f"{host} command is {total} characters, past this runner's "
+            f"{COMMAND_LINE_LIMIT} guard and near the 32,767 Windows limit. Send the "
+            f"large part on stdin rather than as an argument.")
+
+
 def build_command(host, arm, model, prompt, plugin_dir=None):
     """Build the argv for one trial. `arm` toggles whether TTAK is loaded:
 
@@ -160,6 +178,7 @@ def build_command(host, arm, model, prompt, plugin_dir=None):
         raise ValueError(f"unknown host {host!r}")
     cmd.append(prompt)
     assert_isolated(host, cmd, model)
+    assert_fits_command_line(host, cmd)
     return cmd
 
 
@@ -735,6 +754,15 @@ def _selftest():
     assert "--plugin-dir" not in build_command("claude", "without", "m", "p")
     assert "--dangerously-bypass-hook-trust" in build_command("codex", "with", "m", "p")
     assert "--dangerously-bypass-hook-trust" not in build_command("codex", "without", "m", "p")
+
+    # The argv ceiling. A prompt this size is what raised WinError 206 on
+    # 2026-09-07, and the message it produced named nothing useful.
+    try:
+        build_command("claude", "without", "m", "x" * 40000)
+        raise AssertionError("a command past the Windows argv limit must be refused")
+    except ValueError as e:
+        assert "stdin" in str(e), f"the refusal must say where the large part goes: {e}"
+    build_command("claude", "without", "m", "x" * 1000)  # well under; must not raise
 
     # contains_subseq binds adjacency; scattered membership must not satisfy it.
     assert contains_subseq(["--sandbox", "read-only"], ["--sandbox", "read-only"])

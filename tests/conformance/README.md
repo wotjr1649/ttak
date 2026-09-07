@@ -191,13 +191,21 @@ removing it, rather than which phrasing does it better.
 
 ### A modal verb the inventory and the specification do not share
 
-`docs/COPIED_TEXT_INVENTORY.md:233` classifies row I7, the protected-noun list, as a reproduced
-expression that is "deliberate and **mandated**", and `:202` says `[SRC-002]` "exempts these nouns
+`docs/COPIED_TEXT_INVENTORY.md:233` classified row I7, the protected-noun list, as a reproduced
+expression that was "deliberate and mandated", and `:202` said `[SRC-002]` "exempts these nouns
 from paraphrase". `[SRC-002]` itself, at `docs/TTAK_Plugin_Product_Definition_v0.3_EN.md:166`, is a
 **SHOULD**: the protection nouns "SHOULD be preserved in meaning rather than paraphrased for
-style". *Mandated* is not what a SHOULD says. Recorded here, not resolved: which of the two moves
-is the specification owner's call, and no licence claim in the inventory depends on it — the
-copied-text measurements and their pins are unaffected either way.
+style". *Mandated* is not what a SHOULD says.
+
+**Resolved 2026-09-07 by moving the inventory, not the specification.** Both sentences now say the
+nouns SHOULD be preserved in meaning rather than paraphrased for style, which is what the clause
+they cite actually says. The specification is the higher document and it was not touched; I7 stays
+classified as a reproduced expression, and every measured run and source pin is unchanged, so no
+licence claim moves with this. What changed is one document's description of another's modal verb.
+
+(An earlier revision of this section quoted the inventory as saying "deliberate and **mandated**"
+with the emphasis in the original. The emphasis was the handover note's, not the inventory's, and
+the quotation above is now what the file actually read.)
 
 ## Isolation, and why it is not optional
 

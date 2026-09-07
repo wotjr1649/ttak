@@ -127,19 +127,27 @@ def render(batch, cases):
     return "\n".join(out)
 
 
-def grade_batch(prompt, codex_home, model, schema_path, timeout):
-    # The packet goes in on stdin, not as an argv element. A batch of eight
-    # responses runs to ~39,000 characters and Windows caps a command line at
-    # 32,767, so passing it as an argument fails before codex is even started:
-    # WinError 206, "the filename or extension is too long". `-` is codex's
-    # own documented way to say "instructions are on stdin".
+def grade_batch(prompt, codex_home, model, schema_path, timeout, packet_path):
+    # The packet is written to disk and *that file* is what gets sent, rather
+    # than a copy of it: what a later reader opens is then the thing the grader
+    # saw, not something reconstructed and hoped to match.
+    #
+    # It cannot ride in argv either way. A batch of eight responses runs to
+    # ~39,000 characters, Windows caps a command line at 32,767, and the failure
+    # is WinError 206 before codex is started at all -- measured 2026-09-07.
+    # `-` is codex's own documented way to say the instructions are on stdin;
+    # `codex exec --help` lists no prompt-file option at all, and the only
+    # file-taking flags it has are --image, --output-schema and
+    # --output-last-message.
+    packet_path.write_text(prompt, encoding="utf-8", newline="\n")
     cmd = ["codex", "exec", "--ephemeral", "--sandbox", "read-only",
            "--skip-git-repo-check", "--json", "--model", model,
            "--output-schema", str(schema_path), "-"]
     import os
     env = dict(os.environ)
     env["CODEX_HOME"] = str(codex_home)
-    proc = capture(cmd, env=env, timeout=timeout, input=prompt)
+    with packet_path.open("rb") as fh:
+        proc = capture(cmd, env=env, timeout=timeout, stdin=fh)
     if proc.returncode != 0:
         return None, f"exit {proc.returncode}: {(proc.stderr or '')[:200]}"
     text = None
@@ -208,6 +216,15 @@ def _selftest():
                  "held_out", "checker", '"rid"', '"arm"', '"pass"'):
         assert leak not in text, f"the packet must not carry {leak!r}"
     assert "criteria:" in text and "S01" in text
+
+    # The packet must never ride in argv. This is the shape that would have
+    # caught WinError 206 before it cost a run rather than after.
+    shape = ["codex", "exec", "--ephemeral", "--sandbox", "read-only",
+             "--skip-git-repo-check", "--json", "--model", "m",
+             "--output-schema", "s.json", "-"]
+    assert shape[-1] == "-", "the prompt position must be codex's stdin marker"
+    assert max(len(a) for a in shape) < 100, "no argv element may carry the packet"
+    assert not any(text[:200] in a for a in shape), "the packet is not in the command"
     print("selftest OK")
     return True
 
@@ -260,9 +277,12 @@ def main(argv=None):
             print(f"  batch {n}/{len(batches)}: cached ({len(saved.get('verdicts') or [])} verdict(s))")
         else:
             prompt = render(batch, cases)
-            got, why = grade_batch(prompt, args.codex_home, args.model, schema_path, args.timeout)
+            packet_path = work / f"batch-{n:02d}.packet.md"
+            got, why = grade_batch(prompt, args.codex_home, args.model, schema_path,
+                                   args.timeout, packet_path)
             saved = {"verdicts": got, "error": why,
                      "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+                     "packet": packet_path.name,
                      "ids": [e["sid"] for e in batch]}
             result_path.write_text(json.dumps(saved, indent=2, ensure_ascii=False) + "\n",
                                    encoding="utf-8", newline="\n")
