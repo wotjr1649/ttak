@@ -43,11 +43,21 @@ SPEC_EN = ROOT / "docs" / "TTAK_Plugin_Product_Definition_v0.3_EN.md"
 DEFAULT_MODEL = "sonnet"
 DEFAULT_TIMEOUT = 300
 
-# A one-time, pre-provisioned fixture: Codex has no ad hoc "load this plugin
-# directory for one session" flag (checked: `codex exec --help`, `codex
-# plugin --help` — only `add` from a configured marketplace snapshot
-# exists). Claude does (`--plugin-dir`), so only Codex's with-arm needs this.
-CODEX_HOME_WITH = Path(tempfile.gettempdir()) / "ttak-conformance" / "codex-home-with"
+# Two one-time, pre-provisioned fixtures, one per arm. Codex has no ad hoc
+# "load this plugin directory for one session" flag (checked: `codex exec
+# --help`, `codex plugin --help` — only `add`/`remove` from a configured
+# marketplace snapshot exist, and there is no enable/disable to toggle between
+# arms inside one home). Claude has `--plugin-dir`, so it needs none of this.
+#
+# Both arms need a fixture, not just `with`, and that is why both arms
+# returned 401 on 2026-09-07: auth lives in `$CODEX_HOME/auth.json`, and the
+# baseline used to get a fresh empty directory per trial, which is a home
+# nobody has ever logged into. Measured with `codex doctor`, which names it
+# exactly: "no Codex credentials were found". So the baseline trades the
+# per-trial fresh home for a persistent one; `--ephemeral`, already in
+# CODEX_BASE, is what keeps a trial's session files from reaching the next.
+CODEX_FIXTURES = Path(tempfile.gettempdir()) / "ttak-conformance"
+CODEX_HOME_NAMES = {"with": "codex-home-with", "without": "codex-home-without"}
 
 
 # --- command construction ---------------------------------------------------
@@ -141,8 +151,24 @@ def seed_state_on(plugin_data_dir):
         json.dumps({"enabled": True}) + "\n", encoding="utf-8", newline="\n")
 
 
-def codex_home_with_ready():
-    return (CODEX_HOME_WITH / "plugins").exists()
+def codex_home(arm, fixtures=None):
+    return Path(fixtures or CODEX_FIXTURES) / CODEX_HOME_NAMES[arm]
+
+
+def codex_fixture_problem(arm, fixtures=None):
+    """Why this arm cannot run yet, or None. Checked before the first host
+    call rather than discovered as a 401 per trial: an unauthenticated home
+    fails every trial identically and costs a full run to find out."""
+    home = codex_home(arm, fixtures)
+    if not home.is_dir():
+        return f"no fixture directory at {home}"
+    if not (home / "auth.json").exists():
+        return (f"{home} has no auth.json, so every trial would return 401. "
+                f"Log in once: CODEX_HOME={home} codex login")
+    if arm == "with" and not (home / "plugins").exists():
+        return (f"{home} has no plugins/, so the 'with' arm would silently measure the "
+                f"baseline. Provision it: CODEX_HOME={home} codex plugin add ttak@ttak")
+    return None
 
 
 # --- policy identity ---------------------------------------------------------
@@ -173,7 +199,7 @@ def compose_policy(policy_dir):
     return "\n\n".join(parts)
 
 
-def policy_sha256(host, arm, plugin_dir):
+def policy_sha256(host, arm, plugin_dir, codex_fixtures=None):
     """sha256 of the text this trial will inject, or None for the baseline.
 
     The Codex with-arm reads from the provisioned CODEX_HOME fixture rather
@@ -185,9 +211,10 @@ def policy_sha256(host, arm, plugin_dir):
         return None
     if host == "claude":
         return hashlib.sha256(compose_policy(Path(plugin_dir or ROOT) / "policy").encode("utf-8")).hexdigest()
-    found = next(iter(sorted(CODEX_HOME_WITH.glob("plugins/**/policy/invariants.md"))), None)
+    home = codex_home("with", codex_fixtures)
+    found = next(iter(sorted(home.glob("plugins/**/policy/invariants.md"))), None)
     if found is None:
-        raise ValueError(f"no policy/ directory under {CODEX_HOME_WITH / 'plugins'}: "
+        raise ValueError(f"no policy/ directory under {home / 'plugins'}: "
                          "the with-arm fixture is missing or has a shape this runner does not know")
     return hashlib.sha256(compose_policy(found.parent).encode("utf-8")).hexdigest()
 
@@ -350,7 +377,7 @@ def capture_cli_version(host):
 
 
 def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout,
-              plugin_dir=None, policy_sha=None):
+              plugin_dir=None, policy_sha=None, codex_fixtures=None):
     # A neutral, empty cwd for every trial: the isolation flags stop the
     # operator's own settings/config leaking in, but the model's own repo
     # (this one) would leak a second way if either arm ran from ROOT — a
@@ -369,12 +396,9 @@ def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout
         cmd = build_command(host, arm, model, case["prompt"], plugin_dir)
         env = build_env(plugin_data_dir)
         if host == "codex":
-            if arm == "with":
-                env["CODEX_HOME"] = str(CODEX_HOME_WITH)
-            else:
-                codex_home = trial_dir / "codex-home"
-                codex_home.mkdir()
-                env["CODEX_HOME"] = str(codex_home)
+            # Both arms, not just `with`: see CODEX_FIXTURES. A fresh directory
+            # here would be a home with no credentials in it.
+            env["CODEX_HOME"] = str(codex_home(arm, codex_fixtures))
 
         started = time.time()
         exit_code, stdout, stderr, error = None, "", "", None
@@ -428,13 +452,15 @@ def do_dry_run(cases, host, arm, model, trials, existing, plugin_dir=None, polic
     return 0
 
 
-def do_run(cases, host, arm, model, trials, out_path, timeout, plugin_dir=None, policy_sha=None):
-    if host == "codex" and arm == "with" and not codex_home_with_ready():
-        print(f"error: CODEX_HOME fixture not found at {CODEX_HOME_WITH}", file=sys.stderr)
-        print("Provision it once (see README.md, 'Codex with-arm setup') before a real "
-              "'codex with' run; without it this would silently measure the baseline twice.",
-              file=sys.stderr)
-        return 1
+def do_run(cases, host, arm, model, trials, out_path, timeout, plugin_dir=None, policy_sha=None,
+           codex_fixtures=None):
+    if host == "codex":
+        problem = codex_fixture_problem(arm, codex_fixtures)
+        if problem is not None:
+            print(f"error: the codex '{arm}' arm is not provisioned: {problem}", file=sys.stderr)
+            print("See README.md, 'Codex arm setup'. Running without it would spend a full run "
+                  "on 401s, or silently measure the baseline twice.", file=sys.stderr)
+            return 1
 
     existing = load_existing_keys(out_path)
     cli_version = capture_cli_version(host)
@@ -449,7 +475,7 @@ def do_run(cases, host, arm, model, trials, out_path, timeout, plugin_dir=None, 
                 skipped += 1
                 continue
             row = run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout,
-                            plugin_dir, policy_sha)
+                            plugin_dir, policy_sha, codex_fixtures)
             append_row(out_path, row)
             ran += 1
     print(f"ran {ran} trial(s), skipped {skipped} already-present row(s) -> {out_path}")
@@ -1041,6 +1067,44 @@ def _selftest():
             except SystemExit:
                 pass
 
+    # The Codex fixtures: both arms need one, and an unauthenticated home has
+    # to be caught before the run rather than as 401 on every trial. Measured
+    # 2026-09-07: `codex login status` reads "Not logged in" against the
+    # provisioned with-fixture, and `codex doctor` reports "no Codex
+    # credentials were found" -- which is the whole of why both arms failed.
+    with tempfile.TemporaryDirectory(prefix="ttak-selftest-") as td:
+        fixtures = Path(td) / "fixtures"
+        assert codex_home("with", fixtures) != codex_home("without", fixtures), \
+            "the two arms must not share one home, or the baseline loads the plugin"
+
+        assert "no fixture directory" in codex_fixture_problem("without", fixtures)
+
+        for arm in ("with", "without"):
+            codex_home(arm, fixtures).mkdir(parents=True)
+        for arm in ("with", "without"):
+            problem = codex_fixture_problem(arm, fixtures)
+            assert "auth.json" in problem and "codex login" in problem, problem
+
+        for arm in ("with", "without"):
+            (codex_home(arm, fixtures) / "auth.json").write_text("{}", encoding="utf-8")
+        assert codex_fixture_problem("without", fixtures) is None, \
+            "an authenticated baseline home needs nothing else"
+        problem = codex_fixture_problem("with", fixtures)
+        assert "plugins/" in problem, \
+            f"a with-arm home without the plugin must not pass as ready: {problem}"
+        (codex_home("with", fixtures) / "plugins").mkdir()
+        assert codex_fixture_problem("with", fixtures) is None
+
+        # --codex-fixtures is for Codex; on Claude it would name a directory
+        # nothing reads, so it is refused rather than accepted and ignored.
+        try:
+            with contextlib.redirect_stderr(io.StringIO()):
+                main(["--host", "claude", "--arm", "with", "--trials", "1",
+                      "--codex-fixtures", str(fixtures), "--dry-run"])
+            raise AssertionError("--codex-fixtures must be rejected for --host claude")
+        except SystemExit:
+            pass
+
     # The first real run, 2026-09-07, lost 30 of 32 rows to a locale decode:
     # `text=True` picked cp949, the model emitted UTF-8, and the failure landed
     # in a reader thread that dropped the stream and left a clean exit code
@@ -1072,6 +1136,9 @@ def main(argv=None):
                    help="run only this case id. Applies to a run, never to --score: a gate "
                         "computed over a hand-picked subset of the cases would report coverage "
                         "it does not have")
+    p.add_argument("--codex-fixtures", type=Path, default=None,
+                   help="directory holding the two provisioned Codex homes, codex-home-with and "
+                        f"codex-home-without (--host codex only; default {CODEX_FIXTURES})")
     p.add_argument("--plugin-dir", type=Path, default=None,
                    help="load this directory as the plugin instead of the repository itself "
                         "(--host claude --arm with only). Cases, AC ids and the spec still "
@@ -1122,6 +1189,10 @@ def main(argv=None):
         if not args.dry_run and not args.out:
             p.error("--out is required for a real run (--dry-run does not write one)")
 
+        if args.codex_fixtures is not None and args.host != "codex":
+            p.error("--codex-fixtures applies to --host codex only: Claude loads the plugin with "
+                    "--plugin-dir and never reads CODEX_HOME")
+
         if args.plugin_dir is not None:
             if args.host != "claude":
                 p.error("--plugin-dir applies to --host claude only: Codex has no ad hoc "
@@ -1139,14 +1210,14 @@ def main(argv=None):
             if not cases:
                 p.error(f"--case {args.case!r} matches no case id in {args.cases}")
 
-        policy_sha = policy_sha256(args.host, args.arm, args.plugin_dir)
+        policy_sha = policy_sha256(args.host, args.arm, args.plugin_dir, args.codex_fixtures)
 
         if args.dry_run:
             existing = load_existing_keys(args.out) if args.out else set()
             return do_dry_run(cases, args.host, args.arm, args.model, args.trials, existing,
                               args.plugin_dir, policy_sha)
         return do_run(cases, args.host, args.arm, args.model, args.trials, args.out, args.timeout,
-                      args.plugin_dir, policy_sha)
+                      args.plugin_dir, policy_sha, args.codex_fixtures)
     except (ValueError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1

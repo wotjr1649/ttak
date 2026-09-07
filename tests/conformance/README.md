@@ -236,23 +236,48 @@ two things, and both are required:
 - **Codex CLI.** There is no equivalent ad hoc flag — checked exhaustively against this machine's
   `codex exec --help`, `codex --help`, and `codex plugin --help`; plugin loading is only
   `codex plugin marketplace add` + `codex plugin add` against a `CODEX_HOME`, a persistent, stateful
-  operation. `run.py` therefore expects a **pre-provisioned fixture** at
-  `<tmp>/ttak-conformance/codex-home-with` (see setup below) and points `CODEX_HOME` at it for the
-  `with` arm, plus the same `PLUGIN_DATA`/`state.json` seeding as Claude. It also adds
+  operation. `run.py` therefore expects **two pre-provisioned fixtures**, `codex-home-with` and
+  `codex-home-without`, under `--codex-fixtures` (see setup below), and points `CODEX_HOME` at the
+  one matching the arm, plus the same `PLUGIN_DATA`/`state.json` seeding as Claude. There is no
+  `codex plugin enable`/`disable` to toggle one home between arms — `codex plugin --help` lists only
+  `add`, `list`, `marketplace` and `remove` — so two homes it is. It also adds
   `--dangerously-bypass-hook-trust`: Codex requires an interactive `/hooks` trust review before any
   hook runs, and that flag's own `--help` text names unattended automation — this runner — as its
   intended use. A real `with`-arm run against Codex fails fast with a clear message if the fixture is
   missing, rather than silently measuring the baseline twice under a `with` label.
 
-The `without` arm needs no setup for either host: Claude gets no `--plugin-dir` at all, and Codex gets
-a fresh, empty `CODEX_HOME` created per trial, so nothing loads.
+On Claude the `without` arm needs no setup: it gets no `--plugin-dir` at all. **On Codex it needs a
+fixture of its own.** It used to get a fresh, empty `CODEX_HOME` per trial, which is a home nobody
+has ever logged into — that, and nothing subtler, is why the baseline arm returned 401 alongside the
+`with` arm. The baseline therefore trades a per-trial fresh home for a persistent one; `--ephemeral`,
+already in `CODEX_BASE`, is what keeps one trial's session files from reaching the next.
 
-#### Codex `with`-arm setup (one-time, manual — not run by this task)
+#### Codex arm setup (one-time, manual)
+
+Provisioning the plugin is two commands and needs no credentials:
 
 ```
-CODEX_HOME=<tmp>/ttak-conformance/codex-home-with codex plugin marketplace add <this repo>
-CODEX_HOME=<tmp>/ttak-conformance/codex-home-with codex plugin add ttak@ttak
+CODEX_HOME=<fixtures>/codex-home-with codex plugin marketplace add <this repo>
+CODEX_HOME=<fixtures>/codex-home-with codex plugin add ttak@ttak
 ```
+
+Authenticating is one command per arm, and it is the operator's to run — it is a credential move,
+and this runner will not make it as a side effect of `--host codex`:
+
+```
+CODEX_HOME=<fixtures>/codex-home-with    codex login
+CODEX_HOME=<fixtures>/codex-home-without codex login
+```
+
+`run.py` refuses to start a Codex run whose arm has no `auth.json`, naming the exact `codex login`
+command for that arm, rather than spending a whole run discovering the same 401 once per trial.
+
+**The two hosts do not load the same bytes by the same route.** Claude's `--plugin-dir` points at a
+local directory, so it loads the working tree. `codex plugin add` records a remote source — measured
+here as ``https://github.com/wotjr1649/ttak.git, ref `main` `` — so the Codex arm loads what has been
+**pushed**, not what is checked out. The fixture provisioned on 2026-09-07 composes to
+`dadd47cd012f2a3a0094da27ac11ead312e85ab178aace8a85aeecf27c6bd2d2`, byte-identical to the working
+tree's policy, because `main` was clean at the time. That will not stay true by itself.
 
 #### What a Codex run needs beyond the fixture, and does not have
 
@@ -268,6 +293,26 @@ authentication in header* on every retry of both the WebSocket and the HTTPS tra
 how a credential enters that directory. That is the operator's decision, it is a credential move,
 and this runner should not make it quietly as a side effect of `--host codex`.
 
+Diagnosed further on 2026-09-07, without spending a single host call. `codex doctor` against the
+fixture names it outright — `✗ auth  no Codex credentials were found` — and `codex login status`
+reads `Not logged in` there against `Logged in using ChatGPT` for the operator's own `CODEX_HOME`.
+Everything else in the fixture was already correct: `codex plugin list` shows
+`ttak@ttak  installed, enabled  0.1.0`. **One missing file, `auth.json`, is the whole of it.**
+
+The credential-free routes were checked and none of them reaches a figure:
+
+- `codex login --with-api-key` and `--with-access-token` both take a credential on stdin. They are
+  entry routes, not ways around the requirement.
+- `--ignore-user-config` says *"auth still uses `CODEX_HOME`"*, so it cannot help a home with no
+  auth in it. Whether it also strips the operator's `AGENTS.md` is **`NOT VERIFIED`** —
+  `codex debug prompt-input`, the only way to read the model-visible prompt without a host call,
+  rejects the flag. What that command does show is why it would matter: from an empty cwd against
+  the operator's own `CODEX_HOME` it renders **18,832 bytes** including their global
+  `AGENTS.md`, against **15,158 bytes** and no trace of it for the fixture. Measuring TTAK's 2,977
+  bytes inside an 11 KB competing operating contract is not a route worth taking anyway.
+- `--oss` with a local provider needs one installed; neither `ollama` nor `lmstudio` is present on
+  this machine, and a local model would answer a different question than the Claude arm did.
+
 **`--model` was passing a Claude alias to Codex.** `--model sonnet` was neither rejected nor
 honoured: Codex printed *Model metadata for `sonnet` not found. Defaulting to fallback metadata*
 and carried on. A row recorded under a model that never ran is worse than no row, so `--model` is
@@ -279,10 +324,12 @@ probe — `--dangerously-bypass-hook-trust` announced itself in the output — b
 authentication, and the fixture's `sessions/` directory holds no rollout at all, so there is no
 transcript to read. This is not a negative result. Nothing was observed.
 
-`<tmp>` is the OS temp directory (`tempfile.gettempdir()`; see `CODEX_HOME_WITH` in `run.py`). This
-task does not run these commands — building and dry-running the instrument does not require a real
-host, and actually provisioning this fixture means invoking `codex` for real, which is out of scope
-here (see Task 12, host integration verification).
+`<fixtures>` defaults to `<tmp>/ttak-conformance` (`CODEX_FIXTURES` in `run.py`) and is overridden
+with `--codex-fixtures`. **Prefer a path outside both the temp directory and this repository.**
+Codex itself warns against the first — `Refusing to create helper binaries under temporary dir` —
+and Windows will eventually clean a temp fixture out from under a half-finished run, taking the
+`auth.json` with it. The second matters more: after `codex login` these directories hold a live
+credential and must never be inside a git tree.
 
 ## Case coverage
 
