@@ -24,10 +24,12 @@ unusual; it is reproduced anyway, and the reason is stated in that section.
 - TTAK artifacts derived from it: `policy/invariants.md`, `policy/precedence.md`,
   `policy/contract.md`
 - **Route.** `policy/precedence.md` derives from this source directly. `policy/invariants.md` and
-  `policy/contract.md` reach it through `wotjr1649/leanclarity` at
-  `7dfe5b2e25166e91069034038ac59121f771e844`, listed below — a two-step chain, recorded here because
-  the commit each artifact passed through is part of the record. The measurement behind that
-  statement is in `docs/COPIED_TEXT_INVENTORY.md`.
+  `policy/contract.md` were adapted from the author's own earlier policy files, which carried this
+  source's material; that intermediate is the author's own work and creates no obligation, so the
+  chain recorded here is one step. Measured 2026-09-07 against this source at the pinned revision,
+  file-wide: `policy/invariants.md` **8 words**, `policy/contract.md` 4, `policy/precedence.md` 2.
+  The 8 is one functional enumeration and is recorded as F3 in `docs/COPIED_TEXT_INVENTORY.md`,
+  which holds the whole measurement.
 - `skills/ponytail-review/SKILL.md` is listed because it was read, not because material was carried:
   no Review material ships in v1 (`TTAK Review` is deferred to v1.1). If v1.1 carries any, this entry
   becomes a derivation source for it.
@@ -66,13 +68,13 @@ SOFTWARE.
 - Files read at that revision: `skills/i-have-adhd/SKILL.md`, `LICENSE`
 - TTAK artifacts derived from it: `policy/contract.md`, `policy/precedence.md`,
   `skills/ttak-explain/SKILL.md`
-- **Second pin, and the route.** `wotjr1649/leanclarity`, listed below, pins this same project at
-  `cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c`. `policy/precedence.md` and
-  `skills/ttak-explain/SKILL.md` derive from this source directly, so `58494af...` is their chain.
-  `policy/contract.md` reaches it through that intermediate at
-  `7dfe5b2e25166e91069034038ac59121f771e844`, so **both pins are live for it**:
-  `cbe69fb8...` for the upstream text as the predecessor read it, and `58494af...` for the revision
-  this project's line citations were read against. The notice text is identical at both revisions.
+- **Second pin, and the route.** The author's earlier plugin pinned this same project at
+  `cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c`, and that pin stays in the record because it is what
+  the text TTAK adapted was read against. **Measured 2026-09-07: `skills/i-have-adhd/SKILL.md` is
+  byte-identical at both revisions**, 6813 bytes each — so the two pins select one text, and
+  `58494af...` is the pin that applies everywhere. File-wide against this source:
+  `policy/contract.md` 4 words, `policy/precedence.md` 3. The notice text is identical at both
+  revisions.
 - Notice, reproduced verbatim from `LICENSE` at revision `58494af57962b2d7a996b4d419474380a299af5e`:
 
 ```
@@ -120,49 +122,6 @@ SOFTWARE.
 MIT License
 
 Copyright (c) 2026
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
----
-
-## wotjr1649/leanclarity
-
-- Source: https://github.com/wotjr1649/leanclarity
-- Pinned revision: `7dfe5b2e25166e91069034038ac59121f771e844` (2026-08-31), one commit past the
-  `v1.0.3` tag. The manifest at that commit still declares version `1.0.2`, so the version string
-  does not identify the source basis and the commit is the pin.
-- Files read at that revision: `policies/engineering.md`, `policies/guidance.md`, `README.md`,
-  `THIRD_PARTY_NOTICES.md`, `docs/evidence/LeanClarity_v1.0_GO_EVIDENCE.md`, `LICENSE`
-- TTAK artifacts derived from it: `policy/invariants.md`, `policy/contract.md`, `README.md`,
-  `README.ko.md`
-- This is the author's own prior plugin, which TTAK supersedes. Same author, same licence; the notice
-  is reproduced on the same terms as any other.
-- The measurements TTAK republishes in its READMEs — the null behaviour result, the failed behaviour
-  gate, and the guidance-composition figure — are read from this project's evidence record at this
-  revision.
-- Notice, reproduced verbatim from `LICENSE` at that revision:
-
-```
-MIT License
-
-Copyright (c) 2026 LeanClarity contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

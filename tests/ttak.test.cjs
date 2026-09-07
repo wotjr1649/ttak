@@ -1012,8 +1012,11 @@ test('the listing logo meets the minimum size for a real marketplace listing', (
 
 test('attributions reproduce each upstream notice as published', () => {
   const a = fs.readFileSync(path.join(ROOT, 'ATTRIBUTIONS.md'), 'utf8');
+  // 2026-09-07: the fourth source was the author's own earlier plugin. It
+  // creates no third-party obligation, so it is no longer attributed and no
+  // longer belongs in this set. The three that remain are other people's.
   for (const url of ['github.com/DietrichGebert/ponytail', 'github.com/ayghri/i-have-adhd',
-                     'github.com/DreambigOu/ELI5', 'github.com/wotjr1649/leanclarity']) {
+                     'github.com/DreambigOu/ELI5']) {
     assert.ok(a.includes(url), `missing source: ${url}`);
   }
   // Verified by reading the file at the pin: this LICENSE names no holder.
@@ -1050,13 +1053,12 @@ test('attributions reproduce each upstream notice as published', () => {
   // the one fact MIT requires preserved and the one section 19.3 forbids
   // altering by name. Read each block out of its own source's section and
   // check the holder recorded for that source.
-  assert.strictEqual((a.match(/^```$/gm) || []).length, 8,
-    'expected exactly four fenced notice blocks, one per source');
+  assert.strictEqual((a.match(/^```$/gm) || []).length, 6,
+    'expected exactly three fenced notice blocks, one per third-party source');
   for (const [source, holder] of Object.entries({
     'DietrichGebert/ponytail': 'Copyright (c) 2026 DietrichGebert',
     'ayghri/i-have-adhd': 'Copyright (c) 2026 Ayoub Ghriss',
     'DreambigOu/ELI5': 'Copyright (c) 2026',
-    'wotjr1649/leanclarity': 'Copyright (c) 2026 LeanClarity contributors',
   })) {
     const s = sections(a).get(source);
     assert.ok(s, `no attribution section for source: ${source}`);
@@ -1175,8 +1177,6 @@ test('every attributed source carries its pinned revision and the artifacts deri
       ['policy/contract.md', 'policy/precedence.md', 'skills/ttak-explain/SKILL.md']],
     ['DreambigOu/ELI5', 'a766623b062331fdde53467001379b4ddf3acc2f',
       ['skills/ttak-explain/SKILL.md']],
-    ['wotjr1649/leanclarity', '7dfe5b2e25166e91069034038ac59121f771e844',
-      ['policy/invariants.md', 'policy/contract.md', 'README.md', 'README.ko.md']],
   ]) {
     const s = bySource.get(source);
     assert.ok(s, `no attribution section for source: ${source}`);
