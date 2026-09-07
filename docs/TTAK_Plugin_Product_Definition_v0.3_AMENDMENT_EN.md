@@ -42,7 +42,7 @@ Two things this amendment refuses to do, both of which would have been easier:
 ## 1. Item 1 — §19.3's direct-derivation rule is unsatisfiable as written
 
 **What it said.** v0.2 §19.3, bullet 1: policy text MUST be derived from the upstream `SKILL.md`
-files directly, not from `SRC-LEANCLARITY`'s policy files, because direct derivation "makes the
+files directly, not from `SRC-PRIOR`'s policy files, because direct derivation "makes the
 attribution chain one step instead of two". Design §5.4 repeated it. v0.2 §5.1 restated it as an
 accomplished fact.
 
@@ -63,19 +63,19 @@ produces a one-step chain for text whose only source is the intermediate.
 A middle route existed for three other units and was declined; that decision, and the reason, are
 recorded in the same "Controller ruling" section and are not re-argued here.
 
-**Amended to.** Direct derivation becomes a SHOULD. A two-step chain through `SRC-LEANCLARITY` is
+**Amended to.** Direct derivation becomes a SHOULD. A two-step chain through `SRC-PRIOR` is
 permitted where it is recorded, and the record is required to carry two things that §19.3 already
 required elsewhere and that `ATTRIBUTIONS.md` already contains:
 
 - both pins — the predecessor's own upstream pin and the v0.2 §5.1 pin — for any artifact that
-  reaches TTAK through `SRC-LEANCLARITY` (§19.3 already carried this as its pin-recording bullet; the
+  reaches TTAK through `SRC-PRIOR` (§19.3 already carried this as its pin-recording bullet; the
   amended first bullet points at it rather than restating it);
-- a unit that originates with `SRC-LEANCLARITY` recorded as originating there, on its face, rather
+- a unit that originates with `SRC-PRIOR` recorded as originating there, on its face, rather
   than attributed to an upstream source it does not have.
 
 The licensing outcome is identical either way, which is why the chain is acceptable at all: every
-party in the chain is the same author under the same licence, `SRC-LEANCLARITY` is MIT at the pinned
-revision, and its notice is reproduced verbatim in `ATTRIBUTIONS.md`, `wotjr1649/leanclarity`.
+party in the chain is the same author under the same licence, `SRC-PRIOR` is MIT at the pinned
+revision, and its notice is reproduced verbatim in `ATTRIBUTIONS.md`, the predecessor.
 `[LIC-002]` and `[SRC-003]` were already satisfied for this text and are unaffected.
 
 **Sections changed.** v0.2 §19.3 bullet 1 (EN and KO); v0.2 §5.1 closing paragraph (EN and KO);
@@ -303,7 +303,7 @@ delivered, as §5.
 
 | # | What it said | Where | Corrected to |
 |---|---|---|---|
-| A | **"v0.2 section 5.1 upstream attribution of `[TTAK-TRIM-009]` — Incorrect. Specification correction pending with the controller"**, when §5.1 already carried the correction in both languages: it records the rule as originating with `SRC-LEANCLARITY` and says an earlier draft credited it upstream in error | `docs/COPIED_TEXT_INVENTORY.md`, Status | Corrected. F2 itself was accurate throughout and is unchanged; only the Status row had lagged |
+| A | **"v0.2 section 5.1 upstream attribution of `[TTAK-TRIM-009]` — Incorrect. Specification correction pending with the controller"**, when §5.1 already carried the correction in both languages: it records the rule as originating with `SRC-PRIOR` and says an earlier draft credited it upstream in error | `docs/COPIED_TEXT_INVENTORY.md`, Status | Corrected. F2 itself was accurate throughout and is unchanged; only the Status row had lagged |
 | B | **"v0.2 section 19.3 direct derivation — Not satisfied … A v0.3 amendment must reconcile it"**, and F1's closing sentence, both describing this amendment as pending after it had landed | `docs/COPIED_TEXT_INVENTORY.md`, Status and F1 | Corrected to record the amendment as applied and to say what it changed. The measurements F1 rests on are untouched; `[AC-012]` still stays open on F4 |
 | C | **"Status: Design. Approved for planning; not implemented"** in the header, and a §10 that still spoke of the v0.2 amendment as awaiting application. Both were true when written | `docs/superpowers/specs/2026-09-04-ttak-design.md`, header and §10 | Corrected. The header now records the design as implemented and names the branch; §10 records the v0.2 amendment as applied and keeps the four gates it lists that are genuinely still open |
 | D | The recorded SHA-256 hashes for the specification files, which this amendment's own edits invalidated the moment they landed — a defect introduced by this work, not inherited. The record's closing line already required recomputation on any change, and the v0.2 amendment §8 step 3 made it an obligation | `docs/TTAK_Plugin_Product_Definition_v0.1_CANDIDATE_REVIEW_KO.md` | Recomputed and re-recorded under the `v0.3` filenames, with the v0.1 and v0.2 tables kept as history in the shape that file already used. Fix round 2 added the missing instrument: a test that reads the current table, requires its filenames to be exactly the files `docs()` names, and compares each recorded value against the file's actual hash |

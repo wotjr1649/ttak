@@ -323,7 +323,7 @@ is for; until it runs, nothing is paid.
 Policy text is written from the upstream `SKILL.md` files directly where it can be.
 `policy/invariants.md` and `policy/contract.md` were written from the predecessor's policy files
 instead; spec §19.3 permits that two-step chain where it is recorded, and it is recorded
-(`ATTRIBUTIONS.md`, `wotjr1649/leanclarity`; `docs/COPIED_TEXT_INVENTORY.md` "Controller ruling" and
+(`ATTRIBUTIONS.md`; `docs/COPIED_TEXT_INVENTORY.md` "Controller ruling" and
 F1). For two units the one-step chain is not available at all: `policy/invariants.md` I2 and
 `policy/contract.md` C5 originate with the predecessor and have no upstream `SKILL.md` source
 (`docs/COPIED_TEXT_INVENTORY.md` F2).
@@ -392,7 +392,7 @@ but is kept because it makes the Codex manifest self-describing at review time.
 
 ### 7.2 Superseding the predecessor
 
-New plugin identity `ttak`, plus a final `leanclarity` release that removes its active guidance and
+New plugin identity `ttak`, plus a final release of the predecessor that removes its active guidance and
 points to TTAK. A new identity alone would let both be installed and enabled at once, which is the
 opposite of the intent; the tombstone release closes that path. The Anthropic directory mirrors GitHub
 changes automatically, so the predecessor's listing description must be updated too, not just its

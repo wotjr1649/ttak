@@ -39,7 +39,7 @@ is inferred from documentation alone.
 
 ### 1.1 The author's prior plugin is a source, and its measurements are inherited
 
-`leanclarity` (`github.com/wotjr1649/leanclarity`, MIT, same author) consolidates Ponytail and
+the predecessor (MIT, same author) consolidates Ponytail and
 i-have-adhd for the same two hosts on the same Windows target. It is currently installed and enabled
 in Codex and installed and disabled in Claude Code on the development machine.
 
@@ -61,14 +61,14 @@ Its published measurements:
 - Composition: with Ponytail loaded alongside at high reasoning effort, asked to shorten a
   record-deleting function, data-loss guards were observed removed in 8 of 24 runs — itself a
   published correction of an earlier 13 of 24, which had counted observation failures as removals.
-  **The rate was the same whether LeanClarity was ON or OFF.**
+  **The rate was the same whether the predecessor was ON or OFF.**
 
 That last clause matters and was initially misread. The measured unsafe composition was caused by
-Ponytail plus high effort. Superseding LeanClarity does not remove it. TTAK inherits the condition.
+Ponytail plus high effort. Superseding the predecessor does not remove it. TTAK inherits the condition.
 
 ### 1.2 Two of the five failures were caused by adding a clause the upstream did not have
 
-`BEH-GUI-04` fails 6/6 on Claude across two candidates. Its cause is recorded: LeanClarity took
+`BEH-GUI-04` fails 6/6 on Claude across two candidates. Its cause is recorded: the predecessor took
 i-have-adhd's already-conditional rule ("if anything is left open, name ONE thing") and appended a
 prohibition ("do not invent one after completion"). A revision was built specifically to fix it and
 did not. The evidence file states: "상위에 없던 조항을 추가한 것이 통하지 않는다는 직접 증거다."
@@ -91,7 +91,7 @@ The Codex CLI host system prompt contains, verbatim:
 
 A skill-only design therefore cannot satisfy `[ACT-003]` on Codex. This is not model drift; it is a
 host instruction that outranks skill text. It is the mechanism explaining why Ponytail, i-have-adhd
-and LeanClarity each built lifecycle-hook machinery despite skills being available.
+and the predecessor each built lifecycle-hook machinery despite skills being available.
 
 Two further Codex facts, read from the installed binary and bundled tooling:
 
@@ -149,8 +149,8 @@ Requirement-ID count moves from 157 to 155 before §2.2 additions.
 
 | ID | New text | Basis |
 |---|---|---|
-| `[TTAK-TRACK-008]` | After repeated attempts fail for the same reason, TTAK MUST stop blind iteration, state the assumption now in doubt, and request the smallest diagnostic evidence needed. | The upstream decomposition shows this rule survived into LeanClarity (`guidance` bullet 9) from i-have-adhd's debug-spiral exception, and has **no counterpart anywhere in v0.1**. It is a loss, not a deliberate exclusion. |
-| `[TTAK-TRIM-009]` | When only analysis, explanation, reporting, or review was requested, TTAK MUST NOT mutate code or force an implementation. | v0.1 places this only in `[CAP-REVIEW-006]`, scoping it to the Review capability. LeanClarity carries it as a Core engineering rule (`engineering` bullet 2) and it is the anchor of one of its behavior cases. Core needs it. |
+| `[TTAK-TRACK-008]` | After repeated attempts fail for the same reason, TTAK MUST stop blind iteration, state the assumption now in doubt, and request the smallest diagnostic evidence needed. | The upstream decomposition shows this rule survived into the predecessor (`guidance` bullet 9) from i-have-adhd's debug-spiral exception, and has **no counterpart anywhere in v0.1**. It is a loss, not a deliberate exclusion. |
+| `[TTAK-TRIM-009]` | When only analysis, explanation, reporting, or review was requested, TTAK MUST NOT mutate code or force an implementation. | v0.1 places this only in `[CAP-REVIEW-006]`, scoping it to the Review capability. the predecessor carries it as a Core engineering rule (`engineering` bullet 2) and it is the anchor of one of its behavior cases. Core needs it. |
 
 Requirement-ID count: 155 + 2 = **157**. The arithmetic coincidence is noted so it is not mistaken for
 "no change" during synchronization; the *set* differs by four members.
@@ -159,12 +159,12 @@ Requirement-ID count: 155 + 2 = **157**. The arithmetic coincidence is noted so 
 
 | ID | Change | Basis |
 |---|---|---|
-| `[SRC-002]` | Add an exception: the enumerated protection nouns — `standard library`, `trust-boundary validation`, `data-loss prevention`, `accessibility`, `explicit output formats`, and the verification-honesty clause — SHOULD be preserved in meaning rather than paraphrased for style. | v0.1 §0.2 admits a SHOULD exception only for a documented platform constraint; this basis is a measurement, so it is declared here instead of taken silently. LeanClarity's `L3` compression deleted exactly these nouns and broke 14 of 19 deterministic assertions. |
+| `[SRC-002]` | Add an exception: the enumerated protection nouns — `standard library`, `trust-boundary validation`, `data-loss prevention`, `accessibility`, `explicit output formats`, and the verification-honesty clause — SHOULD be preserved in meaning rather than paraphrased for style. | v0.1 §0.2 admits a SHOULD exception only for a documented platform constraint; this basis is a measurement, so it is declared here instead of taken silently. the predecessor's `L3` compression deleted exactly these nouns and broke 14 of 19 deterministic assertions. |
 | `[RESP-007]` | Restate in the upstream's conditional-positive form: *give one concrete next action only when work remains for the user*. Drop the appended prohibition. | §1.2. The prohibition form failed 6/6 across both hosts on the frozen candidate `1.0.2`, and 3/3 again on Claude after a revision built specifically to fix it. |
 | `[ACT-003]` | Qualify: session persistence is delivered by host lifecycle injection where the host supports it. On a host that instructs the model not to carry skill instructions across turns, a skill-only implementation MUST NOT be described as persistent. | §1.3 |
 | `[ACT-006]` | Narrow to v1 scope: Review is deferred (§2.4), so this governs Explain only in v1. | §3, D9′ |
 | `[AC-001]` | Unchanged as a gate. Add a scope sentence: this gate measures TTAK's own critical scenarios under pinned evaluation conditions. It does not certify behavior when TTAK is loaded alongside other instruction sets, and TTAK is not a security control. | §1.1. Publishing the composition finding as a limitation is required, but it does not discharge the gate; conflating the two was the error the compliance audit caught. |
-| `[AC-005]` | Retain "MUST not regress." Add the instrument (the cross-host runner's baseline arm) and the reproducibility caveat: LeanClarity measured run-to-run reproducibility ≈ 0.96, putting the 95% upper bound on the true failure rate at 39.3%. A single-run difference is not a regression. | §1.1, §1.4 |
+| `[AC-005]` | Retain "MUST not regress." Add the instrument (the cross-host runner's baseline arm) and the reproducibility caveat: the predecessor measured run-to-run reproducibility ≈ 0.96, putting the 95% upper bound on the true failure rate at 39.3%. A single-run difference is not a regression. | §1.1, §1.4 |
 | `[AC-006]` | Retain the 85% SHOULD. Add: the rubric MUST be defined and frozen before the first scored run. | Compliance audit: the threshold currently has no rubric behind it. |
 | `[AC-009]` | Amend: per-platform context cost MUST be measured, but on Claude Code `claude plugin details` over-reports user-only skills and does not count hook-injected content, and Codex has no equivalent tool. TTAK MUST therefore measure and publish the byte and token size of the text it injects, from the shipped source, as the primary figure. | §1.4 |
 | `[AC-011]` | Add: the English/Korean requirement-ID set match MUST be checked by an automated diff in CI, not by hand. | Adopts the prior review's own `OPEN-09` prescription, which the design had not taken up. |
@@ -179,17 +179,17 @@ Requirement-ID count: 155 + 2 = **157**. The arithmetic coincidence is noted so 
 | §9.2 `TTAK Review`, §9.4 | **Deferred to v1.1.** v1 exposes two capabilities: the core operating discipline and the explainer. `[CAP-REVIEW-001]`…`[CAP-REVIEW-007]` and `[AC-008]` remain normative but are not v1 acceptance gates. | Bundled `/code-review` and `/security-review` carry more specific descriptions and win skill-listing competition on code. Review's non-code scope (documents, plans, workflows, with a phase-gate verdict) may be genuinely open, but has not had the competitor check that Explain has had. `[PRIN-SCOPE-002]` is satisfied by declaring the deferral here rather than by dropping it quietly. |
 | §15.3 Deferred → In Scope | A minimal visual asset (one logo file) moves into v1 scope. | Both marketplaces require a logo in the listing. Detailed character design stays deferred; this is the minimum the distribution channel demands, and moving it silently would have breached `[PRIN-SCOPE-002]`. |
 | §15.1 In Scope | Add: a small cross-host evaluation runner. | §1.4 removed the native instrument that §17 depended on. |
-| §5.1 | Add a pinned source row for `leanclarity` with commit, license evidence, and the specific derived artifacts. | The compliance audit found it was the one source cited without a pin and outside the "LICENSE files verified" predicate. |
-| §23 Handoff Gate | "all four source repositories are pinned and attributed" → three upstream repositories plus `leanclarity`. | D7 |
+| §5.1 | Add a pinned source row for the predecessor with commit, license evidence, and the specific derived artifacts. | The compliance audit found it was the one source cited without a pin and outside the "LICENSE files verified" predicate. |
+| §23 Handoff Gate | "all four source repositories are pinned and attributed" → three upstream repositories plus the predecessor. | D7 |
 
 ### 2.5 Attribution and licensing
 
 | Change | Basis |
 |---|---|
-| Policy text MUST be derived from the upstream `SKILL.md` files directly, not from LeanClarity's policies. | TTAK restores units LeanClarity deliberately dropped — the persona (`P1`), the precedence clause (`P24`, `A16`), and the user-authority clause (`P19`, `P20`) — which are absent from LeanClarity's text. Direct derivation also makes the attribution chain one step instead of two. |
+| Policy text MUST be derived from the upstream `SKILL.md` files directly, not from the predecessor's policies. | TTAK restores units the predecessor deliberately dropped — the persona (`P1`), the precedence clause (`P24`, `A16`), and the user-authority clause (`P19`, `P20`) — which are absent from the predecessor's text. Direct derivation also makes the attribution chain one step instead of two. |
 | `ATTRIBUTIONS.md` MUST reproduce each upstream notice **verbatim as published**. `DreambigOu/ELI5`'s LICENSE reads `Copyright (c) 2026` with no copyright holder named; it MUST be reproduced that way, with a factual note, and MUST NOT be "corrected" by inserting a name. | Verified by reading the file. Inventing a copyright holder is a false attribution statement. |
-| `ATTRIBUTIONS.md` MUST record which upstream commit each derived artifact passed through. LeanClarity pins i-have-adhd at `cbe69fb8…`; v0.1 §5.1 pins `58494af…`. If any text arrives via LeanClarity, both pins belong in the record. | Licensing review |
-| `skills/ponytail-review/SKILL.md` MUST be listed as a derivation source if any Review material is carried, including `[CAP-REVIEW-007]`, which corresponds to its "Lean already. Ship." rule. LeanClarity's notices never covered Ponytail's auxiliary skills. | Licensing review |
+| `ATTRIBUTIONS.md` MUST record which upstream commit each derived artifact passed through. the predecessor pins i-have-adhd at `cbe69fb8…`; v0.1 §5.1 pins `58494af…`. If any text arrives via the predecessor, both pins belong in the record. | Licensing review |
+| `skills/ponytail-review/SKILL.md` MUST be listed as a derivation source if any Review material is carried, including `[CAP-REVIEW-007]`, which corresponds to its "Lean already. Ship." rule. the predecessor's notices never covered Ponytail's auxiliary skills. | Licensing review |
 | One license string MUST be identical across `LICENSE`, all plugin and marketplace manifests, and every `SKILL.md` frontmatter, enforced by a CI check. | The only reason `OPEN-01` existed upstream was a manifest/LICENSE mismatch. Reproducing it would be self-refuting. |
 | Analysis and specification documents that are distributed MUST NOT quote text from a source whose license is unresolved. | The design review packet originally reproduced the `eli5` stub verbatim; corrected on 2026-09-04. |
 | Attribution MUST live in `ATTRIBUTIONS.md` and README prose, and MUST NOT appear in searchable manifest keywords or `interface` metadata in a way that reads as affiliation. | `[LIC-006]`, plus both marketplaces' endorsement rules. |
@@ -198,7 +198,7 @@ Requirement-ID count: 155 + 2 = **157**. The arithmetic coincidence is noted so 
 
 The upstream decomposition records that both source projects told the *model* where they ranked —
 Ponytail's "governs what you build, not how you talk" and i-have-adhd's "the system prompt outranks
-this skill" — and that LeanClarity dropped both. Its own evidence calls this the most important
+this skill" — and that the predecessor dropped both. Its own evidence calls this the most important
 unresolved conflict: the specification knows the ranking and the model does not, so behavior cannot
 be consistent across users with different global instructions.
 
@@ -214,7 +214,7 @@ These are implementation-level decisions. They are listed so §2 stays limited t
 
 | ID | Decision |
 |---|---|
-| D1′ | TTAK supersedes LeanClarity under a new plugin identity, and LeanClarity receives a final release that removes its active guidance and points to TTAK. The earlier safety rationale is **withdrawn**: the measured unsafe composition was Ponytail plus high effort and was unaffected by LeanClarity's state. The rationale is product coherence and avoiding two overlapping plugins from one author. TTAK MUST warn against running alongside Ponytail. |
+| D1′ | TTAK supersedes the predecessor under a new plugin identity, and the predecessor receives a final release that removes its active guidance and points to TTAK. The earlier safety rationale is **withdrawn**: the measured unsafe composition was Ponytail plus high effort and was unaffected by the predecessor's state. The rationale is product coherence and avoiding two overlapping plugins from one author. TTAK MUST warn against running alongside Ponytail. |
 | D2′ | The persona is a user-experience and brand device. TTAK does not claim it improves constraint adherence. Any persona text that consumes runtime tokens requires a measured user-experience effect; absent that, the brand belongs in packaging only. |
 | D3 | Character lives in the operating frame and the packaging. The enumerated protection nouns are preserved (see `[SRC-002]` amendment). |
 | D4′ | **Lifecycle hooks on both hosts** carry the core discipline; one shared policy text, one hook runtime. The earlier zero-hook decision is withdrawn. This removes, by construction: the Codex validator conflict, the namespaced-invocation problem, `openai/codex#42112`, the host's no-carry-over instruction, the user-only token mis-reporting, the bare-name slot collision, and the subagent propagation gap. It reacquires: a Node runtime, a state file, the Windows hook-stdin defense, and the Codex hook trust-review step. All four have known solutions in the author's own prior work. |
@@ -278,9 +278,9 @@ class of §1.2, the instrument's ≈0.96 reproducibility, and that none of this 
 
 ## 7. Size reconciliation
 
-The specification contains roughly 104 runtime-normative statements. At LeanClarity's measured
+The specification contains roughly 104 runtime-normative statements. At the predecessor's measured
 density of ~138 characters per bullet, writing all of them out yields ~11,000 characters — the same
-order as the 11,584 that LeanClarity used as the baseline for its 78.5% reduction. Three properties
+order as the 11,584 that the predecessor used as the baseline for its 78.5% reduction. Three properties
 cannot all hold: a small-size claim, preservation of the enumerated nouns, and full specification
 coverage.
 
@@ -314,4 +314,4 @@ Steps 1–4 completed on 2026-09-04. `TTAK_Plugin_Product_Definition_v0.2_EN.md`
 
 | Version | Date | Status | Summary |
 |---|---|---|---|
-| 0.2 | 2026-09-04 | Applied | First amendment. Retires two requirements, adds two, amends twelve, defers Review to v1.1, records the LeanClarity lineage and its inherited measurements, reverses the zero-hook decision, and replaces an unavailable evaluation instrument. |
+| 0.2 | 2026-09-04 | Applied | First amendment. Retires two requirements, adds two, amends twelve, defers Review to v1.1, records the predecessor lineage and its inherited measurements, reverses the zero-hook decision, and replaces an unavailable evaluation instrument. |

@@ -131,7 +131,7 @@ stderr: error: pathspec 'main' did not match any file(s) known to git
 Cause, verified directly: `git ls-remote --heads https://github.com/wotjr1649/ttak.git` exits 0 and
 prints **no refs at all** — the GitHub repository exists but is empty, so there is no `main` to
 check out. (Control: the same command against the predecessor's
-`https://github.com/wotjr1649/leanclarity.git` prints `refs/heads/main`.)
+another public repository of the same account printed `refs/heads/main` at the time.)
 
 This is the expected pre-publication state, not a defect in the manifest. It is recorded because it
 means **no local install path exists today**: `codex plugin add` always resolves the plugin from the
@@ -244,9 +244,10 @@ plugin's only activation path returns its error message and the plugin can never
 first-session notice never fires either, because `unavailable` is not `absent`.
 
 For contrast, and as evidence that this is a live difference rather than a theoretical one: the
-predecessor `leanclarity`, installed on this machine's real Codex, uses
+predecessor, installed on this machine's real Codex, uses
 `io.mkdirSync(dataRoot, { mode: 0o700, recursive: true })` (line 185 of its installed
-`hooks/leanclarity.cjs`) and does have a populated `~/.codex/plugins/data/leanclarity-leanclarity/`.
+its own hook file) and does have a populated data directory of its own under
+`~/.codex/plugins/data/`.
 
 **This was a shipping blocker for the Codex host, found by observation. It is fixed — see §3.3.**
 

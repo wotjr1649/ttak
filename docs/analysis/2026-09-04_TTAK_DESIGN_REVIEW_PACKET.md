@@ -37,25 +37,25 @@ is public: GitHub plus both hosts' marketplaces.
 
 ## 2. Evidence base the design rests on
 
-### 2.1 Prior art by the same author: LeanClarity v1.0.2
+### 2.1 Prior art by the same author: the predecessor v1.0.2
 
-The product owner already shipped `leanclarity` (`github.com/wotjr1649/leanclarity`, MIT), described
+The product owner already shipped the predecessor (MIT), described
 by its own README as consolidating "the guidance of two upstream projects, Ponytail and
 i-have-adhd, into a single always-on plugin." Same two hosts, same Windows target, same docs layout.
 It is currently installed and enabled in the owner's Codex, installed and disabled in Claude Code.
 
-LeanClarity's own published measurements:
+the predecessor's own published measurements:
 
 | Claim | Result |
 |---|---|
 | Context reduction | 11,584 chars (Ponytail 5,193 + i-have-adhd 6,391) → 2,486 chars, **-78.5%**. Reproducible. |
 | Behavior improvement, paired ON/OFF, two studies | **None resolvable.** All eight case×host cells `Fisher p = 1.0000`. The one behavior the first study resolved was redundant with Ponytail's existing text. |
 | Own behavior gate `LCL-BEH-001` | **FAIL.** 5 of 17 frozen cases do not pass. `RELEASE GO` = `NOT VERIFIED`, `COMPLETE GO` not granted. |
-| Guidance composition safety | With Ponytail loaded alongside at high effort, asked to shorten a record-deleting function: **data-loss guards removed in 8 of 24 runs**, intact in 11, unreachable in 5. Same rate whether LeanClarity was ON or OFF. Ponytail's own clause forbidding this did not hold; LeanClarity's did not restore it. |
+| Guidance composition safety | With Ponytail loaded alongside at high effort, asked to shorten a record-deleting function: **data-loss guards removed in 8 of 24 runs**, intact in 11, unreachable in 5. Same rate whether the predecessor was ON or OFF. Ponytail's own clause forbidding this did not hold; the predecessor's did not restore it. |
 
 ### 2.2 Why the 5 failures matter to TTAK's design
 
-From `docs/evidence/LeanClarity_v1.0_GO_EVIDENCE.md`:
+From `docs/evidence/the predecessor's evidence record`:
 
 | Case | Recorded cause | Fixable by rewording/persona? |
 |---|---|---|
@@ -124,7 +124,7 @@ MIT; repository root `LICENSE` is Apache-2.0; no directory-local LICENSE) and th
 
 Retained sources, all MIT with LICENSE files verified: `DietrichGebert/ponytail` @ `2ed6c52`,
 `ayghri/i-have-adhd` @ `58494af`, `DreambigOu/ELI5` @ `a766623`. Plus the author's own
-`leanclarity` (MIT).
+the predecessor (MIT).
 
 ---
 
@@ -132,16 +132,16 @@ Retained sources, all MIT with LICENSE files verified: `DietrichGebert/ponytail`
 
 | ID | Decision | Basis |
 |---|---|---|
-| D1 | TTAK supersedes LeanClarity. LeanClarity is deprecated and points to TTAK. Both READMEs state the lineage. | Simultaneous activation reproduces the measured unsafe-composition condition (§2.1). Inheriting the negative results is what makes "we promise only what we measured" credible. |
+| D1 | TTAK supersedes the predecessor. the predecessor is deprecated and points to TTAK. Both READMEs state the lineage. | Simultaneous activation reproduces the measured unsafe-composition condition (§2.1). Inheriting the negative results is what makes "we promise only what we measured" credible. |
 | D2 | The persona is a user-experience and brand device. TTAK does not claim it improves model behavior. | §2.2: the wording hypothesis was built, tested and refuted. A persona is another encoding. |
 | D3 | Character lives in the frame (`Track · Trim · Adapt · Keep` headings) and the packaging (name, logo, README, marketplace `interface` block). The enumerated policy nouns are preserved. | §2.2: `L3` deleted those nouns and broke 14 of 19 deterministic assertions. |
-| D4 | **Zero hooks.** The runtime artifact is three `SKILL.md` files consumed by both hosts. | §2.4: OpenAI directs persona → skill; Codex hooks need trust review. Removes by construction: Windows PowerShell hook-stdin freeze (ponytail #443), the two Codex `PLUGIN_DATA` defects LeanClarity burned three candidates on, and hook trust friction. |
+| D4 | **Zero hooks.** The runtime artifact is three `SKILL.md` files consumed by both hosts. | §2.4: OpenAI directs persona → skill; Codex hooks need trust review. Removes by construction: Windows PowerShell hook-stdin freeze (ponytail #443), the two Codex `PLUGIN_DATA` defects the predecessor burned three candidates on, and hook trust friction. |
 | D5 | `ttak` core is user-invocation-only: `disable-model-invocation: true` **and** `agents/openai.yaml` with `policy.allow_implicit_invocation: false`. `ttak-review` and `ttak-explain` stay model-invocable. | `ACT-001` (installation must not force global behavior) and `ACT-006` (auto-routing only when predictable and testable). Routing is testable via a `tool_used: Skill` grader. |
 | D6 | Evaluation uses native tooling only: `claude plugin details`, `claude plugin validate`, `claude plugin eval --ablation with-without`. Codex gets a manual smoke checklist. | The 2,171-line Python harness measures behavior claims v1 does not make. §8.3 of the spec puts native platform capability above custom machinery. |
 | D7 | `SRC-ANTHROPIC-ELI5` is removed from the source set entirely — not copied, not cited as a source. | §2.5: nothing to adopt; closes `OPEN-01` at zero cost. |
 | D8 | v1 promises only what is measured: context cost, invocation and deactivation paths, and one coherent contract replacing four instruction sets. No behavior-improvement claim. Known limitations are published, inheriting §2.1–2.2. | Owner decision. |
 | D9 | Explicit activation, cross-domain role routing, and three capabilities are all retained. | Owner decision, reaffirmed after being challenged. Recorded as scope the diagnosis did not call for (see §6.1). |
-| D10 | License: MIT. `ATTRIBUTIONS.md` carries full MIT notices for the three retained upstreams plus LeanClarity. | All retained sources MIT; `SRC-005`'s required review is complete. |
+| D10 | License: MIT. `ATTRIBUTIONS.md` carries full MIT notices for the three retained upstreams plus the predecessor. | All retained sources MIT; `SRC-005`'s required review is complete. |
 
 ---
 
@@ -203,9 +203,9 @@ class, and that none of this is a guard.
 ## 6. Weaknesses already identified — go past these
 
 ### 6.1 Scope the diagnosis did not call for
-The owner's diagnosis of LeanClarity was one item: it had no character. TTAK nonetheless adds
+The owner's diagnosis of the predecessor was one item: it had no character. TTAK nonetheless adds
 explicit activation, cross-domain routing, and three capabilities. Each is scope the spec's own
-evidence-based YAGNI gate (§8.2) would question, and LeanClarity ran without them. Accepted as an
+evidence-based YAGNI gate (§8.2) would question, and the predecessor ran without them. Accepted as an
 owner decision (D9), recorded as an assumption rather than a justified requirement.
 
 ### 6.2 `ACT-004` cannot be met deterministically with zero hooks
@@ -216,15 +216,15 @@ this exactly, per `ACT-005`, rather than implying enforcement. The prior review 
 (`REVIEW_KO §12.2`) explicitly forbids asserting session persistence that was not verified.
 
 ### 6.3 Session persistence with zero hooks is asserted, not measured
-Three independent authors — ponytail, i-have-adhd, LeanClarity — each built hook machinery even
+Three independent authors — ponytail, i-have-adhd, the predecessor — each built hook machinery even
 though skills already existed. That is evidence that skill-only persistence drifts. TTAK's design
 takes the opposite bet. The plan is to measure adherence across turns before deciding whether hooks
 are needed, matching `OPEN-03` ("prove necessity before adding"). Until measured, `ACT-003` is a
 hypothesis.
 
 ### 6.4 The character delta may be too small to justify a separate product
-If the model-facing text is LeanClarity's policy nouns plus four headings, TTAK risks being
-LeanClarity with a name. D2 and D3 together deliberately constrain how much the text may change.
+If the model-facing text is the predecessor's policy nouns plus four headings, TTAK risks being
+the predecessor with a name. D2 and D3 together deliberately constrain how much the text may change.
 
 ### 6.5 No automatic Codex evaluation arm
 `claude plugin eval` is Claude-only. Codex coverage is a manual checklist, so any cross-host claim
