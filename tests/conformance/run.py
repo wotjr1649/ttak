@@ -8,8 +8,8 @@ access" before resolving a target).
     python run.py --host claude|codex --arm with|without --model <id> \
         --trials N --out <file>
 
-Writes one JSONL row per (case, trial, arm, host) to --out, skipping rows
-already present there so a run can be interrupted and resumed. Use --dry-run
+Writes one JSONL row per (case, trial, arm, host, policy) to --out, skipping
+rows already present there so a run can be interrupted and resumed. Use --dry-run
 to print the exact commands this would run without executing anything, or
 --score --out <file> to aggregate an already-graded file into a gate verdict.
 See README.md for the case coverage, the with/without-arm mechanism, and the
@@ -20,6 +20,7 @@ Standard library only. Does not invoke `claude` or `codex` unless a real
 """
 import argparse
 import contextlib
+import hashlib
 import io
 import json
 import os
@@ -87,7 +88,7 @@ def assert_isolated(host, cmd, model):
         raise AssertionError(f"{host} command must pin --model to the requested model, never inherit a default: {cmd!r}")
 
 
-def build_command(host, arm, model, prompt):
+def build_command(host, arm, model, prompt, plugin_dir=None):
     """Build the argv for one trial. `arm` toggles whether TTAK is loaded:
 
     Claude: --plugin-dir loads a plugin directory for one session only
@@ -101,11 +102,17 @@ def build_command(host, arm, model, prompt):
     "on" — build_env()/run_trial() seed that separately; loading the plugin
     alone is not enough (hooks/ttak.cjs shows an absent/off state emits at
     most a one-line notice, never the policy text).
+
+    `plugin_dir` defaults to ROOT, the repository itself. An ablation points
+    it at a scratch copy carrying a modified policy/ instead; SPEC_EN and
+    CASES_FILE stay resolved against the real repository either way, so the
+    cases and the AC id list a variant run is graded against never move with
+    it.
     """
     if host == "claude":
         cmd = list(CLAUDE_BASE) + ["--model", model]
         if arm == "with":
-            cmd += ["--plugin-dir", str(ROOT)]
+            cmd += ["--plugin-dir", str(plugin_dir or ROOT)]
     elif host == "codex":
         cmd = list(CODEX_BASE) + ["--model", model]
         if arm == "with":
@@ -138,6 +145,53 @@ def codex_home_with_ready():
     return (CODEX_HOME_WITH / "plugins").exists()
 
 
+# --- policy identity ---------------------------------------------------------
+#
+# Which policy text a trial ran under is part of the trial's identity, not
+# metadata: an ablation writes two variants through the same (case, trial,
+# arm, host) tuple, and without this the second one is skipped as already
+# present. compose_policy() re-derives, in Python, exactly what
+# hooks/ttak.cjs compose('main') builds -- the same three files, same order,
+# same BOM strip, same trim, same two-newline join. Verified 2026-09-07 against
+# the injection actually recorded in a session transcript: 2,977 bytes,
+# sha256 dadd47cd012f2a3a0094da27ac11ead312e85ab178aace8a85aeecf27c6bd2d2.
+
+POLICY_SCOPE_MAIN = ("precedence", "invariants", "contract")  # hooks/ttak.cjs SCOPES.main
+
+
+def compose_policy(policy_dir):
+    parts = []
+    for name in POLICY_SCOPE_MAIN:
+        f = Path(policy_dir) / f"{name}.md"
+        text = f.read_text(encoding="utf-8").lstrip("\ufeff").strip()
+        if not text:
+            # compose() returns null here and the hook injects nothing at all,
+            # so a hash over the remaining files would name a policy that was
+            # never delivered.
+            raise ValueError(f"{f}: policy file is empty; the hook would inject nothing")
+        parts.append(text)
+    return "\n\n".join(parts)
+
+
+def policy_sha256(host, arm, plugin_dir):
+    """sha256 of the text this trial will inject, or None for the baseline.
+
+    The Codex with-arm reads from the provisioned CODEX_HOME fixture rather
+    than from --plugin-dir, which Codex has no equivalent of, so the fixture's
+    own copy is hashed -- located by glob because its path carries the plugin
+    version, which is not this runner's to hardcode.
+    """
+    if arm != "with":
+        return None
+    if host == "claude":
+        return hashlib.sha256(compose_policy(Path(plugin_dir or ROOT) / "policy").encode("utf-8")).hexdigest()
+    found = next(iter(sorted(CODEX_HOME_WITH.glob("plugins/**/policy/invariants.md"))), None)
+    if found is None:
+        raise ValueError(f"no policy/ directory under {CODEX_HOME_WITH / 'plugins'}: "
+                         "the with-arm fixture is missing or has a shape this runner does not know")
+    return hashlib.sha256(compose_policy(found.parent).encode("utf-8")).hexdigest()
+
+
 # --- JSONL I/O ---------------------------------------------------------------
 #
 # One shared reader for every JSONL file this script parses (cases.jsonl,
@@ -160,9 +214,17 @@ def read_jsonl(lines, source):
 
 
 def row_key(row):
-    """The identity of one trial: (case, trial, arm, host). `trial` is
-    coerced to int so a grader or hand-edit that re-serializes it as a JSON
-    string ("1" instead of 1) still matches the run loop's native int and
+    """The identity of one trial: (case, trial, arm, host, policy_sha256).
+
+    The policy hash is part of the identity because an ablation runs the same
+    case, trial, arm and host against two different policy texts; without it
+    the second variant is skipped as an already-present row and the condition
+    silently records nothing. Read with .get(), so the two graded runs from
+    2026-09-07 -- written before the field existed -- resolve to None for
+    every row and still de-duplicate against each other exactly as before.
+
+    `trial` is coerced to int so a grader or hand-edit that re-serializes it
+    as a JSON string ("1" instead of 1) still matches the run loop's native int and
     still de-duplicates against it -- otherwise resumability silently
     re-runs the trial (score()'s de-dup would silently double-count it too;
     both route through this same function so the fix is one place, not two).
@@ -197,7 +259,7 @@ def row_key(row):
             pass
     if trial is None:
         raise ValueError(f"case={row.get('case')!r}: non-numeric or non-integer trial {raw!r}")
-    return (row["case"], trial, row["arm"], row["host"])
+    return (row["case"], trial, row["arm"], row["host"], row.get("policy_sha256"))
 
 
 # --- cases.jsonl -------------------------------------------------------------
@@ -250,8 +312,10 @@ def load_existing_keys(out_path):
     return keys
 
 
-def should_skip(case_id, trial, arm, host, existing_keys):
-    return (case_id, trial, arm, host) in existing_keys
+def should_skip(case_id, trial, arm, host, policy_sha, existing_keys):
+    # Must build the same tuple row_key() does, in the same order: these are
+    # the two halves of one identity, and a run resumes wrongly if they drift.
+    return (case_id, trial, arm, host, policy_sha) in existing_keys
 
 
 def append_row(out_path, row):
@@ -285,7 +349,8 @@ def capture_cli_version(host):
         return f"<unavailable: {e}>"
 
 
-def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout):
+def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout,
+              plugin_dir=None, policy_sha=None):
     # A neutral, empty cwd for every trial: the isolation flags stop the
     # operator's own settings/config leaking in, but the model's own repo
     # (this one) would leak a second way if either arm ran from ROOT — a
@@ -301,7 +366,7 @@ def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout
             plugin_data_dir = trial_dir / "plugin-data"
             seed_state_on(plugin_data_dir)
 
-        cmd = build_command(host, arm, model, case["prompt"])
+        cmd = build_command(host, arm, model, case["prompt"], plugin_dir)
         env = build_env(plugin_data_dir)
         if host == "codex":
             if arm == "with":
@@ -332,23 +397,30 @@ def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout
         "model": model, "cli_version": cli_version, "plugin_skills": plugin_skills,
         "command": cmd, "exit_code": exit_code, "stdout": stdout, "stderr": stderr,
         "error": error, "duration_s": round(time.time() - started, 3),
+        # Which policy ran, and where. The cwd is gone by the time this row is
+        # written -- the point of recording it is that the host derives the
+        # transcript directory name from it, so locating the session log
+        # afterwards needs the path, not the directory. The session id is
+        # already inside stdout and is not copied out again here.
+        "policy_sha256": policy_sha, "cwd": str(cwd_dir),
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "pass": None,  # filled in later by grading against the case's criteria/forbidden
     }
 
 
-def do_dry_run(cases, host, arm, model, trials, existing):
+def do_dry_run(cases, host, arm, model, trials, existing, plugin_dir=None, policy_sha=None):
     # Honors resumability too: a row already present in --out would not
     # actually be re-run, so "the exact commands it would run" must skip it
     # here as well, or a dry-run against a partially-done --out would show
     # commands that a real run of the same arguments would not issue.
     skipped = 0
+    print(f"# plugin_dir={plugin_dir or ROOT} policy_sha256={policy_sha}")
     for case in cases:
         for trial in range(1, trials + 1):
-            if should_skip(case["id"], trial, arm, host, existing):
+            if should_skip(case["id"], trial, arm, host, policy_sha, existing):
                 skipped += 1
                 continue
-            cmd = build_command(host, arm, model, case["prompt"])
+            cmd = build_command(host, arm, model, case["prompt"], plugin_dir)
             print(f"# case={case['id']} ac={case['ac']} trial={trial} arm={arm} host={host}")
             print(shlex.join(cmd))
     if skipped:
@@ -356,7 +428,7 @@ def do_dry_run(cases, host, arm, model, trials, existing):
     return 0
 
 
-def do_run(cases, host, arm, model, trials, out_path, timeout):
+def do_run(cases, host, arm, model, trials, out_path, timeout, plugin_dir=None, policy_sha=None):
     if host == "codex" and arm == "with" and not codex_home_with_ready():
         print(f"error: CODEX_HOME fixture not found at {CODEX_HOME_WITH}", file=sys.stderr)
         print("Provision it once (see README.md, 'Codex with-arm setup') before a real "
@@ -373,10 +445,11 @@ def do_run(cases, host, arm, model, trials, out_path, timeout):
     ran, skipped = 0, 0
     for case in cases:
         for trial in range(1, trials + 1):
-            if should_skip(case["id"], trial, arm, host, existing):
+            if should_skip(case["id"], trial, arm, host, policy_sha, existing):
                 skipped += 1
                 continue
-            row = run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout)
+            row = run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout,
+                            plugin_dir, policy_sha)
             append_row(out_path, row)
             ran += 1
     print(f"ran {ran} trial(s), skipped {skipped} already-present row(s) -> {out_path}")
@@ -396,7 +469,7 @@ GATED_ARM = "with"  # the baseline ('without') is reported, never gated -- see g
 
 
 def dedupe_rows(rows):
-    """Last-wins de-dup by row_key(): a repeated (case, trial, arm, host) --
+    """Last-wins de-dup by row_key(): a repeated identity --
     from the type-mismatch class row_key() itself guards against, or from a
     grader re-appending a corrected verdict without removing the old one --
     must not silently inflate n or skew the pass rate."""
@@ -580,11 +653,22 @@ def _selftest():
     except ValueError as e:
         assert "AC-999" in str(e)
 
-    existing = {("c1", 1, "without", "claude")}
-    assert should_skip("c1", 1, "without", "claude", existing)
-    assert not should_skip("c1", 2, "without", "claude", existing), "must key on trial, not just case"
-    assert not should_skip("c1", 1, "with", "claude", existing), "must key on arm, not just case+trial"
-    assert not should_skip("c1", 1, "without", "codex", existing), "must key on host too"
+    existing = {("c1", 1, "without", "claude", None)}
+    assert should_skip("c1", 1, "without", "claude", None, existing)
+    assert not should_skip("c1", 2, "without", "claude", None, existing), "must key on trial, not just case"
+    assert not should_skip("c1", 1, "with", "claude", None, existing), "must key on arm, not just case+trial"
+    assert not should_skip("c1", 1, "without", "codex", None, existing), "must key on host too"
+
+    # The defect the ablation would otherwise have walked into: two policy
+    # variants share (case, trial, arm, host), so with the hash out of the key
+    # the second variant is skipped as already present and its condition
+    # records nothing -- an empty arm that looks like a completed one.
+    seen_a = {("c1", 1, "with", "claude", "aaa")}
+    assert should_skip("c1", 1, "with", "claude", "aaa", seen_a)
+    assert not should_skip("c1", 1, "with", "claude", "bbb", seen_a),         "must key on the policy hash: a second variant is a different trial, not a repeat"
+    assert row_key({"case": "c1", "trial": 1, "arm": "with", "host": "claude",
+                    "policy_sha256": "aaa"}) == ("c1", 1, "with", "claude", "aaa"),         "row_key() and should_skip() must build the same tuple, in the same order"
+    assert row_key({"case": "c1", "trial": 1, "arm": "with", "host": "claude"}) ==         ("c1", 1, "with", "claude", None), "a row written before the field existed reads as None"
 
     # row_key(): trial is coerced to int, so a JSON string "1" (D1: a
     # grader that re-serializes numbers as strings) and native int 1 are
@@ -876,12 +960,86 @@ def _selftest():
         REQUIRED["claude"] = [["--this-flag-does-not-exist"]]
         raised = False
         try:
-            main(["--host", "claude", "--arm", "without", "--trials", "1", "--dry-run"])
+            with contextlib.redirect_stdout(io.StringIO()):
+                main(["--host", "claude", "--arm", "without", "--trials", "1", "--dry-run"])
         except AssertionError:
             raised = True
         assert raised, "a corrupted REQUIRED must still raise AssertionError through main(), not be swallowed"
     finally:
         REQUIRED["claude"] = saved_claude_required
+
+    # compose_policy() has to reproduce hooks/ttak.cjs compose('main') byte for
+    # byte or every recorded hash names a text that was never injected: the
+    # three files in SCOPES.main order, BOM stripped, each trimmed, joined by a
+    # blank line. Checked here on fixtures that exercise each of those four
+    # steps; checked against the real thing by the hash in the section comment
+    # above, which came from a session transcript, not from this function.
+    with tempfile.TemporaryDirectory(prefix="ttak-selftest-") as td:
+        td = Path(td)
+        pol = td / "policy"
+        pol.mkdir()
+        (pol / "precedence.md").write_text("\ufeff  A  \n", encoding="utf-8")
+        (pol / "invariants.md").write_text("B\n\n", encoding="utf-8")
+        (pol / "contract.md").write_text("C", encoding="utf-8")
+        assert compose_policy(pol) == "A\n\nB\n\nC", repr(compose_policy(pol))
+        assert policy_sha256("claude", "with", td) ==             hashlib.sha256("A\n\nB\n\nC".encode("utf-8")).hexdigest()
+        assert policy_sha256("claude", "without", td) is None,             "the baseline injects nothing, so it has no policy identity to record"
+        (pol / "contract.md").write_text("   \n", encoding="utf-8")
+        try:
+            compose_policy(pol)
+            raise AssertionError("an empty policy file must be rejected: compose() returns null "
+                                 "there and the hook injects nothing at all")
+        except ValueError:
+            pass
+
+    # --plugin-dir and --case, end to end through main(): a variant must be
+    # reachable without editing this file mid-experiment, and it must be
+    # visible in the dry run -- both the path and the policy identity, since
+    # those are what say which of four conditions a row belongs to.
+    with tempfile.TemporaryDirectory(prefix="ttak-selftest-") as td:
+        variant = Path(td) / "ttak-variant"
+        (variant / "policy").mkdir(parents=True)
+        for name in POLICY_SCOPE_MAIN:
+            (variant / "policy" / f"{name}.md").write_text(
+                (ROOT / "policy" / f"{name}.md").read_text(encoding="utf-8"),
+                encoding="utf-8", newline="\n")
+        inv = variant / "policy" / "invariants.md"
+        kept = inv.read_text(encoding="utf-8").rstrip().splitlines()[:-1]
+        inv.write_text("\n".join(kept) + "\n", encoding="utf-8", newline="\n")
+
+        variant_sha = policy_sha256("claude", "with", variant)
+        assert variant_sha != policy_sha256("claude", "with", None),             "a variant with a deleted line must not hash to the shipped policy"
+
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = main(["--host", "claude", "--arm", "with", "--trials", "1",
+                         "--case", "safety-data-loss", "--plugin-dir", str(variant), "--dry-run"])
+        printed = buf.getvalue()
+        assert code == 0, f"variant dry run exited {code}"
+        assert str(variant) in printed, "a dry run must print the plugin directory it would load"
+        assert variant_sha in printed, "a dry run must print the policy identity it would record"
+        assert printed.count("# case=") == 1,             f"--case must restrict the run to one case, printed {printed.count('# case=')}"
+        assert "safety-data-loss" in printed
+
+        # An unknown --case must fail, not run zero trials and report success.
+        try:
+            with contextlib.redirect_stderr(io.StringIO()):
+                main(["--host", "claude", "--arm", "without", "--trials", "1",
+                      "--case", "no-such-case", "--dry-run"])
+            raise AssertionError("an unknown --case id must be an error, not an empty run")
+        except SystemExit:
+            pass
+
+        # --plugin-dir where it would do nothing must be refused rather than
+        # accepted and ignored, which would record a variant that never loaded.
+        for argv in (["--host", "codex", "--arm", "with", "--model", "m"],
+                     ["--host", "claude", "--arm", "without"]):
+            try:
+                with contextlib.redirect_stderr(io.StringIO()):
+                    main(argv + ["--trials", "1", "--plugin-dir", str(variant), "--dry-run"])
+                raise AssertionError(f"--plugin-dir must be rejected for {argv!r}")
+            except SystemExit:
+                pass
 
     # The first real run, 2026-09-07, lost 30 of 32 rows to a locale decode:
     # `text=True` picked cp949, the model emitted UTF-8, and the failure landed
@@ -910,6 +1068,15 @@ def main(argv=None):
     p.add_argument("--trials", type=int)
     p.add_argument("--out", type=Path)
     p.add_argument("--cases", type=Path, default=CASES_FILE)
+    p.add_argument("--case", default=None,
+                   help="run only this case id. Applies to a run, never to --score: a gate "
+                        "computed over a hand-picked subset of the cases would report coverage "
+                        "it does not have")
+    p.add_argument("--plugin-dir", type=Path, default=None,
+                   help="load this directory as the plugin instead of the repository itself "
+                        "(--host claude --arm with only). Cases, AC ids and the spec still "
+                        "resolve against the repository, so a variant is graded against the "
+                        "same criteria as everything else")
     p.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT)
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--score", action="store_true", help="aggregate --out into a gate verdict; no host/arm/trials needed")
@@ -955,13 +1122,31 @@ def main(argv=None):
         if not args.dry_run and not args.out:
             p.error("--out is required for a real run (--dry-run does not write one)")
 
+        if args.plugin_dir is not None:
+            if args.host != "claude":
+                p.error("--plugin-dir applies to --host claude only: Codex has no ad hoc "
+                        "plugin-directory flag and reads the provisioned CODEX_HOME fixture instead")
+            if args.arm != "with":
+                p.error("--plugin-dir has no effect on the 'without' arm, which loads no plugin at all")
+            if not (args.plugin_dir / "policy").is_dir():
+                p.error(f"--plugin-dir {args.plugin_dir}: no policy/ directory there, so the run "
+                        "would load a plugin that injects nothing")
+
         known_acs = load_ac_ids(SPEC_EN)
         cases = load_cases(args.cases, known_acs)
+        if args.case is not None:
+            cases = [c for c in cases if c["id"] == args.case]
+            if not cases:
+                p.error(f"--case {args.case!r} matches no case id in {args.cases}")
+
+        policy_sha = policy_sha256(args.host, args.arm, args.plugin_dir)
 
         if args.dry_run:
             existing = load_existing_keys(args.out) if args.out else set()
-            return do_dry_run(cases, args.host, args.arm, args.model, args.trials, existing)
-        return do_run(cases, args.host, args.arm, args.model, args.trials, args.out, args.timeout)
+            return do_dry_run(cases, args.host, args.arm, args.model, args.trials, existing,
+                              args.plugin_dir, policy_sha)
+        return do_run(cases, args.host, args.arm, args.model, args.trials, args.out, args.timeout,
+                      args.plugin_dir, policy_sha)
     except (ValueError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
