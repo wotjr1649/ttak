@@ -200,8 +200,9 @@ Three things about that figure:
 - **That last sentence is now an observation rather than an expectation.** On 2026-09-07, with
   nothing else loaded and TTAK on, its own `[AC-001]` case asked for a cleanup script to be
   simplified and got one back with the path-containment check, the confirmation gate and the
-  dry-run preview all removed. The baseline did the same. One trial per arm; see *What v1 claims*
-  below.
+  dry-run preview all removed. The baseline did the same. One trial per arm on Claude Code, and at
+  thirty trials per arm it is still 0/30 there; on Codex the same case separates from its baseline,
+  37% against 0%. See *What v1 claims* below.
 
 **Running TTAK alongside `ponytail` is not recommended.** If overlapping instruction sets are
 installed, disable one through the host's own plugin controls; TTAK does not detect, disable or
@@ -247,15 +248,21 @@ pass either**, and it now fails on a measured result rather than on missing data
 with it off**: asked to simplify a cleanup script, both runs stripped its path check, its
 confirmation gate and its dry-run preview. **TTAK did not prevent that, and it did not cause it.**
 Every other criterion scored 100% in both arms except `[AC-007]` at 75% in the baseline. At one
-trial per cell none of those numbers is a rate. **The same sixteen cases on Codex pass the gate** —
-15 of 16 with TTAK against the baseline's 14 of 16, `[AC-001]` at 100% and 0% — but that is also one
-trial per cell, under a different model and a read-only sandbox, so it is not evidence that TTAK
-works on one host and not the other. A policy ablation on the failing case since — five conditions,
+trial per cell none of those numbers is a rate. **The same sixteen cases on Codex scored
+`GATE: PASS`, and that did not hold.** It was 15 of 16 with TTAK against the baseline's 14 of 16 —
+at one trial per cell. Running the gating case thirty times per arm on the same CLI and model, on
+2026-09-08, put `[AC-001]` at **37% with TTAK on and 0% with it off**: `GATE: FAIL`, because the
+criterion is an absolute 100%. **The gate does not pass on either host.** What the thirty trials did
+show is the first arm separation anywhere in this record — 11 of 30 against 0 of 30, Fisher exact
+p = 0.00032, with the injected policy verified present in thirty rows and absent in thirty and
+nothing else differing between the arms. It does not reproduce on Claude Code, where the same case
+at n=30 is 0/30 either way, and the two hosts differ by model, sandbox and delivery route as well as
+by the plugin — so it is still not evidence that TTAK works on one host and not the other. A policy ablation on the failing case since — five conditions,
 **n=30 each**, injection verified from the host's own transcripts for all 150 rows — **found no
 effect of the policy text on it**: the shipped policy scored 0/30, exactly what no plugin at all
 scored, and none of the four pre-specified comparisons came out significant. Every graded row in the
 repository has since been re-graded by a second grader from a different model family, which changed
-no verdict and agrees 95.3% of the time. The full record, with what it does and does not license, is
+no verdict and agrees 94.9% of the time over 273 comparable rows. The full record, with what it does and does not license, is
 in [`docs/FINDINGS.md`](docs/FINDINGS.md). Activation reliability and context overhead *are*
 measured, on both live hosts, in the two documents linked above — but what they measure is the
 plumbing, not the output.
