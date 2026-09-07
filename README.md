@@ -235,11 +235,13 @@ plugin data directory.
 
 **Does not claim.** Better output, higher correctness, fewer defects, faster work, or any benchmark
 result. Safe composition with other instruction sets — measured otherwise. That the behaviour gate it
-inherits passes — it does not, and it has not been re-run. **Cross-host conformance is genuinely
-unmeasured**: the runner has now been pointed at a model once — Claude Code, 2026-09-07, sixteen
-cases in both arms, rows in `tests/conformance/runs/` — but every row of it is ungraded, so no
-conformance figure exists and nothing here is claimed about how the policy text changes a response.
-Codex has not been run at all. Activation reliability and context overhead *are*
+inherits passes — it does not, and it has not been re-run. **Cross-host conformance does not
+pass either**: the runner has been pointed at a model once — Claude Code, 2026-09-07, sixteen cases
+in both arms, graded by a single LLM judge, rows in `tests/conformance/runs/` — and the gate reads
+`FAIL`, because one hard criterion's only case and one of another's three could not be exercised at
+all. Nothing there is claimed about how the policy text changes a response: the one difference
+between the arms is a single row, it goes against TTAK, and at one trial per cell that is noise
+rather than a result. Codex has not been run. Activation reliability and context overhead *are*
 measured, on both live hosts, in the two documents linked above — but what they measure is the
 plumbing, not the output.
 

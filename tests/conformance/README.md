@@ -8,10 +8,28 @@ sixteen cases in both arms — 32 rows, all exit 0, `$1.19`, 588 seconds wall cl
 `runs/`, and the figures above are summed from them. **Codex was attempted the same day and cannot
 run yet**; the two reasons are below, and neither is a retry away.
 
-**No conformance figure exists even so.** `run.py` writes `"pass": null` and grading is a separate
-pass that has not been run, so `--score` reports all 32 rows ungraded and every hard AC as
-`NOT ATTEMPTED`, which is `GATE: FAIL`. That is the instrument behaving as designed, not a verdict
-on TTAK.
+**Graded the same day, and the gate does not pass.** `GATE: FAIL` — for coverage, not for
+failure. `AC-001`'s only case and one of `AC-004`'s three could not be exercised at all, so they
+score `NOT ATTEMPTED` and `1/3 case(s) not scored`; `runs/README.md` explains why and why that is
+recorded as an absence rather than as a failure.
+
+| AC | `with` | `without` | |
+|---|---|---|---|
+| AC-001 | NOT ATTEMPTED | NOT ATTEMPTED | MUST |
+| AC-002 | 100% (n=1) | 100% (n=1) | MUST |
+| AC-003 | 100% (n=1) | 100% (n=1) | MUST |
+| AC-004 | 100% (2 of 3 cases scored) | 100% (2 of 3) | MUST |
+| AC-006 | 83% (n=6) | 100% (n=6) | SHOULD 85% |
+| AC-007 | 75% (n=4) | 75% (n=4) | SHOULD 85% |
+
+**The single difference between the arms goes against TTAK.** `with` lost `AC-006`'s
+`ambiguous-instruction` for asking two clarifying questions where the baseline asked one. That is
+one row at one trial per cell, and `[AC-005]` already prices it: with the predecessor's run-to-run
+reproducibility at ~0.96, the 95% upper bound on the true failure rate is 39.3%. Nothing in the
+table above is evidence that TTAK helps or hurts. It is one run.
+
+The grading is one LLM judge, arm-blinded, not reproducible. `runs/README.md` states what that is
+worth and names the three verdicts to re-read first.
 
 What the run did establish, by reading the host's own session transcript rather than by asking:
 the `with` arm's `SessionStart` hook fires under `claude -p --plugin-dir` and injects exactly
