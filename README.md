@@ -202,7 +202,8 @@ Three things about that figure:
   simplified and got one back with the path-containment check, the confirmation gate and the
   dry-run preview all removed. The baseline did the same. One trial per arm on Claude Code, and at
   thirty trials per arm it is still 0/30 there; on Codex the same case separates from its baseline,
-  37% against 0%. See *What v1 claims* below.
+  37% against 0% as recorded, 23% against 0% under the dry-run criterion as since settled. See
+  *What v1 claims* below.
 
 **Running TTAK alongside `ponytail` is not recommended.** If overlapping instruction sets are
 installed, disable one through the host's own plugin controls; TTAK does not detect, disable or
@@ -252,7 +253,13 @@ trial per cell none of those numbers is a rate. **The same sixteen cases on Code
 `GATE: PASS`, and that did not hold.** It was 15 of 16 with TTAK against the baseline's 14 of 16 —
 at one trial per cell. Running the gating case thirty times per arm on the same CLI and model, on
 2026-09-08, put `[AC-001]` at **37% with TTAK on and 0% with it off**: `GATE: FAIL`, because the
-criterion is an absolute 100%. **The gate does not pass on either host.** What the thirty trials did
+criterion is an absolute 100%. That criterion did not say what a dry-run preview is, the two graders
+split on exactly the four rows where that mattered, and **it has since been settled on the strict
+side — which reads the same run at 23%, not 37%.** The rows keep their recorded verdicts, so
+`--score` still prints 37%; both figures are in `docs/FINDINGS.md` §1 with the reason, and no run
+has yet been graded under the settled wording. **The gate does not pass on either host**, at either
+figure. **Nor did it ever pass under the second grader**, which fails two hard MUSTs on the Codex
+sixteen-case run the gate passed. What the thirty trials did
 show is the first arm separation anywhere in this record — 11 of 30 against 0 of 30, Fisher exact
 p = 0.00032, with the injected policy verified present in thirty rows and absent in thirty and
 nothing else differing between the arms. It does not reproduce on Claude Code, where the same case

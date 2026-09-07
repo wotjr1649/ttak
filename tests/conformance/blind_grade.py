@@ -135,7 +135,9 @@ def apply_verdicts(map_path, verdicts_path, suffix):
             grade = row.setdefault("grade", {})
             grade["rid"] = rid
             grade["why"] = v["why"]
-            checker = grade.get("checker", {}).get("verdict")
+            # checker2 is the repaired screener; checker is the pre-2026-09-08
+            # verdict kept as the evidence for its two containment defects.
+            checker = (grade.get("checker2") or grade.get("checker") or {}).get("verdict")
             if checker in ("PASS", "FAIL") and v["pass"] is not None:
                 if (checker == "PASS") != v["pass"]:
                     grade["held_out"] = "checker/judge disagreement, not counted until re-read"
