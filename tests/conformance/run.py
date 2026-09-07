@@ -36,6 +36,9 @@ ROOT = Path(__file__).resolve().parents[2]
 CASES_FILE = Path(__file__).resolve().parent / "cases.jsonl"
 SPEC_EN = ROOT / "docs" / "TTAK_Plugin_Product_Definition_v0.3_EN.md"
 
+# Claude only. Codex does not recognise it: passed there it prints "Model
+# metadata for `sonnet` not found. Defaulting to fallback metadata" and runs
+# anyway, so a Codex run must name its own model rather than inherit this.
 DEFAULT_MODEL = "sonnet"
 DEFAULT_TIMEOUT = 300
 
@@ -843,7 +846,8 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--host", choices=["claude", "codex"])
     p.add_argument("--arm", choices=["with", "without"])
-    p.add_argument("--model", default=DEFAULT_MODEL)
+    p.add_argument("--model", default=None,
+                   help=f"model id; defaults to {DEFAULT_MODEL!r} on claude, required on codex")
     p.add_argument("--trials", type=int)
     p.add_argument("--out", type=Path)
     p.add_argument("--cases", type=Path, default=CASES_FILE)
@@ -882,6 +886,13 @@ def main(argv=None):
             p.error("--host, --arm and --trials are required for a run (or use --score / --selftest)")
         if args.trials < 1:
             p.error("--trials must be >= 1")
+        if args.model is None:
+            if args.host == "codex":
+                p.error(f"--model is required for --host codex: the default {DEFAULT_MODEL!r} is a "
+                        "Claude alias, and Codex neither rejects nor honours it -- it warns and "
+                        "runs on fallback metadata, which is a run recorded under a model that "
+                        "never ran")
+            args.model = DEFAULT_MODEL
         if not args.dry_run and not args.out:
             p.error("--out is required for a real run (--dry-run does not write one)")
 

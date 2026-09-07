@@ -4,8 +4,9 @@
 `` `plugin eval` is currently in early access `` before resolving a target. `run.py` replaces it.
 
 **Status.** First run against a real host: Claude Code `2.1.263`, 2026-09-07, one trial of all
-sixteen cases in both arms — 32 rows, all exit 0, `$1.19`, 588 seconds wall clock. Codex has not
-been run at all. The rows are in `runs/`, and the figures above are summed from them.
+sixteen cases in both arms — 32 rows, all exit 0, `$1.19`, 588 seconds wall clock. The rows are in
+`runs/`, and the figures above are summed from them. **Codex was attempted the same day and cannot
+run yet**; the two reasons are below, and neither is a retry away.
 
 **No conformance figure exists even so.** `run.py` writes `"pass": null` and grading is a separate
 pass that has not been run, so `--score` reports all 32 rows ungraded and every hard AC as
@@ -122,6 +123,31 @@ a fresh, empty `CODEX_HOME` created per trial, so nothing loads.
 CODEX_HOME=<tmp>/ttak-conformance/codex-home-with codex plugin marketplace add <this repo>
 CODEX_HOME=<tmp>/ttak-conformance/codex-home-with codex plugin add ttak@ttak
 ```
+
+#### What a Codex run needs beyond the fixture, and does not have
+
+Provisioned and attempted 2026-09-07 on codex-cli `0.153.4`: one case, `with` arm, hooks permitted.
+It produced no usable row, for two reasons.
+
+**There are no credentials inside the isolation.** Codex reads its authentication out of
+`CODEX_HOME` — the same directory this design replaces with a fresh one. The probe reached
+`wss://api.openai.com/v1/responses`, got `401 Unauthorized` with *Missing bearer or basic
+authentication in header* on every retry of both the WebSocket and the HTTPS transport, and exited
+1 after 18 seconds. **Both arms are affected**, not only `with`: the `without` arm creates an empty
+`CODEX_HOME` per trial for exactly the same reason. Running Codex at all therefore means deciding
+how a credential enters that directory. That is the operator's decision, it is a credential move,
+and this runner should not make it quietly as a side effect of `--host codex`.
+
+**`--model` was passing a Claude alias to Codex.** `--model sonnet` was neither rejected nor
+honoured: Codex printed *Model metadata for `sonnet` not found. Defaulting to fallback metadata*
+and carried on. A row recorded under a model that never ran is worse than no row, so `--model` is
+now required for `--host codex` and the run refuses to start without one. `DEFAULT_MODEL` stays
+Claude-only and says so.
+
+**Whether TTAK injects on Codex under this runner is `NOT VERIFIED`.** Hooks were permitted for the
+probe — `--dangerously-bypass-hook-trust` announced itself in the output — but the turn died at
+authentication, and the fixture's `sessions/` directory holds no rollout at all, so there is no
+transcript to read. This is not a negative result. Nothing was observed.
 
 `<tmp>` is the OS temp directory (`tempfile.gettempdir()`; see `CODEX_HOME_WITH` in `run.py`). This
 task does not run these commands — building and dry-running the instrument does not require a real
