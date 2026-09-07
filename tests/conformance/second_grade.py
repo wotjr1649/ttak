@@ -207,7 +207,13 @@ def _selftest():
     batches, cases = build_batches(
         [Path(__file__).resolve().parent / "runs" / "2026-09-07-claude-ablation-b-shipped-graded.jsonl"],
         seed=1, batch_size=4)
-    assert sum(len(b) for b in batches) == 10
+    # Count against the file rather than a literal: the ablation grew from
+    # ten rows per condition to thirty, and a hardcoded 10 turns that into
+    # a failing selftest instead of a passing one.
+    expected = len(read_rows(Path(__file__).resolve().parent / "runs" /
+                             "2026-09-07-claude-ablation-b-shipped-graded.jsonl"))
+    assert sum(len(b) for b in batches) == expected
+    assert len(batches) == -(-expected // 4), "batches must partition, not drop rows"
     text = render(batches[0], cases)
     # Named leaks only. "grade" itself appears in this tool's own instruction
     # text, so a bare substring check for it would fail on the instructions

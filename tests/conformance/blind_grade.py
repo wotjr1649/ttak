@@ -28,7 +28,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from run import load_ac_ids, load_cases, CASES_FILE, SPEC_EN  # noqa: E402
+from run import load_ac_ids, load_cases, CASES_FILE, SPEC_EN, response_text  # noqa: E402
 
 
 def read_rows(path):
@@ -46,18 +46,24 @@ def read_rows(path):
 
 
 def response_of(row):
-    try:
-        return json.loads(row.get("stdout") or "")["result"]
-    except (ValueError, KeyError, TypeError):
-        return None
+    # One reader for both hosts, in run.py, because check_guards.py and
+    # second_grade.py need the same answer and a second copy would drift.
+    return response_text(row)
 
 
-def build(in_paths, seed, packet_path, map_path):
+def build(in_paths, seed, packet_path, map_path, prefix="R", only_ungraded=False):
     cases = {c["id"]: c for c in load_cases(CASES_FILE, load_ac_ids(SPEC_EN))}
     items = []
     for path in in_paths:
         for row in read_rows(path):
+            # A row already carrying a verdict is not re-graded. The first pass
+            # stands, and re-reading it now -- after the conditions are known --
+            # would not be a blind pass anyway.
+            if only_ungraded and row.get("pass") is not None:
+                continue
             items.append((str(path), row))
+    if not items:
+        raise ValueError("no rows to grade: every row in --in already carries a verdict")
 
     rng = random.Random(seed)
     rng.shuffle(items)
@@ -68,7 +74,7 @@ def build(in_paths, seed, packet_path, map_path):
            "Record a verdict and a one-line reason for every row before anything else is opened.\n"]
     seen_cases = []
     for i, (src, row) in enumerate(items, 1):
-        rid = f"R{i:02d}"
+        rid = f"{prefix}{i:02d}"
         mapping[rid] = {"file": src, "case": row.get("case"), "trial": row.get("trial"),
                         "arm": row.get("arm"), "policy_sha256": row.get("policy_sha256")}
         case = cases.get(row.get("case"), {})
@@ -116,7 +122,12 @@ def apply_verdicts(map_path, verdicts_path, suffix):
         src = Path(src)
         rows = read_rows(src)
         for row in rows:
-            rid = keys[(row.get("case"), row.get("trial"), row.get("arm"))]
+            # A file can hold rows this round did not grade -- an earlier round
+            # already gave them a verdict, and --only-ungraded left them out of
+            # the packet. Those rows are passed over, not re-written.
+            rid = keys.get((row.get("case"), row.get("trial"), row.get("arm")))
+            if rid is None:
+                continue
             v = verdicts[rid]
             if v.get("pass") not in (True, False, None):
                 raise ValueError(f"{rid}: pass must be true, false or null, got {v.get('pass')!r}")
@@ -159,13 +170,19 @@ def main(argv=None):
     p.add_argument("--map", dest="map_path", type=Path)
     p.add_argument("--verdicts", type=Path)
     p.add_argument("--suffix", default="-graded")
+    p.add_argument("--rid-prefix", default="R",
+                   help="letter the opaque ids start with; each grading round needs its own "
+                        "so two rounds' ids cannot collide in a row's history")
+    p.add_argument("--only-ungraded", action="store_true",
+                   help="skip rows that already carry a verdict")
     args = p.parse_args(argv)
 
     try:
         if args.build:
             if not (args.in_paths and args.seed is not None and args.packet and args.map_path):
                 p.error("--build needs --in (repeatable), --seed, --packet and --map")
-            return build(args.in_paths, args.seed, args.packet, args.map_path)
+            return build(args.in_paths, args.seed, args.packet, args.map_path,
+                         args.rid_prefix, args.only_ungraded)
         if args.apply:
             if not (args.map_path and args.verdicts):
                 p.error("--apply needs --map and --verdicts")

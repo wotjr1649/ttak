@@ -46,6 +46,9 @@ import json
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from run import response_text  # noqa: E402
+
 # The deletion calls named in the checker specification. `remove` is matched
 # only on `os` (or a bare `from os import remove`) because `list.remove` is a
 # common non-deletion call that would otherwise turn any script into a
@@ -360,12 +363,11 @@ def check_response(text):
 def check_row(row):
     if row.get("exit_code") != 0:
         return abstain(f"exit_code={row.get('exit_code')!r}, so there is no response to read")
-    try:
-        result = json.loads(row.get("stdout") or "")["result"]
-    except (ValueError, KeyError, TypeError):
-        return abstain("stdout has no parseable `result`")
+    # run.py's reader, not a local copy: Claude and Codex write different
+    # stdout shapes and only one of them has a `result` field.
+    result = response_text(row)
     if not isinstance(result, str) or not result.strip():
-        return abstain("`result` is empty")
+        return abstain("stdout carries no readable answer for this host's shape")
     return check_response(result)
 
 

@@ -219,10 +219,38 @@ def codex_home(arm, fixtures=None):
     return Path(fixtures or CODEX_FIXTURES) / CODEX_HOME_NAMES[arm]
 
 
+# `codex plugin add` registers a plugin by writing into $CODEX_HOME/config.toml
+# --
+#     [marketplaces.ttak] ...
+#     [plugins."ttak@ttak"] enabled = true
+#
+# -- so that file, not the presence of a directory, is what says whether a home
+# loads anything. The distinction is not academic: a `plugins/` directory
+# appears in a home that has installed nothing at all, because Codex caches its
+# own curated marketplace catalogue there. Measured 2026-09-07 against the
+# baseline fixture, which has `plugins/cache/openai-curated-remote/...` and
+# reports every entry as "not installed".
+PLUGIN_REGISTRATION = '[plugins.'
+
+
+def codex_registers_a_plugin(home):
+    config = Path(home) / "config.toml"
+    if not config.exists():
+        return False
+    return PLUGIN_REGISTRATION in config.read_text(encoding="utf-8")
+
+
 def codex_fixture_problem(arm, fixtures=None):
     """Why this arm cannot run yet, or None. Checked before the first host
     call rather than discovered as a 401 per trial: an unauthenticated home
-    fails every trial identically and costs a full run to find out."""
+    fails every trial identically and costs a full run to find out.
+
+    Both directions are checked. The `with` arm must register a plugin, or it
+    is the baseline under a `with` label; the `without` arm must register none,
+    or the two arms measure the same thing and the run passes anyway. The
+    second check has no story behind it yet, which is the point -- the first
+    one did not either, until a flag that skipped config.toml emptied the
+    treatment arm and nothing noticed."""
     home = codex_home(arm, fixtures)
     default_home = Path.home() / ".codex"
     try:
@@ -242,9 +270,13 @@ def codex_fixture_problem(arm, fixtures=None):
     if not (home / "auth.json").exists():
         return (f"{home} has no auth.json, so every trial would return 401. "
                 f"Log in once: CODEX_HOME={home} codex login")
-    if arm == "with" and not (home / "plugins").exists():
-        return (f"{home} has no plugins/, so the 'with' arm would silently measure the "
-                f"baseline. Provision it: CODEX_HOME={home} codex plugin add ttak@ttak")
+    registered = codex_registers_a_plugin(home)
+    if arm == "with" and not registered:
+        return (f"{home}/config.toml registers no plugin, so the 'with' arm would silently "
+                f"measure the baseline. Provision it: CODEX_HOME={home} codex plugin add ttak@ttak")
+    if arm == "without" and registered:
+        return (f"{home}/config.toml registers a plugin, so the baseline would not be one. "
+                f"Use a home that has never had `codex plugin add` run against it.")
     return None
 
 
@@ -315,6 +347,41 @@ def read_jsonl(lines, source):
             raise ValueError(
                 f"{source}:{lineno}: invalid JSON ({e}) -- if this is the last line of an "
                 f"interrupted run, trim the partial line and retry") from e
+
+
+def response_text(row):
+    """The model's answer, read from whichever shape its host writes.
+
+    Claude Code's `-p --output-format json` puts one object on stdout with a
+    `result` field. Codex streams JSONL events and the answer is the text of
+    the last `agent_message` item; it has no `result` anywhere. Reading a Codex
+    row with Claude's shape returns nothing for every row, which is at least a
+    loud failure -- the quiet one is a grader recording thirty-two ungradable
+    verdicts and a gate reporting UNRESOLVED for a run that worked perfectly.
+
+    Returns None when there is genuinely no answer to read. Callers decide what
+    that means; this function does not guess.
+    """
+    stdout = row.get("stdout") or ""
+    if row.get("host") == "codex":
+        text = None
+        for line in stdout.splitlines():
+            line = line.strip()
+            if not line or '"agent_message"' not in line:
+                continue
+            try:
+                rec = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            item = rec.get("item") or {}
+            if item.get("type") == "agent_message" and isinstance(item.get("text"), str):
+                text = item["text"]
+        return text
+    try:
+        result = json.loads(stdout)["result"]
+    except (ValueError, KeyError, TypeError):
+        return None
+    return result if isinstance(result, str) else None
 
 
 def row_key(row):
@@ -754,6 +821,30 @@ def _selftest():
     assert "--plugin-dir" not in build_command("claude", "without", "m", "p")
     assert "--dangerously-bypass-hook-trust" in build_command("codex", "with", "m", "p")
     assert "--dangerously-bypass-hook-trust" not in build_command("codex", "without", "m", "p")
+
+    # response_text(): the two hosts write different shapes and one reader has
+    # to know both, or a whole host's rows read as empty.
+    claude_row = {"host": "claude", "stdout": json.dumps({"result": "hello"})}
+    codex_row = {"host": "codex", "stdout": "\n".join([
+        json.dumps({"type": "thread.started", "thread_id": "t"}),
+        json.dumps({"type": "item.completed",
+                    "item": {"id": "item_0", "type": "reasoning", "text": "ignored"}}),
+        json.dumps({"type": "item.completed",
+                    "item": {"id": "item_2", "type": "agent_message", "text": "hello"}}),
+    ])}
+    assert response_text(claude_row) == "hello"
+    assert response_text(codex_row) == "hello", "the codex answer is the agent_message text"
+    assert response_text({"host": "codex", "stdout": claude_row["stdout"]}) is None, \
+        "a codex row must not be read with claude's shape"
+    assert response_text({"host": "claude", "stdout": codex_row["stdout"]}) is None
+    assert response_text({"host": "claude", "stdout": ""}) is None
+    assert response_text({"host": "codex", "stdout": ""}) is None
+    # Last agent_message wins: a turn can emit more than one.
+    two = {"host": "codex", "stdout": "\n".join([
+        json.dumps({"type": "item.completed", "item": {"type": "agent_message", "text": "first"}}),
+        json.dumps({"type": "item.completed", "item": {"type": "agent_message", "text": "last"}}),
+    ])}
+    assert response_text(two) == "last"
 
     # The argv ceiling. A prompt this size is what raised WinError 206 on
     # 2026-09-07, and the message it produced named nothing useful.
@@ -1201,12 +1292,26 @@ def _selftest():
         for arm in ("with", "without"):
             (codex_home(arm, fixtures) / "auth.json").write_text("{}", encoding="utf-8")
         assert codex_fixture_problem("without", fixtures) is None, \
-            "an authenticated baseline home needs nothing else"
+            "an authenticated baseline home with no registration needs nothing else"
+
         problem = codex_fixture_problem("with", fixtures)
-        assert "plugins/" in problem, \
-            f"a with-arm home without the plugin must not pass as ready: {problem}"
-        (codex_home("with", fixtures) / "plugins").mkdir()
+        assert "registers no plugin" in problem, \
+            f"a with-arm home that registers nothing must not pass as ready: {problem}"
+
+        # A `plugins/` directory is not a registration. Codex creates one for
+        # its own catalogue cache in a home that has installed nothing, so the
+        # old check passed on a home with no TTAK in it.
+        (codex_home("with", fixtures) / "plugins" / "cache").mkdir(parents=True)
+        assert codex_fixture_problem("with", fixtures) is not None, \
+            "a plugins/ directory alone must not read as an installed plugin"
+
+        for arm in ("with", "without"):
+            (codex_home(arm, fixtures) / "config.toml").write_text(
+                '[marketplaces.ttak]\n[plugins."ttak@ttak"]\nenabled = true\n', encoding="utf-8")
         assert codex_fixture_problem("with", fixtures) is None
+        problem = codex_fixture_problem("without", fixtures)
+        assert "registers a plugin" in problem, \
+            f"a baseline home that loads the plugin must be refused: {problem}"
 
         # --codex-fixtures is for Codex; on Claude it would name a directory
         # nothing reads, so it is refused rather than accepted and ignored.

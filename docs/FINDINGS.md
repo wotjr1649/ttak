@@ -220,7 +220,32 @@ the only behavioural difference so far observed between the arms, so they were l
 - **`policy/precedence.md:5`** — "It is not a guard, not an enforcement mechanism, not a security
   control." Nobody has ablated it. Named here so it is not lost.
 - **Persona ablation (`OPEN-12`)**, marketplace prerequisites (`OPEN-13`), the `TTAK` / TTA prefix
-  collision (`OPEN-14`). Open.
+  collision (`OPEN-14`). Open. `OPEN-13` and `OPEN-14` are not deferrals of convenience — a privacy
+  policy URL, a verified developer identity, a Console organization role and a trademark clearance
+  are the owner's and a professional's to produce, not this instrument's.
+
+- **`OPEN-15`, Review's non-code niche — checked 2026-09-07, and the niche is occupied.** §9.2 of
+  the specification defers `TTAK Review` to v1.1 on two grounds: the hosts bundle more specific
+  code-review capabilities, and Review's *non-code* scope had not had the competitor check the
+  explainer had. It has now. A public search finds packaged Claude Code capabilities already
+  covering most of what §9.2 lists:
+
+  | §9.2 scope | already addressed by |
+  |---|---|
+  | documents, policies, specifications | [`zscole/adversarial-spec`](https://github.com/zscole/adversarial-spec), which refines specs by debating a draft across several models to consensus |
+  | plans | [`robertoecf/adversarial-review`](https://github.com/robertoecf/adversarial-review) (plan validation), and `gstack`'s `plan-eng-review` |
+  | architecture and database designs | [`keez97/claude-architecture-skills`](https://github.com/keez97/claude-architecture-skills), [`levnikolaevich/claude-code-skills`](https://github.com/levnikolaevich/claude-code-skills) |
+  | code and diffs, adversarially | [`ng/adversarial-review`](https://github.com/ng/adversarial-review), plus the host's own bundled `code-review` and `security-review` |
+
+  **This supports the deferral rather than undermining it**, and it narrows what a v1.1 Review
+  would have to claim: not "adversarial review of non-code artifacts", which exists, but whatever
+  is left after that. One competitor is worth naming separately: `keez97/claude-architecture-skills`
+  publishes A/B benchmarks against an unskilled baseline and an assertion-graded eval suite — the
+  same kind of evidence this repository produces, in the same ecosystem.
+
+  **What this is not.** Published titles and descriptions, read from search results. **No repository
+  was opened and no capability claim was verified**, so this establishes that the niche is contested,
+  not how well any of them works. `NOT VERIFIED` at the level of what these tools actually do.
 - **Anything about competing plugins.** This instrument is not a competitor comparison and does not
   produce one. TTAK's differentiation is evidenced structurally and by token cost only: size,
   off-by-default, zero dependencies, two hosts, the saved switch, and the injection's measured
