@@ -152,10 +152,13 @@ language instead — the host-invoked route needs no syntax.
 
 ## What is measured
 
-TTAK supersedes [`wotjr1649/leanclarity`](https://github.com/wotjr1649/leanclarity), the same
-author's prior plugin for the same two hosts. TTAK inherits that project's published measurements,
-including the ones that did not go its way. All figures below are from its evidence record at commit
-`7dfe5b2`.
+**TTAK has not measured its own effect on a model's output, and the figures below are not its
+measurements.** They come from an earlier plugin by the same author, built for the same two hosts,
+whose policy text TTAK's was adapted from. They are published here, unfavourable ones included,
+because they are the closest evidence that exists for this kind of guidance and because leaving them
+out would make TTAK look untested rather than tested-and-null. That plugin's repository is being
+retired, so these numbers cannot be checked against it — read them as inherited, not as observed
+here.
 
 - **No resolvable behaviour difference.** Two paired on/off studies. **All eight case-by-host cells
   returned Fisher `p = 1.0000`**, and nothing among 24 tests survived Holm correction. The one
@@ -200,12 +203,6 @@ installed, disable one through the host's own plugin controls; TTAK does not det
 remove anything else. And regardless of what is installed: review destructive changes yourself. This
 is one synthetic case on two pinned models, not a survey — but it is the measurement that exists, and
 none of these instruction sets is a guard.
-
-**The predecessor is a special case of the same hazard.** `wotjr1649/leanclarity` is being retired,
-but retiring it does not uninstall it: its saved setting defaults to **on** when its state file is
-absent, so a copy left installed from before keeps injecting its own guidance while TTAK sits off by
-default. If you are moving over from it, remove it through the host's plugin controls rather than
-relying on TTAK to supersede it — TTAK does not detect or disable it.
 
 ### Size of the injected text
 
@@ -288,8 +285,8 @@ recorded, and a deviation from a requirement this project set itself. The invent
 rather than implying a cleaner lineage than the text has.
 
 Verbatim upstream notices are in [`ATTRIBUTIONS.md`](ATTRIBUTIONS.md), covering
-`DietrichGebert/ponytail`, `ayghri/i-have-adhd`, `DreambigOu/ELI5` and `wotjr1649/leanclarity`. Those
-projects are named there and here as factual attribution. **None of their authors endorses TTAK.**
+`DietrichGebert/ponytail`, `ayghri/i-have-adhd` and `DreambigOu/ELI5`. Those projects are named
+there and here as factual attribution. **None of their authors endorses TTAK.**
 
 ## Status
 
