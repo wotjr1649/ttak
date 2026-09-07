@@ -1548,8 +1548,15 @@ test('the copied-text inventory tracks both i-have-adhd pins and the reproduced-
   // figure in both tables, including invariants.md's 29.
   assert.match(inv, /longest shared run of \*\*29 words\*\* measured file-wide/,
     'the ruling block must headline the file-wide 29-word run');
+  // 2026-09-07: F1 now carries two file-wide tables -- the live one, measured
+  // against the third-party sources that remain, and the historical one whose
+  // numbers the fix-round-1 ruling rested on. Both key on the same first
+  // column, so this scopes to the historical table rather than taking the
+  // first match and reporting the live figure as a missing 29.
+  const historical = inv.split('File-wide, measured the same way for all four shipped files')[1];
+  assert.ok(historical, 'F1: the historical file-wide table is gone');
   for (const [file, w] of [['policy/invariants.md', 29], ['policy/contract.md', 9]]) {
-    const row = inv.split('\n').find((l) => l.startsWith(`| \`${file}\` | `));
+    const row = historical.split('\n').find((l) => l.startsWith(`| \`${file}\` | `));
     assert.ok(row, `${file}: no row in the F1 file-wide table`);
     assert.match(row, new RegExp(`^\\| \`${file}\` \\| \\*\\*${w} w\\*\\* \\|`),
       `${file}: the F1 file-wide table must report ${w} w against its own source`);

@@ -13,9 +13,9 @@ Recorded on the face of this file rather than buried in a finding, because a nor
 shipped product breaks is not something to leave implied.
 
 **The deviation.** v0.2 §19.3 requires that policy text be derived from the upstream `SKILL.md` files
-directly, not from `SRC-LEANCLARITY`'s policy files, so that the attribution chain is one step.
+directly, not from `SRC-PRIOR`'s policy files, so that the attribution chain is one step.
 `policy/invariants.md` and `policy/contract.md` do not meet that. They reproduce
-`SRC-LEANCLARITY`'s `policies/engineering.md` and `policies/guidance.md` at `7dfe5b2`, bullet for
+`SRC-PRIOR`'s `policies/engineering.md` and `policies/guidance.md` at `7dfe5b2`, bullet for
 bullet, with a longest shared run of **29 words** measured file-wide. Measured evidence, and the
 distinction between the file-wide and per-unit metrics, is in F1. **§19.3 as written is not
 satisfied for those two files.**
@@ -24,7 +24,7 @@ satisfied for those two files.**
 
 ```
 ponytail   @ 2ed6c52  ─┐
-                       ├─→  leanclarity policies/*.md @ 7dfe5b2  ─→  TTAK policy/invariants.md
+                       ├─→  the prior plugin policy files  ─→  TTAK policy/invariants.md
 i-have-adhd @ cbe69fb8 ─┘                                            TTAK policy/contract.md
 ```
 
@@ -76,8 +76,8 @@ manifests' `displayName` rather than section headings. No persona text was added
 **The second — a one-step chain — is not met, and for two units it cannot be.**
 `policy/invariants.md` I2 (`[TTAK-TRIM-009]`) and `policy/contract.md` C5 (the verification-honesty
 clause) have **no upstream `SKILL.md` source at all**, confirmed by the predecessor's own
-decomposition at `docs/evidence/LeanClarity_v1.0_UPSTREAM_DECOMPOSITION.md` L84 and L97, both
-`원본 없음 — LeanClarity 신규` (F2). For those two units §19.3's direct-derivation MUST is
+decomposition record at L84 and L97, both of which record the rule as having no upstream original
+and as new in that plugin (F2). For those two units §19.3's direct-derivation MUST is
 **unsatisfiable**, not merely unmet: there is no upstream line to derive from. That is what makes
 amendment unavoidable rather than merely prudent — no rewriting produces a one-step chain for text
 whose only source is the intermediate.
@@ -123,10 +123,18 @@ text. `README.md` and `README.ko.md` are covered by a single row at the end.
 | `SRC-PONYTAIL` | `github.com/DietrichGebert/ponytail` | `2ed6c52c9d7e5e56942508591085fd45dea277d3` | MIT, holder `DietrichGebert` |
 | `SRC-IHAVEADHD` | `github.com/ayghri/i-have-adhd` | `58494af57962b2d7a996b4d419474380a299af5e` | MIT, holder `Ayoub Ghriss` |
 | `SRC-DREAMBIG-ELI5` | `github.com/DreambigOu/ELI5` | `a766623b062331fdde53467001379b4ddf3acc2f` | MIT, **no holder named** |
-| `SRC-LEANCLARITY` | `github.com/wotjr1649/leanclarity` | `7dfe5b2e25166e91069034038ac59121f771e844` | MIT, holder `LeanClarity contributors` |
+| `SRC-PRIOR` | The author's own earlier plugin — not named or linked here, and its repository is being retired | not pinned; see the note below | Author's own work. No third-party obligation arises from it |
 
-Every source file cited below was read at the pinned revision in a local checkout whose `HEAD`
-matches that revision with a clean tree. Cited line numbers are line numbers in those files.
+Every third-party source file cited below was read at the pinned revision in a local checkout whose
+`HEAD` matches that revision with a clean tree. Cited line numbers are line numbers in those files.
+
+**`SRC-PRIOR` is different, and the difference matters for how its figures should be read.** It is
+the author's own earlier plugin. No third-party licence obligation arises from it, which is why it
+carries no pin and no notice — but its text is not published here either, so **a figure measured
+against it cannot be independently checked**. The Method section's own reason for reporting word
+runs is that "this is my own wording" is otherwise unfalsifiable; against `SRC-PRIOR` that
+falsifiability is not available, and no figure in this file rests on it alone. Every classification
+that carries a licence consequence is measured against a third-party source that anyone can fetch.
 
 ### The two `i-have-adhd` pins
 
@@ -134,14 +142,15 @@ Two pinned revisions exist for one source and both belong in the record, per v0.
 
 - v0.2 section 5.1 pins `58494af57962b2d7a996b4d419474380a299af5e` (2026-09-01). This is the
   direct-upstream pin.
-- `SRC-LEANCLARITY`'s own `THIRD_PARTY_NOTICES.md` pins
+- `SRC-PRIOR`'s own `THIRD_PARTY_NOTICES.md` pins
   `cbe69fb83c08a37cf54d5ec9ec6bb88c8bc9973c`, an earlier commit, for the text it derived.
 
-Where TTAK text derives directly from the upstream `SKILL.md`, **`58494af...` is the chain that
-applies** and `cbe69fb8...` is recorded only as context. Where TTAK text reaches it through
-`SRC-LEANCLARITY` — which the *Findings* section shows is the case for `policy/contract.md` — the
-chain is two steps and **both pins apply**: `cbe69fb8...` for the upstream text as the predecessor
-read it, and `7dfe5b2...` for the intermediate expression TTAK actually reproduces.
+**Measured 2026-09-07: the two revisions carry a byte-identical `skills/i-have-adhd/SKILL.md`.**
+Both were fetched and compared; 6813 bytes each, no difference. The two-pin apparatus was built on
+the assumption that the earlier commit might carry different upstream text for this file, and for
+this file it does not. `58494af...` is therefore the pin that applies everywhere, and `cbe69fb8...`
+is kept in the record because it is what the earlier plugin's own notices named — not because it
+selects a different text.
 
 ## Method
 
@@ -198,7 +207,7 @@ Composed into every injection, main and subagent.
 | # | Unit | Derives from | Longest run | Classification | Verdict |
 |---|---|---|---|---|---|
 | P1 | "This guidance ranks below the host's own system and developer instructions..." | Concept from `i-have-adhd/skills/i-have-adhd/SKILL.md` L126 ("Inside an agent harness, the system prompt outranks this skill") and L125 ("the task wins; the shape stays"); user-authority half from `ponytail/skills/ponytail/SKILL.md` L94-95 ("User insists on the full version, build it, no re-arguing") | 3 w | Independent re-expression | OK |
-| P2 | "It is guidance the model interprets. It is not a guard, not an enforcement mechanism..." | No upstream analogue. Nearest published statement of the same idea is the author's own `SRC-LEANCLARITY` `README.md` at `7dfe5b2` ("None of these instruction sets is a guard"); the wording here is not taken from it | 3 w | Original | OK |
+| P2 | "It is guidance the model interprets. It is not a guard, not an enforcement mechanism..." | No upstream analogue. Nearest published statement of the same idea is the author's own `SRC-PRIOR` `README.md` at `7dfe5b2` ("None of these instruction sets is a guard"); the wording here is not taken from it | 3 w | Original | OK |
 | P3 | "Simplicity never outranks correctness, safety, completeness, or an explicit requirement..." | Concept from `ponytail` SKILL L92-95 ("Never simplify away... anything explicitly requested"); the quality hierarchy is v0.2 section 3.4, TTAK-original | 2 w | Independent re-expression | OK |
 
 `precedence.md` is the file the design calls the substantive difference from every predecessor, and
@@ -211,14 +220,14 @@ files is three words **file-wide**, not only per unit. Nothing in it is reproduc
 
 | # | Unit | Derives from | Longest run | Classification | Verdict |
 |---|---|---|---|---|---|
-| I1 | "Understand the request and the flow it touches before changing anything. Inspect the callers and shared paths..." | `SRC-LEANCLARITY` `policies/engineering.md` L3; upstream idea in `ponytail` SKILL L97-101 ("Trace the whole thing first, every file the change touches, the actual flow") and L50-54 ("grep every caller of the function you're about to touch") | 5 w vs leanclarity: "before changing a shared contract" | Reproduced expression (intermediate) | DEFECT, see F1 |
-| I2 | "When only analysis, explanation, reporting or review was asked for, do not mutate code..." — this is `[TTAK-TRIM-009]` | `SRC-LEANCLARITY` `policies/engineering.md` L4. No upstream `SKILL.md` states this rule; v0.2 section 5.1 records it as reaching that source from `SRC-IHAVEADHD`, and reading `i-have-adhd` SKILL at `58494af` does not find it — the nearest, L121, is about explanation length, not about refusing to mutate | 5 w vs leanclarity: "analysis explanation reporting or review" | Reproduced expression (intermediate) | DEFECT, see F1 and F2 |
-| I3 | "Skip features, files, options and scaffolding the requested outcome does not need." | `SRC-LEANCLARITY` `policies/engineering.md` L5; upstream idea in `ponytail` SKILL L36 (ladder rung 1, YAGNI) and L59 ("no scaffolding 'for later'") | 3 w | Independent re-expression | OK |
-| I4 | **The reuse-order chain.** "Prefer, in order: existing project code, the standard library, native platform features, an already-installed dependency, then the smallest new implementation..." | `SRC-LEANCLARITY` `policies/engineering.md` L6, which itself carries `ponytail` SKILL L37-L42 (ladder rungs 2-7) in the same order. Restated as v0.2 section 8.3 | **18 w** vs leanclarity: "prefer in order existing project code the standard library native platform features an already installed dependency then the" | **Reproduced expression** — deliberate; the order is the product decision and the wording tracks it | DEFECT, see F1 |
-| I5 | "Do not add a single-use abstraction, future-only configuration, wrapper, factory, or file split without a present reason." | `SRC-LEANCLARITY` `policies/engineering.md` L7 (one-use to single-use, "provider" dropped, need to reason); upstream idea in `ponytail` SKILL L58 | 7 w vs leanclarity: "factory or file split without a present" | Reproduced expression (intermediate) | DEFECT, see F1 |
-| I6 | "Fix the smallest shared root cause rather than patching the reported symptom. Optimize for the smallest correct change, not the shortest-looking diff." | `SRC-LEANCLARITY` `policies/engineering.md` L8; upstream idea in `ponytail` SKILL L50-54. The second sentence deliberately **contradicts** `ponytail` SKILL L61 ("Shortest working diff wins"), per v0.2 section 5.3 Adapt | **14 w** vs leanclarity: "the reported symptom optimize for the smallest correct change not the shortest looking diff" | **Reproduced expression** | DEFECT, see F1 |
-| I7 | **The protected-noun list.** "Never simplify away trust-boundary validation, security controls, correctness guards, data-loss prevention, accessibility, or the failure handling that protects the result. Never simplify away anything the user explicitly asked for..." | `SRC-LEANCLARITY` `policies/engineering.md` L9 for the noun list; the second sentence comes from `ponytail` SKILL L92-95 ("anything explicitly requested. User insists on the full version, build it, no re-arguing"), which `SRC-LEANCLARITY` had dropped | **15 w** vs leanclarity: "never simplify away trust boundary validation security controls correctness guards data loss prevention accessibility or"; 5 w vs `ponytail`: "the user explicitly asked for" | **Reproduced expression** — deliberate and mandated: `[SRC-002]` exempts `standard library`, `trust-boundary validation`, `data-loss prevention`, `accessibility` and `explicit output formats` from paraphrase, and the predecessor's own evidence (L556) records that its `L3` compression, which dropped these nouns across the whole policy, broke 14 of 19 deterministic assertions — the 14 are attributed to that compression, not to this line alone | DEFECT, see F1. The *preservation* is required; the *route* is not |
-| I8 | "For a non-trivial change — a branch, a loop, a parser, a money or security path — leave the smallest runnable check that would fail if the behavior regressed." | `SRC-LEANCLARITY` `policies/engineering.md` L10 for the clause; the enumeration comes from `ponytail` SKILL L107-108 ("Non-trivial logic (a branch, a loop, a parser, a money/security path) leaves ONE runnable check behind") | **13 w** vs leanclarity: "path leave the smallest runnable check that would fail if the behavior regressed"; **8 w** vs `ponytail`: "a branch a loop a parser a money" | **Reproduced expression** — from two sources at once; the 8-word enumeration is `ponytail`'s, reproduced with one connective changed | DEFECT, see F1 and F3 |
+| I1 | "Understand the request and the flow it touches before changing anything. Inspect the callers and shared paths..." | `SRC-PRIOR` `policies/engineering.md` L3; upstream idea in `ponytail` SKILL L97-101 ("Trace the whole thing first, every file the change touches, the actual flow") and L50-54 ("grep every caller of the function you're about to touch") | 5 w vs the prior text: "before changing a shared contract" | Reproduced expression (intermediate) | DEFECT, see F1 |
+| I2 | "When only analysis, explanation, reporting or review was asked for, do not mutate code..." — this is `[TTAK-TRIM-009]` | `SRC-PRIOR` `policies/engineering.md` L4. No upstream `SKILL.md` states this rule; v0.2 section 5.1 records it as reaching that source from `SRC-IHAVEADHD`, and reading `i-have-adhd` SKILL at `58494af` does not find it — the nearest, L121, is about explanation length, not about refusing to mutate | 5 w vs the prior text: "analysis explanation reporting or review" | Reproduced expression (intermediate) | DEFECT, see F1 and F2 |
+| I3 | "Skip features, files, options and scaffolding the requested outcome does not need." | `SRC-PRIOR` `policies/engineering.md` L5; upstream idea in `ponytail` SKILL L36 (ladder rung 1, YAGNI) and L59 ("no scaffolding 'for later'") | 3 w | Independent re-expression | OK |
+| I4 | **The reuse-order chain.** "Prefer, in order: existing project code, the standard library, native platform features, an already-installed dependency, then the smallest new implementation..." | `SRC-PRIOR` `policies/engineering.md` L6, which itself carries `ponytail` SKILL L37-L42 (ladder rungs 2-7) in the same order. Restated as v0.2 section 8.3 | **18 w** vs the prior text: "prefer in order existing project code the standard library native platform features an already installed dependency then the" | **Reproduced expression** — deliberate; the order is the product decision and the wording tracks it | DEFECT, see F1 |
+| I5 | "Do not add a single-use abstraction, future-only configuration, wrapper, factory, or file split without a present reason." | `SRC-PRIOR` `policies/engineering.md` L7 (one-use to single-use, "provider" dropped, need to reason); upstream idea in `ponytail` SKILL L58 | 7 w vs the prior text: "factory or file split without a present" | Reproduced expression (intermediate) | DEFECT, see F1 |
+| I6 | "Fix the smallest shared root cause rather than patching the reported symptom. Optimize for the smallest correct change, not the shortest-looking diff." | `SRC-PRIOR` `policies/engineering.md` L8; upstream idea in `ponytail` SKILL L50-54. The second sentence deliberately **contradicts** `ponytail` SKILL L61 ("Shortest working diff wins"), per v0.2 section 5.3 Adapt | **14 w** vs the prior text: "the reported symptom optimize for the smallest correct change not the shortest looking diff" | **Reproduced expression** | DEFECT, see F1 |
+| I7 | **The protected-noun list.** "Never simplify away trust-boundary validation, security controls, correctness guards, data-loss prevention, accessibility, or the failure handling that protects the result. Never simplify away anything the user explicitly asked for..." | `SRC-PRIOR` `policies/engineering.md` L9 for the noun list; the second sentence comes from `ponytail` SKILL L92-95 ("anything explicitly requested. User insists on the full version, build it, no re-arguing"), which `SRC-PRIOR` had dropped | **15 w** vs the prior text: "never simplify away trust boundary validation security controls correctness guards data loss prevention accessibility or"; 5 w vs `ponytail`: "the user explicitly asked for" | **Reproduced expression** — deliberate and mandated: `[SRC-002]` exempts `standard library`, `trust-boundary validation`, `data-loss prevention`, `accessibility` and `explicit output formats` from paraphrase, and the predecessor's own evidence (L556) records that its `L3` compression, which dropped these nouns across the whole policy, broke 14 of 19 deterministic assertions — the 14 are attributed to that compression, not to this line alone | DEFECT, see F1. The *preservation* is required; the *route* is not |
+| I8 | "For a non-trivial change — a branch, a loop, a parser, a money or security path — leave the smallest runnable check that would fail if the behavior regressed." | `SRC-PRIOR` `policies/engineering.md` L10 for the clause; the enumeration comes from `ponytail` SKILL L107-108 ("Non-trivial logic (a branch, a loop, a parser, a money/security path) leaves ONE runnable check behind") | **13 w** vs the prior text: "path leave the smallest runnable check that would fail if the behavior regressed"; **8 w** vs `ponytail`: "a branch a loop a parser a money" | **Reproduced expression** — from two sources at once; the 8-word enumeration is `ponytail`'s, reproduced with one connective changed | DEFECT, see F1 and F3 |
 
 ---
 
@@ -226,15 +235,15 @@ files is three words **file-wide**, not only per unit. Nothing in it is reproduc
 
 | # | Unit | Derives from | Longest run | Classification | Verdict |
 |---|---|---|---|---|---|
-| C1 | "Lead with the answer, conclusion, code, cause or action the request calls for." | `i-have-adhd` SKILL L33-40 (Rule 1, "Lead with the next action"), generalized per v0.2 section 5.4 Adapt; `SRC-LEANCLARITY` `policies/guidance.md` L3 states the same generalization | 3 w: "lead with the" | Independent re-expression | OK |
-| C2 | "Use numbered steps only for genuinely multi-step work, one action per step." | `SRC-LEANCLARITY` `policies/guidance.md` L4; upstream in `i-have-adhd` SKILL L42-46 (Rule 2) | 7 w vs leanclarity: "steps only for genuinely multi step work" | Reproduced expression (intermediate) | DEFECT, see F1 |
-| C3 | "Finish the current request before raising a separate concern, and label it separately." | `SRC-LEANCLARITY` `policies/guidance.md` L5 (tangent to concern); upstream in `i-have-adhd` SKILL L64-69 (Rule 4) | 8 w vs leanclarity: "finish the current request before raising a separate" | Reproduced expression (intermediate) | DEFECT, see F1 |
-| C4 | "Honor explicit output formats. When detail, a walkthrough or an exhaustive review is asked for, give it in full without an arbitrary brevity or list limit." | `SRC-LEANCLARITY` `policies/guidance.md` L8; "give it in full" is `ponytail` SKILL L73. Deliberately rejects `i-have-adhd` SKILL L103 ("Cap lists at 5 items"), per v0.2 section 5.4 Exclude. `explicit output formats` is a `[SRC-002]` protected noun | 7 w vs leanclarity: "detail a walkthrough or an exhaustive review"; 4 w vs `ponytail`: "give it in full" | Reproduced expression (intermediate) | DEFECT, see F1 |
-| C5 | "Distinguish checks that were run and observed from checks that were not. Never report a check as passing unless it ran and the result was seen..." — the verification-honesty clause | `SRC-LEANCLARITY` `policies/guidance.md` L9. **No upstream `SKILL.md` contains this rule**; it originates with the predecessor. `[SRC-002]` requires it be preserved in meaning rather than paraphrased for style | 8 w vs leanclarity: "never report a check as passing unless it" | Reproduced expression, sole source `SRC-LEANCLARITY` | DEFECT, see F1 and F2 |
+| C1 | "Lead with the answer, conclusion, code, cause or action the request calls for." | `i-have-adhd` SKILL L33-40 (Rule 1, "Lead with the next action"), generalized per v0.2 section 5.4 Adapt; `SRC-PRIOR` `policies/guidance.md` L3 states the same generalization | 3 w: "lead with the" | Independent re-expression | OK |
+| C2 | "Use numbered steps only for genuinely multi-step work, one action per step." | `SRC-PRIOR` `policies/guidance.md` L4; upstream in `i-have-adhd` SKILL L42-46 (Rule 2) | 7 w vs the prior text: "steps only for genuinely multi step work" | Reproduced expression (intermediate) | DEFECT, see F1 |
+| C3 | "Finish the current request before raising a separate concern, and label it separately." | `SRC-PRIOR` `policies/guidance.md` L5 (tangent to concern); upstream in `i-have-adhd` SKILL L64-69 (Rule 4) | 8 w vs the prior text: "finish the current request before raising a separate" | Reproduced expression (intermediate) | DEFECT, see F1 |
+| C4 | "Honor explicit output formats. When detail, a walkthrough or an exhaustive review is asked for, give it in full without an arbitrary brevity or list limit." | `SRC-PRIOR` `policies/guidance.md` L8; "give it in full" is `ponytail` SKILL L73. Deliberately rejects `i-have-adhd` SKILL L103 ("Cap lists at 5 items"), per v0.2 section 5.4 Exclude. `explicit output formats` is a `[SRC-002]` protected noun | 7 w vs the prior text: "detail a walkthrough or an exhaustive review"; 4 w vs `ponytail`: "give it in full" | Reproduced expression (intermediate) | DEFECT, see F1 |
+| C5 | "Distinguish checks that were run and observed from checks that were not. Never report a check as passing unless it ran and the result was seen..." — the verification-honesty clause | `SRC-PRIOR` `policies/guidance.md` L9. **No upstream `SKILL.md` contains this rule**; it originates with the predecessor. `[SRC-002]` requires it be preserved in meaning rather than paraphrased for style | 8 w vs the prior text: "never report a check as passing unless it" | Reproduced expression, sole source `SRC-PRIOR` | DEFECT, see F1 and F2 |
 | C6 | "Disclose material uncertainty, unverified assumptions and remaining limitations." | No source reproduces. Concept adjacent to `i-have-adhd` SKILL L135 ("Keep a hedge that carries real uncertainty; deleting it manufactures confidence") | 1 w | Original | OK |
-| C7 | "When work remains for the user, give one concrete next action." — `[RESP-007]` | `SRC-LEANCLARITY` `policies/guidance.md` L7, **minus** its trailing clause "do not invent one after completion" and reordered into the conditional-positive form `[RESP-007]` states in v0.3; upstream in `i-have-adhd` SKILL L57-59 (Rule 3), minus its under-two-minutes cap | **6 w** vs leanclarity: "when work remains for the user"; 4 w vs `i-have-adhd`: "one concrete next action" — **derived, not re-measured**: the pinned `58494af` is not available locally, so this cell is carried forward on the grounds that the new bullet still contains that phrase verbatim and that the previously published maximum of 4 proves the source does not contain "give one concrete next action" contiguously, which would have measured 5 against the old bullet. The leanclarity figure beside it **was** re-measured at the pinned `7dfe5b2` | Reproduced expression (intermediate) | DEFECT, see F1. The dropped clause is deliberate: the v0.2 amendment records it failing 6 of 6 across both hosts on the frozen candidate `1.0.2`, as a prohibition the upstream did not have. The reorder is the final-fix round: the shipped "only when work remains" entailed that same prohibition, so it was restated to match `[RESP-007]`. That took the run from 12 w to 6 w and the classification down one step — a consequence of changed text, not a reclassification of unchanged text |
-| C8 | "After repeated attempts fail for the same reason, stop iterating, name the assumption now in doubt, and ask for the smallest diagnostic evidence that would settle it." — `[TTAK-TRACK-008]` | `SRC-LEANCLARITY` `policies/guidance.md` L11; upstream in `i-have-adhd` SKILL L123 ("If the last three turns have been 'still broken,' stop iterating on code. Name the assumption that might be wrong. Ask one diagnostic question") | 9 w vs leanclarity: "after repeated attempts fail for the same reason stop"; 3 w vs `i-have-adhd`: "name the assumption" | Reproduced expression (intermediate) | DEFECT, see F1 |
-| C9 | "Confirm before a destructive effect." | `SRC-LEANCLARITY` `policies/guidance.md` L10, first sentence **verbatim**; upstream in `i-have-adhd` SKILL L122 (rule-break 2) | **5 w, the whole sentence**: "confirm before a destructive effect" | **Reproduced expression** | DEFECT, see F1. A five-word functional instruction; the shortest reproduction here and the least material one |
+| C7 | "When work remains for the user, give one concrete next action." — `[RESP-007]` | `SRC-PRIOR` `policies/guidance.md` L7, **minus** its trailing clause "do not invent one after completion" and reordered into the conditional-positive form `[RESP-007]` states in v0.3; upstream in `i-have-adhd` SKILL L57-59 (Rule 3), minus its under-two-minutes cap | **6 w** vs the prior text: "when work remains for the user"; 4 w vs `i-have-adhd`: "one concrete next action" — **re-measured 2026-09-07** against `58494af` fetched at that revision, confirming the 4 that had previously been carried forward by derivation. The prior-text figure beside it was measured at the time the comparand still existed | Reproduced expression (intermediate) | DEFECT, see F1. The dropped clause is deliberate: the v0.2 amendment records it failing 6 of 6 across both hosts on the frozen candidate `1.0.2`, as a prohibition the upstream did not have. The reorder is the final-fix round: the shipped "only when work remains" entailed that same prohibition, so it was restated to match `[RESP-007]`. That took the run from 12 w to 6 w and the classification down one step — a consequence of changed text, not a reclassification of unchanged text |
+| C8 | "After repeated attempts fail for the same reason, stop iterating, name the assumption now in doubt, and ask for the smallest diagnostic evidence that would settle it." — `[TTAK-TRACK-008]` | `SRC-PRIOR` `policies/guidance.md` L11; upstream in `i-have-adhd` SKILL L123 ("If the last three turns have been 'still broken,' stop iterating on code. Name the assumption that might be wrong. Ask one diagnostic question") | 9 w vs the prior text: "after repeated attempts fail for the same reason stop"; 3 w vs `i-have-adhd`: "name the assumption" | Reproduced expression (intermediate) | DEFECT, see F1 |
+| C9 | "Confirm before a destructive effect." | `SRC-PRIOR` `policies/guidance.md` L10, first sentence **verbatim**; upstream in `i-have-adhd` SKILL L122 (rule-break 2) | **5 w, the whole sentence**: "confirm before a destructive effect" | **Reproduced expression** | DEFECT, see F1. A five-word functional instruction; the shortest reproduction here and the least material one |
 
 ---
 
@@ -276,10 +285,9 @@ re-deriving one. If Review material is carried in v1.1, this row becomes a deriv
 
 ## `README.md` and `README.ko.md`
 
-The measurement paragraphs restate published figures from `SRC-LEANCLARITY` — the null behaviour
-result, the failed behaviour gate, the composition figure and its correction — read at `7dfe5b2` in
-that project's `docs/evidence/LeanClarity_v1.0_GO_EVIDENCE.md` (L180-L205, L259, L554, L922) and its
-`README.md` (L120-L131). Figures are facts, not expression; the sentences carrying them here were
+The measurement paragraphs restate published figures from `SRC-PRIOR` — the null behaviour
+result, the failed behaviour gate, the composition figure and its correction — read from that project's GO
+evidence record (L180-L205, L259, L554, L922) and its `README.md` (L120-L131). Figures are facts, not expression; the sentences carrying them here were
 written for this file. The nearest overlap is the idea "none of these instruction sets is a guard",
 which TTAK states as "not a guard" — the same phrase already in `policy/precedence.md` (P2). No
 sentence is reproduced. Classification: independent re-expression. Verdict: OK.
@@ -288,30 +296,49 @@ sentence is reproduced. Classification: independent re-expression. Verdict: OK.
 
 ## Findings
 
-### F1 — `policy/invariants.md` and `policy/contract.md` reproduce the predecessor's policy files rather than deriving from the upstream `SKILL.md` files
+### F1 — the two-step chain, and what absorbing the intermediate settles
 
-**This is a normative conformance defect, not a licence violation.** It is the reason this file does
-not close `[AC-012]` by itself. **Ruled on in fix round 1: amend, do not rewrite** — the ruling, the
-two-step chain and the v0.3 requirement are recorded at the top of this file. What follows is the
-measurement the ruling rests on.
+**This was a normative conformance defect, not a licence violation.** v0.2 section 19.3 required
+policy text to be "derived from the upstream `SKILL.md` files directly, not from `SRC-PRIOR`'s
+policy files", with the stated purpose that "direct derivation makes the attribution chain one step
+instead of two." The design document repeats it at section 5.4. Measured, the shipped text did not
+meet it: `policy/invariants.md` aligns bullet-for-bullet, in the same order, with the prior plugin's
+`policies/engineering.md` — 8 of 8 — and `policy/contract.md` with its `policies/guidance.md` for 8
+of its 9. Per unit, the longest shared runs against that text reach **18, 15, 14, 13 and 9 words**.
 
-v0.2 section 19.3 states: "Policy text MUST be derived from the upstream `SKILL.md` files directly,
-not from `SRC-LEANCLARITY`'s policy files", with the stated purpose that "direct derivation makes the
-attribution chain one step instead of two." The design document repeats it at section 5.4.
+**What changed on 2026-09-07.** `SRC-PRIOR` is the author's own work and carries no third-party
+obligation, so it is no longer recorded as an attributed source. The *attribution* chain is
+therefore one step — TTAK from `SRC-PONYTAIL` and `SRC-IHAVEADHD` — which is what section 19.3 was
+written to achieve. The *writing* history is unchanged and stays on this page: the text was adapted
+from the author's own earlier policy files, not composed from the upstream `SKILL.md` files. Section
+19.3's literal wording describes a process that did not happen; its purpose is now met by a
+different route than the one it named.
 
-Measured, the shipped text does not meet that. `policy/invariants.md` aligns bullet-for-bullet, in
-the same order, with `SRC-LEANCLARITY` `policies/engineering.md` at `7dfe5b2` — 8 of 8 bullets — and
-`policy/contract.md` aligns with `policies/guidance.md` for 8 of its 9. **Per unit**, the longest
-shared runs against the predecessor reach **18, 15, 14, 13 and 9 words**. Against the upstream
-`SKILL.md` files the longest per-unit run anywhere in either file is **8 words**, and most are 2 to 4.
+**Re-measured 2026-09-07 against the sources that remain**, file-wide, same method, both upstreams
+fetched at their pinned revisions:
+
+| TTAK file | vs `SRC-PONYTAIL` | vs `SRC-IHAVEADHD` |
+|---|---|---|
+| `policy/precedence.md` | 2 w — "the user" | 3 w — "is not a" |
+| `policy/invariants.md` | **8 w** — "a branch a loop a parser a money" | 3 w — "does not need" |
+| `policy/contract.md` | 4 w — "give it in full" | 4 w — "multi step work one" |
+
+**The entire third-party exposure of the shipped policy is one 8-word functional enumeration.** That
+is I8, already classified as a reproduced expression and already recorded as F3. Everything else is
+2 to 4 words of ordinary English. Nothing here is a licence question any more.
+
+The figures below are the ones the fix-round-1 ruling rested on. They are kept because removing a
+measurement because its subject became inconvenient is the failure this file exists to prevent — but
+they measure a text that is not published, and once its repository is retired they will not be
+checkable by anyone. Read them as history, not as a live claim.
 
 **File-wide, measured the same way for all four shipped files** — the metric that counts a run
 continuing across a bullet boundary instead of truncating it there:
 
 | TTAK file | File-wide longest run | Against | Largest per-unit figure in its table |
 |---|---|---|---|
-| `policy/invariants.md` | **29 w** | `SRC-LEANCLARITY` `policies/engineering.md` | 18 w (I4) |
-| `policy/contract.md` | **9 w** | `SRC-LEANCLARITY` `policies/guidance.md` | 9 w (C8) |
+| `policy/invariants.md` | **29 w** | `SRC-PRIOR` `policies/engineering.md` | 18 w (I4) |
+| `policy/contract.md` | **9 w** | `SRC-PRIOR` `policies/guidance.md` | 9 w (C8) |
 | `policy/precedence.md` | 3 w | `SRC-IHAVEADHD` and `SRC-DREAMBIG-ELI5` `SKILL.md` | 3 w (P1, P2) |
 | `skills/ttak-explain/SKILL.md` | 3 w body, 4 w frontmatter | body `SRC-DREAMBIG-ELI5`; frontmatter `SRC-IHAVEADHD` and `SRC-PONYTAIL` `skills/ponytail-review/SKILL.md` | 4 w (E1) |
 
@@ -330,7 +357,7 @@ not to the project's method — but it is a 29-word defect, not an 18-word one.
 
 Consequences, separated:
 
-- **Licence.** None outstanding. `SRC-LEANCLARITY` is MIT at the pinned revision, its notice is
+- **Licence.** None outstanding. `SRC-PRIOR` is MIT at the pinned revision, its notice is
   reproduced verbatim in `ATTRIBUTIONS.md`, and the artifacts derived from it are named there. MIT's
   only condition on reproduction is the notice, and it is met. `[LIC-002]` and `[SRC-003]` are
   satisfied for this text.
@@ -345,14 +372,14 @@ record it, and reconcile the requirement in a v0.3 amendment; see the ruling at 
 for the reasoning. **That amendment landed on 2026-09-06**
 (`docs/TTAK_Plugin_Product_Definition_v0.3_AMENDMENT_EN.md` §1): section 19.3 now states direct
 derivation as a SHOULD, permits the two-step chain where it is recorded, and requires a unit
-originating with `SRC-LEANCLARITY` to be recorded as originating there. Nothing measured in this
+originating with `SRC-PRIOR` to be recorded as originating there. Nothing measured in this
 finding changed — the 29-word run is still the 29-word run. `[AC-012]` stays open on F4 and on the
 human review.
 
 ### F2 — Two shipped rules have no upstream `SKILL.md` source at all
 
 `policy/invariants.md` I2 (`[TTAK-TRIM-009]`, the analysis-only rule) and `policy/contract.md` C5
-(the verification-honesty clause) exist in `SRC-LEANCLARITY`'s policy files and in no upstream
+(the verification-honesty clause) exist in `SRC-PRIOR`'s policy files and in no upstream
 `SKILL.md` at either pinned revision. v0.2 section 5.1 describes `[TTAK-TRACK-008]` and
 `[TTAK-TRIM-009]` as "rules restored here that reached this source from `SRC-IHAVEADHD`". For
 `[TTAK-TRACK-008]` (C8) that is accurate: `i-have-adhd` SKILL L123 is the source. For
@@ -360,13 +387,11 @@ human review.
 analysis-only rule, and the nearest, L121, is about explanation length.
 
 **Confirmed against the predecessor's own decomposition**, which was written to answer exactly this
-question. `docs/evidence/LeanClarity_v1.0_UPSTREAM_DECOMPOSITION.md` at `7dfe5b2` marks both rules as
-having no upstream source at all:
+question. That record marks both rules as having no upstream source at all:
 
-- L84, row `E2` (the analysis-only rule, TTAK's I2): source recorded as
-  `원본 없음 — LeanClarity 신규` — "no original; new in LeanClarity".
-- L97, row `G7` (the verification-honesty clause, TTAK's C5): the same,
-  `원본 없음 — LeanClarity 신규`.
+- L84, row `E2` (the analysis-only rule, TTAK's I2): recorded as having no original, and as new in
+  that plugin.
+- L97, row `G7` (the verification-honesty clause, TTAK's C5): the same.
 
 So both rules originate with the predecessor and neither reaches TTAK from `SRC-IHAVEADHD`. v0.2
 section 5.1 over-attributes one of them upstream. **The controller has accepted this and the
@@ -406,7 +431,7 @@ and is escalated rather than decided here.
 | `[LIC-005]` complete third-party attribution file | Satisfied by `ATTRIBUTIONS.md` |
 | `[LIC-006]` no implied endorsement | Satisfied: attribution appears only in `ATTRIBUTIONS.md` and README prose, and no manifest names an upstream project (asserted by test) |
 | Section 19.3 direct derivation | **Reconciled**, not satisfied as originally written. The v0.3 amendment (applied 2026-09-06) made direct derivation a SHOULD and permits the recorded two-step chain these two files have. The measurement below is unchanged; what changed is the requirement |
-| Section 5.1 upstream attribution of `[TTAK-TRIM-009]` | **Corrected** in both language documents. Section 5.1 now records the rule as originating with `SRC-LEANCLARITY`, not reaching TTAK from `SRC-IHAVEADHD`, and says an earlier draft credited it upstream in error (F2) |
+| Section 5.1 upstream attribution of `[TTAK-TRIM-009]` | **Corrected** in both language documents. Section 5.1 now records the rule as originating with `SRC-PRIOR`, not reaching TTAK from `SRC-IHAVEADHD`, and says an earlier draft credited it upstream in error (F2) |
 | `[LIC-007]` final licence chosen after review | **Open** — the review has its input now; F1 is ruled, F4 is not |
 | `[LIC-008]` escalate unresolved interpretation | F4 escalated |
 | `[AC-012]` licence and attribution review closed | **Open** — the v0.3 amendment has landed, so what remains is a human ruling on F4 and the review this file feeds |
