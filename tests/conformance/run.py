@@ -258,16 +258,31 @@ def append_row(out_path, row):
 
 # --- execution -------------------------------------------------------------
 
+def capture(cmd, **kw):
+    """Run `cmd` and capture its output as UTF-8.
+
+    `text=True` on its own decodes with the OS locale codec -- cp949 on this
+    machine -- which raises UnicodeDecodeError on the first non-ASCII byte a
+    model emits. On Windows that exception is raised inside communicate()'s
+    reader thread, where it does not propagate: subprocess.run returns a clean
+    returncode with the stream dropped to None, so a trial that captured
+    nothing is recorded as a trial that ran. Measured 2026-09-07 on the first
+    real run: 30 of 32 rows came back exit 0 with no output and no error.
+    """
+    return subprocess.run(cmd, capture_output=True, text=True,
+                          encoding="utf-8", errors="replace", **kw)
+
+
 def capture_cli_version(host):
     exe = "claude" if host == "claude" else "codex"
     try:
-        proc = subprocess.run([exe, "--version"], capture_output=True, text=True, timeout=10)
+        proc = capture([exe, "--version"], timeout=10)
         return (proc.stdout or proc.stderr).strip()
     except Exception as e:  # only reached by a real run; --dry-run/--score/--selftest never call this
         return f"<unavailable: {e}>"
 
 
-def run_trial(host, arm, model, cli_version, skills, case, trial, timeout):
+def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout):
     # A neutral, empty cwd for every trial: the isolation flags stop the
     # operator's own settings/config leaking in, but the model's own repo
     # (this one) would leak a second way if either arm ran from ROOT — a
@@ -296,9 +311,14 @@ def run_trial(host, arm, model, cli_version, skills, case, trial, timeout):
         started = time.time()
         exit_code, stdout, stderr, error = None, "", "", None
         try:
-            proc = subprocess.run(cmd, cwd=str(cwd_dir), env=env, capture_output=True,
-                                   text=True, timeout=timeout)
+            proc = capture(cmd, cwd=str(cwd_dir), env=env, timeout=timeout)
             exit_code, stdout, stderr = proc.returncode, proc.stdout, proc.stderr
+            if stdout is None or stderr is None:
+                # A dropped stream is not a result. Never let it reach a row as
+                # an empty success a grader would read as a model that said
+                # nothing; see capture() for how this happens on Windows.
+                stdout, stderr = stdout or "", stderr or ""
+                error = "output capture failed: a captured stream was dropped"
         except subprocess.TimeoutExpired as e:
             stdout, stderr, error = e.stdout or "", e.stderr or "", f"timeout after {timeout}s"
         except OSError as e:
@@ -306,7 +326,7 @@ def run_trial(host, arm, model, cli_version, skills, case, trial, timeout):
 
     return {
         "case": case["id"], "ac": case["ac"], "trial": trial, "arm": arm, "host": host,
-        "model": model, "cli_version": cli_version, "skills": skills,
+        "model": model, "cli_version": cli_version, "plugin_skills": plugin_skills,
         "command": cmd, "exit_code": exit_code, "stdout": stdout, "stderr": stderr,
         "error": error, "duration_s": round(time.time() - started, 3),
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -343,14 +363,17 @@ def do_run(cases, host, arm, model, trials, out_path, timeout):
 
     existing = load_existing_keys(out_path)
     cli_version = capture_cli_version(host)
-    skills = ["ttak"] if arm == "with" else []
+    # What the runner adds on top of the host, which is the only part it
+    # controls. It is not the skill set the model saw: the first real run's
+    # transcript showed thirteen host-bundled skills present in both arms.
+    plugin_skills = ["ttak"] if arm == "with" else []
     ran, skipped = 0, 0
     for case in cases:
         for trial in range(1, trials + 1):
             if should_skip(case["id"], trial, arm, host, existing):
                 skipped += 1
                 continue
-            row = run_trial(host, arm, model, cli_version, skills, case, trial, timeout)
+            row = run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout)
             append_row(out_path, row)
             ran += 1
     print(f"ran {ran} trial(s), skipped {skipped} already-present row(s) -> {out_path}")
@@ -492,9 +515,12 @@ def print_report(report, hard, soft, ungraded):
 #
 # ponytail's runnable-check rule: non-trivial logic here is command
 # construction, schema validation, resumability and the gate, so each gets a
-# real assertion below rather than a promise in a comment. Pure-function only
-# -- no subprocess call anywhere in this function, so it never invokes
-# claude/codex and is safe to run any time.
+# real assertion below rather than a promise in a comment. It never invokes a
+# host CLI and never spends model budget, so it is safe to run any time. It is
+# no longer strictly pure: the last check spawns one short `python -c` to
+# exercise capture()'s decode, because the defect it guards against cost 30 of
+# 32 rows in the first real run and no assertion over flags could have caught
+# it -- the flags were right in the command, and the decode still failed.
 
 def _selftest():
     for host in ("claude", "codex"):
@@ -794,6 +820,18 @@ def _selftest():
         assert raised, "a corrupted REQUIRED must still raise AssertionError through main(), not be swallowed"
     finally:
         REQUIRED["claude"] = saved_claude_required
+
+    # The first real run, 2026-09-07, lost 30 of 32 rows to a locale decode:
+    # `text=True` picked cp949, the model emitted UTF-8, and the failure landed
+    # in a reader thread that dropped the stream and left a clean exit code
+    # behind. Prove the decode itself, through the same helper the trials use.
+    # The child writes bytes rather than text so it cannot be the child's own
+    # stdout codec that is being tested here.
+    probe = capture([sys.executable, "-c",
+                     "import sys; sys.stdout.buffer.write('— 정상'.encode('utf-8'))"],
+                    timeout=30)
+    assert probe.returncode == 0, f"capture() probe failed: {probe.stderr!r}"
+    assert probe.stdout == "— 정상", f"capture() must decode UTF-8, got {probe.stdout!r}"
 
     print("selftest OK")
     return True

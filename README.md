@@ -236,8 +236,10 @@ plugin data directory.
 **Does not claim.** Better output, higher correctness, fewer defects, faster work, or any benchmark
 result. Safe composition with other instruction sets — measured otherwise. That the behaviour gate it
 inherits passes — it does not, and it has not been re-run. **Cross-host conformance is genuinely
-unmeasured**: the runner exists but has never been pointed at a model, so nothing here is claimed
-about how the policy text changes a response. Activation reliability and context overhead *are*
+unmeasured**: the runner has now been pointed at a model once — Claude Code, 2026-09-07, sixteen
+cases in both arms, rows in `tests/conformance/runs/` — but every row of it is ungraded, so no
+conformance figure exists and nothing here is claimed about how the policy text changes a response.
+Codex has not been run at all. Activation reliability and context overhead *are*
 measured, on both live hosts, in the two documents linked above — but what they measure is the
 plumbing, not the output.
 

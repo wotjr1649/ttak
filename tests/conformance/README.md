@@ -3,10 +3,22 @@
 `claude plugin eval` is early-access gated on this account, verified by execution: it prints
 `` `plugin eval` is currently in early access `` before resolving a target. `run.py` replaces it.
 
-**Status.** Built and dry-run tested only. It has not been run against a real host — that is
-deliberate, not an oversight: building and validating the instrument does not require one, and no
-conformance figure exists yet. The repository's own `README.md`, in "What is measured", already
-states this: "Cross-host conformance ... measured on a live host: ... unmeasured for TTAK today."
+**Status.** First run against a real host: Claude Code `2.1.263`, 2026-09-07, one trial of all
+sixteen cases in both arms — 32 rows, all exit 0, `$1.19`, 588 seconds wall clock. Codex has not
+been run at all. The rows are in `runs/`, and the figures above are summed from them.
+
+**No conformance figure exists even so.** `run.py` writes `"pass": null` and grading is a separate
+pass that has not been run, so `--score` reports all 32 rows ungraded and every hard AC as
+`NOT ATTEMPTED`, which is `GATE: FAIL`. That is the instrument behaving as designed, not a verdict
+on TTAK.
+
+What the run did establish, by reading the host's own session transcript rather than by asking:
+the `with` arm's `SessionStart` hook fires under `claude -p --plugin-dir` and injects exactly
+2,977 bytes, and the `without` arm's transcript carries no hook and no injection at all. The arms
+differ by the injection. That had never been observed before this run.
+
+It also cost a paid run to surface two defects in this instrument, both now fixed and both recorded
+below, which is the argument for a cheap smoke pass before any full run.
 
 ## What it does
 
@@ -16,9 +28,10 @@ python run.py --host claude|codex --arm with|without --model <id> --trials N --o
 
 Runs every case in `cases.jsonl` for `--trials` trials, invoking the target host once per trial in an
 isolated, ephemeral session, and appends one JSONL row per `(case, trial, arm, host)` to `--out`. A
-row records the prompt, the constructed command, the model, the CLI version, the installed-skill set,
-the raw stdout/stderr, and a `"pass": null` placeholder — grading against the case's `criteria` and
-`forbidden` lists happens afterward (by a person or a separate LLM-judge pass), not inside this script.
+row records the prompt, the constructed command, the model, the CLI version, the plugin skills the
+arm adds, the raw stdout/stderr, and a `"pass": null` placeholder — grading against the case's
+`criteria` and `forbidden` lists happens afterward (by a person or a separate LLM-judge pass), not
+inside this script.
 `--score --out <file>` then aggregates a graded file into a gate verdict.
 
 Resumable: a `(case, trial, arm, host)` row already present in `--out` is skipped, so an interrupted
@@ -36,7 +49,24 @@ python run.py --selftest
 
 `--dry-run` prints the exact commands it would run and executes nothing — no subprocess is spawned.
 `--selftest` exercises the pure functions (command construction, `cases.jsonl` schema validation,
-resumability keys, the gate) with plain `assert`s and also invokes no CLI. Neither spends model budget.
+resumability keys, the gate) with plain `assert`s, plus one short `python -c` that proves the
+output-capture decode. Neither invokes a host CLI, and neither spends model budget.
+
+## What the first real run got wrong
+
+**The captured output was decoded with the OS locale codec.** `subprocess.run(..., text=True)` with
+no explicit `encoding` picks `cp949` on this machine. The first non-ASCII byte a model emitted
+raised `UnicodeDecodeError` inside `communicate()`'s reader thread, and on Windows that exception
+does not propagate: `subprocess.run` returned a clean `returncode` with the stream dropped to
+`None`, so the row was written as exit 0, no output, no error. **30 of 32 rows in the first attempt
+were recorded as successful runs of a model that said nothing.** `capture()` now decodes UTF-8
+explicitly, and a dropped stream is written to the row as an error instead of as an empty success.
+No assertion over the command's flags could have caught this — the flags were right and the decode
+still failed — so `--selftest` drives real bytes through the same helper the trials use.
+
+**The `with` arm does not load exactly one skill.** This file said it did, until the transcript was
+read. `--setting-sources ''` does keep the operator's own plugins out, and the arms do differ by
+exactly the injection; what it does not do is leave the model alone with TTAK. See below.
 
 ## Isolation, and why it is not optional
 
@@ -211,12 +241,22 @@ without one is not evidence of anything.
 
 ## Installed-skill set
 
-**A real run of the `with` arm loads exactly one skill: `ttak`** (`run.py` records this per row in the
-`"skills"` field, and it is what `--plugin-dir <repo root>` with no other `--plugin-dir` loads). Any
-figure this instrument produces about *routing* — whether the model chooses to invoke the explainer
-skill unprompted — is measured where TTAK is the only installed skill, and an only-installed skill
-cannot fail to be routed to; such a figure proves nothing about routing accuracy in a realistic
-environment with other skills competing for the same trigger words. This is `OPEN-06` in
+**The `with` arm loads one *plugin* skill and fourteen skills in total.** Measured 2026-09-07 from
+the session transcript's own `skill_listing`, at Claude Code `2.1.263`: both arms carry thirteen
+skills the host itself bundles — `dataviz`, `update-config`, `keybindings-help`, `code-review`,
+`simplify`, `fewer-permission-prompts`, `loop`, `schedule`, `claude-api`, `workflow-authoring`,
+`run`, `init`, `security-review` — and the `with` arm's listing is those thirteen plus
+`ttak:ttak-explain`. The thirteen are identical across arms, so they cancel in the paired
+comparison the gate is scored on. Identical is not absent: `simplify` is a same-domain neighbour of
+the `[AC-004]` cases, and any absolute figure this instrument prints is a figure measured beside it.
+`run.py`'s per-row field is `plugin_skills`, named for what it actually holds — what the runner adds
+on top of the host — because it was previously named `skills` and read as the environment.
+
+Any figure this instrument produces about *routing* — whether the model chooses to invoke the
+explainer unprompted — is measured against those thirteen and nothing else. None of them is an
+audience-adaptive explainer, so the competition for the explainer's own trigger words is close to
+absent and such a figure would still say little about routing in a realistic environment. This is
+`OPEN-06` in
 `docs/superpowers/specs/2026-09-04-ttak-design.md`. None of the sixteen cases above are routing
 cases — they send prompts and score the response's content and tone, not which skill answered — so
 this instrument does not currently produce a routing figure at all. A future routing-focused case
