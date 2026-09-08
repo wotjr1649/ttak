@@ -24,6 +24,23 @@ test('requires initialization and ignores mutating notifications', () => {
   assert.equal(dispatch(init).error.code, -32602);
 });
 
+test('malformed initialization cannot advance the connection state', () => {
+  const invalid = [
+    { ...init.params, capabilities: true },
+    { ...init.params, capabilities: [] },
+    { ...init.params, clientInfo: [] },
+    { ...init.params, clientInfo: { name: 'test' } },
+    { ...init.params, clientInfo: { name: 42, version: '1' } },
+  ];
+  for (const params of invalid) {
+    const dispatch = createDispatcher();
+    assert.equal(dispatch(request(1, 'initialize', params)).error?.code, -32602);
+    dispatch(notification);
+    assert.equal(dispatch(request(2, 'tools/list')).error.code, -32002);
+    assert.equal(dispatch(init).result.protocolVersion, '2025-11-25');
+  }
+});
+
 test('keeps an unfinished review intact and rejects stale review IDs', () => {
   const dispatch = createDispatcher(); dispatch(init); dispatch(notification);
   const first = dispatch(call(2, 'review_start', { draft: 'One.\n\nTwo.' })).result.structuredContent;

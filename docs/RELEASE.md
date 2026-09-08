@@ -440,6 +440,15 @@ process check found no remaining adapter process carrying the test marker. Nativ
 permission is required before continuing this integration test. Evidence is under
 `.superpowers/native-review-transport-40/`; shipped skill/hook behavior remains unchanged.
 
+While the diagnostic-40 permission request remains unanswered, an independent local review found
+that truthy but malformed clientInfo/capabilities values could advance initialization. A regression
+test reproduced acceptance of capabilities=true; the adapter now requires object-shaped capabilities
+and clientInfo with string name/version before changing connection state. Invalid initialization
+leaves the connection uninitialized and allows a later valid handshake. All eleven adapter/session
+tests pass, including the real stdio exchange. No native model or denied tool call was repeated.
+The tighter validation changes the adapter hash; the revised proposed follow-up is recorded in
+`.superpowers/native-review-transport-40/proposed-followup-v2.json`, with the same two-tool scope.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least

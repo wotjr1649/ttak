@@ -28,8 +28,11 @@ const tools = [
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false } },
 ];
 
+function record(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
 function fields(value, names) {
-  return value !== null && typeof value === 'object' && !Array.isArray(value) &&
+  return record(value) &&
     Object.keys(value).length === names.length && names.every(k => Object.hasOwn(value, k));
 }
 const failure = (id, code, message) => ({ jsonrpc: '2.0', id, error: { code, message } });
@@ -63,8 +66,10 @@ function createDispatcher() {
     const respond = result => ({ jsonrpc: '2.0', id, result });
     if (request.method === 'ping') return respond({});
     if (request.method === 'initialize') {
-      if (initialized || typeof request.params?.protocolVersion !== 'string' ||
-          !request.params.clientInfo || !request.params.capabilities) {
+      const params = request.params;
+      if (initialized || !record(params) || typeof params.protocolVersion !== 'string' ||
+          !record(params.capabilities) || !record(params.clientInfo) ||
+          typeof params.clientInfo.name !== 'string' || typeof params.clientInfo.version !== 'string') {
         return failure(id, -32602, 'Invalid initialization');
       }
       initialized = true;
