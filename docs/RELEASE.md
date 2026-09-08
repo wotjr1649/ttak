@@ -126,6 +126,22 @@ explanation-specific verification next. Do not repeat this OFF experiment to see
 sample or score it as a release condition. The plan, native evidence, outputs and restored state
 are in `.superpowers/explanation-policy-diagnostic-11/`; both controls used zero model tokens.
 
+Snapshot 12 tested an explicit evidence-first explanation workflow: check implementation/mode
+claims against supplied material or permitted primary sources, and describe verification limits
+when those sources are unavailable. Two Claude expert trials received that exact revised body
+and the ON common policy at Sonnet 5/medium. Neither response cited a checked source or followed
+the fallback; repetition 2 repeated the lock/re-read error and mixed ordinary SI with SSI conflict
+tracking. Native delivery and the thirteen local release tests passed, but explanation behavior
+did not. No neighbor trial or Codex trial was run for this failed revision.
+
+The change was rejected. Main and task-local Claude skill bytes were restored exactly to snapshot
+10, including its preparation hash; the profile remains ON and Codex preparation was untouched.
+All nineteen snapshot-12 inputs, two responses and native evidence are archived, with findings in
+`pilot-findings.json`. Snapshot 12 is historical failed evidence, not the current frozen input.
+Do not repeat instruction-only source-check wording in the same source-unavailable environment.
+The next diagnostic must test an actual evidence path while retaining the existing comparison
+history and qualification gate; a source-supplied diagnostic alone cannot clear the original cases.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -168,9 +184,10 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject and grading records now total **595 calls**: Claude 254 subject/activation + 66
-grades = 320; Codex 211 subject/activation + 64 grades = 275. This includes four calls from the
-policy-OFF diagnostic as well as failed and superseded trials. Control calls are separate: the two
+Saved subject and grading records now total **599 calls**: Claude 258 subject/activation + 66
+grades = 324; Codex 211 subject/activation + 64 grades = 275. This includes four calls from the
+policy-OFF diagnostic and four from the rejected snapshot-12 pilot, along with other failed and
+superseded trials. Control calls are separate: the two
 earlier Codex calls (status consumed model tokens, enabling consumed none) and the two zero-token
 Claude OFF/ON diagnostic controls. No historical grading calls remain. Snapshot 10 has 14 of 64 candidate
 trials; collecting its other 50 candidate trials would require 94 calls before grading. That is
