@@ -11,6 +11,7 @@ from prepare import freeze, plan, source_records, verify_freeze
 from collect import activation_prompts, activation_skills, command, parse, selected_plugins
 from verify_project import verify
 from codex_profile import MARKETPLACE, NAMES, selection_edits
+from test_review_units import ReviewUnitTests
 
 ROOT = Path(__file__).resolve().parent
 

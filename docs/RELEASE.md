@@ -183,6 +183,23 @@ Next implementation should cover the whole draft with deterministic text units a
 review IDs; model selection of important claims left a demonstrated gap. Mechanical coverage will
 still not prove semantic correctness, source completeness or absence of other errors.
 
+That coverage check is now implemented as the offline prototype
+`tests/release/review_units.py`. It preserves original text spans, requires exactly one review
+per nonblank text unit, and rejects missing/duplicate/unknown IDs, invalid assessments, quotes
+outside their assigned unit, duplicate JSON keys and trailing prose. Input size and unit count
+are bounded. It performs no file/network access or code execution and explicitly returns
+`factual_correctness_verified: false` even when structural coverage passes. Eight adversarial
+tests cover these boundaries; the standard release test command now runs all 21 tests successfully.
+
+Diagnostic 16 supplied all units of the same two public drafts to independent Sonnet 5/medium
+review: 13 units and 12 units. Both responses passed strict coverage and quote validation, with
+native model/effort and exact prompt delivery verified. Each identified the target locking/re-read
+contradiction, including the sentence omitted in diagnostic 15. All 25 units were accounted for;
+this is not proof that every claim inside them was evaluated correctly. Evidence and exact
+prototype source snapshots are in `.superpowers/coverage-review-diagnostic-16/`.
+No original release score or installed plugin changed. This prototype still needs a validated
+correction path and native integration before it can support product claims.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -192,8 +209,8 @@ from the mismatch between the response's lookup advice and the frozen task's con
 ## Local and native verification
 
 Previously observed: 72 existing plugin tests passed without skips; the current release suite
-passes thirteen tests, including independent functional-oracle negatives and original-plugin
-selection validation. Historical conformance runner and guard-checker selftests passed.
+passes 21 tests, including independent functional-oracle negatives, original-plugin selection
+validation and eight review-coverage checks. Historical conformance runner and guard-checker selftests passed.
 Claude accepted the manifests, but its directory validator reported no skill contents; that
 result is not skill validation. Bundled skill/plugin validators remain unrun because their
 Python environment lacks PyYAML. No global dependency was installed to satisfy them.
@@ -225,8 +242,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **608 calls**: Claude has 262 subject/activation
-calls, 66 grades and three review/repair diagnostic calls (331 total); Codex has 211 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **610 calls**: Claude has 262 subject/activation
+calls, 66 grades and five review/repair/coverage diagnostic calls (333 total); Codex has 211 subject/activation calls, 64 grades and two
 claim-verification calls (277 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
