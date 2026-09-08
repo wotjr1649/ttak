@@ -8,6 +8,13 @@ const fields = (value, names) => value !== null && typeof value === 'object' &&
   names.every(name => Object.hasOwn(value, name));
 const keyFor = (id, quote) => JSON.stringify([id, quote]);
 const overlaps = (a, b) => a.start < b.end && b.start < a.end;
+function wellFormed(text) {
+  for (const character of text) {
+    const code = character.charCodeAt(0);
+    if (character.length === 1 && code >= 0xd800 && code <= 0xdfff) return false;
+  }
+  return true;
+}
 
 function applyPatches(draft, review, patches) {
   const session = new ReviewSession(draft);
@@ -35,6 +42,7 @@ function applyPatches(draft, review, patches) {
     const unitStart = draft.indexOf(unit.text, cursor);
     cursor = unitStart + unit.text.length;
     for (const issue of checked[i].issues) {
+      if (!wellFormed(issue.quote)) throw new Error('invalid_issue');
       const offset = unit.text.indexOf(issue.quote);
       // Search one character later, so overlapping occurrences (aa in aaa) are ambiguous too.
       const unique = unit.text.indexOf(issue.quote, offset + 1) < 0;
@@ -68,7 +76,9 @@ function applyPatches(draft, review, patches) {
         !Object.values(patch).every(value => typeof value === 'string')) throw new Error('invalid_patch');
     const key = keyFor(patch.unit_id, patch.quote);
     if (!eligible.has(key) || seen.has(key)) throw new Error('unreviewed_patch');
-    if (!patch.replacement.trim() || patch.replacement === patch.quote) throw new Error('invalid_replacement');
+    if (!patch.replacement.trim() || patch.replacement === patch.quote || !wellFormed(patch.replacement)) {
+      throw new Error('invalid_replacement');
+    }
     replacementSize += patch.replacement.length;
     if (replacementSize > MAX_CHARS) throw new Error('corrected_draft_too_large');
     seen.add(key);

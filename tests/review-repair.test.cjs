@@ -8,6 +8,21 @@ const issue = (quote, kind = 'contradicted') => ({ quote, kind, reason: 'Fixture
 const row = (id, ...issues) => ({ id, assessment: 'needs_review', issues });
 const patch = (unit_id, quote, replacement) => ({ unit_id, quote, replacement });
 
+test('rejects a quote that cuts a Unicode surrogate pair', () => {
+  for (const quote of ['\ud83d', '\ude00']) {
+    const review = { units: [row('U001', issue(quote))] };
+    assert.throws(() => applyPatches('😀', review, [patch('U001', quote, 'x')]), /invalid_issue/);
+  }
+});
+
+test('rejects malformed replacement text while accepting a complete emoji', () => {
+  const review = { units: [row('U001', issue('x'))] };
+  for (const replacement of ['\ud83d', '\ude00', 'a\ud83db']) {
+    assert.throws(() => applyPatches('x', review, [patch('U001', 'x', replacement)]), /invalid_replacement/);
+  }
+  assert.equal(applyPatches('x', review, [patch('U001', 'x', '😀')]).text, '😀');
+});
+
 test('preserves every untouched Unicode character and line ending with unordered input', () => {
   const draft = '\r\n  한글 😀\r\n\t\r\nSame.\r\n\r\nSame.\r\n';
   const review = { units: [row('U003', issue('Same.')), row('U001', issue('😀')), clear('U002')] };

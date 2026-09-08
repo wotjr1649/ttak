@@ -547,6 +547,15 @@ smoke is prepared at `.superpowers/manual-review-repair-check.py`, with hashes f
 runtime modules, a 120-second timeout, no retry and no persistent permission change. Its syntax
 was checked without running it. Native diagnostic 45 has not run; no additional usage is counted.
 
+While the three-tool native permission request remains pending, local boundary review reproduced
+two Unicode corruption cases: a quote containing only half of an emoji's surrogate pair was
+accepted as a repair location, and an unpaired surrogate was accepted as replacement text.
+Two regression tests failed before the fix. Repair now rejects malformed quote/replacement text
+while accepting a complete emoji; it does not normalize or rewrite unrelated source text.
+All twenty-two Node session/adapter/repair tests pass. The prepared manual smoke's repair-module
+hash was updated after review; its three-tool scope, one-call bound and unexecuted status remain
+unchanged. This adds no model calls and does not resolve the pending native permission or quality gate.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
