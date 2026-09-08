@@ -314,11 +314,29 @@ one review calls a seven-line function six lines, and the child explanations sti
 and audience assessment. Four calls and native evidence are retained under
 `.superpowers/automatic-routing-diagnostic-26/`.
 
+Diagnostic 27 checks whether the existing Codex collector environment can exercise implicit
+selection. One unchanged child explanation task ran at native Luna/high without activation.
+The answer announced use of the explanation skill, but the transcript contains only three tool
+metadata searches for a file/skill reader, no file read, and no delivered skill body. This is
+not a routing pass. The collector disables shell tools; no usable reader was found in this
+restricted condition. Do not repeat it or infer a general Codex product failure. A normal
+permitted read path is needed to test native implicit selection. No security controls were
+changed and no alternate read route was attempted in this probe. The one-call record and audit
+are in `.superpowers/codex-routing-probe-27/`. The distinction agrees with the
+[official skills documentation](https://learn.chatgpt.com/docs/build-skills): metadata supports
+selection, while actual use loads the full SKILL.md. A self-reported skill choice is insufficient.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
 24 hours, not a universal exact expiration. The idempotency finding above also follows directly
 from the mismatch between the response's lookup advice and the frozen task's conflict requirement.
+
+Current candidate provenance measurements now cover all five instruction files against the four
+hash-verified vendored upstream skills. `tests/release/provenance.py` emits reproducible counts,
+hashes and offsets; an independent dynamic-programming check verified all 20 comparisons.
+See [the current inventory measurement](COPIED_TEXT_INVENTORY.md#current-candidate-file-wide-measurement).
+This adds no model calls and is not license clearance or an extension of the earlier human ruling.
 
 ## Local and native verification
 
@@ -357,9 +375,9 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **632 calls**: Claude has 274 subject/activation
-calls, 66 grades and fifteen review/repair/source diagnostic calls (355 total); Codex has 211 subject/activation calls, 64 grades and two
-claim-verification calls (277 total).
+Saved subject, grading and diagnostic records now total **633 calls**: Claude has 274 subject/activation
+calls, 66 grades and fifteen review/repair/source diagnostic calls (355 total); Codex has 212 subject/activation calls, 64 grades and two
+claim-verification calls (278 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
 earlier Codex calls (status consumed model tokens, enabling consumed none) and the two zero-token
@@ -373,8 +391,8 @@ percentage, money conversion or fixed calls-to-release promise follows from thes
 The September 8 usage briefing bounds the next development/verification segment at 596
 additional CLI calls from the 620-call checkpoint: at most 80 for diagnosis and affected-case
 retesting, followed by one 516-call complete comparison only after the known defects are
-resolved. Diagnostics 24-26 used twelve of the 80, leaving at most 68 diagnostic/retest calls and
-516 final-comparison calls (584 total) in this segment. This is an operational ceiling, not
+resolved. Diagnostics 24-27 used thirteen of the 80, leaving at most 67 diagnostic/retest calls and
+516 final-comparison calls (583 total) in this segment. This is an operational ceiling, not
 a promise of qualification within it. Main development conversation and separately identified
 control/setup requests are outside these CLI counts. Stop for a usage reset when the native
 subscription limit is reached; do not enable credits, API billing fallback or substitute models.
