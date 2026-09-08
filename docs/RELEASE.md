@@ -371,6 +371,35 @@ and all four saved native results pass the new validator without more model call
 coverage, bounded correction/recheck and native product integration remain required. None of
 this prototype has been installed as a product verification guarantee.
 
+Diagnostic 33 completed the remaining twelve assigned-unit calls from diagnostic 32. The four
+original results were reused only after exact prompt and result-hash checks. All sixteen original
+units now have structurally valid reviews; U007/U013/U014 are flagged. Native evidence confirms
+twelve new distinct Sonnet 5/medium sessions and exact structured outputs. U007's reason itself
+incorrectly endorses Oracle SERIALIZABLE as the default; the
+[Oracle Database Concepts documentation](https://docs.oracle.com/en/database/oracle/oracle-database/21/cncpt/data-concurrency-and-consistency.html)
+states READ COMMITTED is the default. Review reasons are therefore evidence to check, not authority.
+
+Diagnostic 34 proposed three bounded patches in one native call. The existing patch checker and
+an independent string-replacement reconstruction verify that all text outside the error quotes
+is preserved. Diagnostic 35 rechecked the three changed units with fresh assigned-unit calls:
+U013/U014 had no findings, while U007 still wrongly called Oracle SERIALIZABLE the default.
+Diagnostic 36 replaced that remaining quote in one call; diagnostic 37's one fresh U007 review
+reported no remaining issue. All six repair/recheck calls have exact input, native model/effort
+and structured-output audits. No model-produced SQL was executed.
+
+The original sixteen-unit review plus the two patch calls and four changed-unit rechecks cost
+22 native calls and 299.6 seconds summed CLI elapsed time for this one previously faulty draft.
+Eighteen calls were added after diagnostic 32. This is an incremental diagnostic: unchanged units
+retain their original-context reviews, not new reviews against the final context. The locking
+failure explanation describes the illustrated committed concurrent update; an aborted updater
+is not separately explained, and the SQL sketch relies on the application's invariant check
+described in prose. No blanket factual or release pass follows from cleared recorded findings.
+The final text, preservation proof, usage and limitations are recorded in
+`.superpowers/remaining-claim-recheck-37/workflow-findings.json`, with source records in
+diagnostics 33-37. Product skills and hooks remain unchanged. This prototype is an architecture
+option, not a newly imposed release requirement; source reuse and native integration still need
+assessment against the original four-capability comparison criteria.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -420,8 +449,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **644 calls**: Claude has 278 subject/activation
-calls, 66 grades and twenty-two review/repair/source diagnostic calls (366 total); Codex has 212 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **662 calls**: Claude has 278 subject/activation
+calls, 66 grades and forty review/repair/source diagnostic calls (384 total); Codex has 212 subject/activation calls, 64 grades and two
 claim-verification calls (278 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
@@ -436,8 +465,8 @@ percentage, money conversion or fixed calls-to-release promise follows from thes
 The September 8 usage briefing bounds the next development/verification segment at 596
 additional CLI calls from the 620-call checkpoint: at most 80 for diagnosis and affected-case
 retesting, followed by one 516-call complete comparison only after the known defects are
-resolved. Diagnostics 24-32 used twenty-four of the 80 (28 was offline), leaving at most 56 diagnostic/retest calls and
-516 final-comparison calls (572 total) in this segment. This is an operational ceiling, not
+resolved. Diagnostics 24-37 used forty-two of the 80 (28 was offline), leaving at most 38 diagnostic/retest calls and
+516 final-comparison calls (554 total) in this segment. This is an operational ceiling, not
 a promise of qualification within it. Main development conversation and separately identified
 control/setup requests are outside these CLI counts. Stop for a usage reset when the native
 subscription limit is reached; do not enable credits, API billing fallback or substitute models.
