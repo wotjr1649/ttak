@@ -237,6 +237,23 @@ notes, expected error quotes or model-generated repair were supplied. Evidence i
 review/repair path, but does not prove external factual accuracy or qualify either answer.
 Two diagnostic reviews do not replace repeated native integration and full comparative coverage.
 
+Diagnostic 20 applied bounded repair and full-unit re-review to the first original draft without
+reference notes. The proposed replacement asserted a special locking-read exception that fetches
+the latest committed value. It passed the edit-scope check, but the subsequent review flagged the
+new assertion as `not_established` for the stated snapshot-isolation context. All thirteen units
+were covered; both calls have native Sonnet 5/medium and exact input evidence. Final state is
+`needs_evidence`, not a verified correction. Evidence is in
+`.superpowers/unassisted-repair-diagnostic-20/`. Do not repeat ungrounded repair loops or integrate
+this path as automatic answer improvement. Engine/mode-dependent guarantees need actual
+authoritative evidence; a self-consistent invented exception is insufficient.
+
+Read-only capability research confirmed that Claude Code documents WebFetch and domain-scoped
+permissions ([tools](https://code.claude.com/docs/en/tools-reference),
+[permissions](https://code.claude.com/docs/en/permissions)); installed CLI help also lists tool
+selection controls. No native WebFetch call, permission change or integration was performed.
+Any actual retrieval experiment must preserve host controls, subscription-only execution and
+reviewed public payloads, and must be distinguished from the existing tool-limited comparison.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -280,8 +297,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **616 calls**: Claude has 262 subject/activation
-calls, 66 grades and eleven review/repair/coverage diagnostic calls (339 total); Codex has 211 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **618 calls**: Claude has 262 subject/activation
+calls, 66 grades and thirteen review/repair/coverage diagnostic calls (341 total); Codex has 211 subject/activation calls, 64 grades and two
 claim-verification calls (277 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
