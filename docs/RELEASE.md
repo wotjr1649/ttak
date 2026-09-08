@@ -207,8 +207,9 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **605 calls**: Claude 262 subject/activation
-+ 66 grades = 328; Codex 211 subject/activation + 64 grades + two claim-verification calls = 277.
+Saved subject, grading and diagnostic records now total **605 calls**: Claude has 262 subject/activation
+calls and 66 grades (328 total); Codex has 211 subject/activation calls, 64 grades and two
+claim-verification calls (277 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
 earlier Codex calls (status consumed model tokens, enabling consumed none) and the two zero-token
