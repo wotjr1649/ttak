@@ -421,6 +421,25 @@ actual diagnostic-33 records preserves every unit and finding, as recorded under
 `.superpowers/review-session-replay-39/`. The module performs no I/O or model calls and explicitly
 does not certify factual correctness. No hook, MCP registration or native workflow was activated.
 
+`scripts/review-mcp.cjs` adds a local stdio adapter for the sequencing module, using the
+[MCP stdio transport](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)
+and tools lifecycle. It exposes only review_start and review_submit, keeps one in-memory review,
+and accepts no paths, commands or URLs. Drafts are not saved or executed. Request frames are
+bounded; malformed/invalid UTF-8 and incomplete messages return fixed errors without echoing
+input. Initialization, stale review IDs, unfinished-review preservation and a real Unicode stdio
+exchange pass four new tests; together with the sequencing module, all ten Node tests pass with
+`--test-concurrency=1`. No package dependency, network listener or persistent registration was added.
+
+Diagnostic 40 launched the adapter through a CLI-local MCP configuration in the isolated Claude
+judge profile. The configuration explicitly clears authentication environment keys for the child.
+The native Sonnet 5/medium transcript confirms tool discovery and the exact two-heading smoke
+test draft, but the first review_start call was denied by Claude's tool permission check.
+The one model call is retained; no backend review or successful host workflow is claimed.
+No allow rule, alternate invocation or retry was used after the denial. The CLI finished and a
+process check found no remaining adapter process carrying the test marker. Native tool-call
+permission is required before continuing this integration test. Evidence is under
+`.superpowers/native-review-transport-40/`; shipped skill/hook behavior remains unchanged.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -470,8 +489,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **666 calls**: Claude has 282 subject/activation
-calls, 66 grades and forty review/repair/source diagnostic calls (388 total); Codex has 212 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **667 calls**: Claude has 282 subject/activation
+calls, 66 grades and forty-one review/repair/source diagnostic calls (389 total); Codex has 212 subject/activation calls, 64 grades and two
 claim-verification calls (278 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
@@ -486,8 +505,8 @@ percentage, money conversion or fixed calls-to-release promise follows from thes
 The September 8 usage briefing bounds the next development/verification segment at 596
 additional CLI calls from the 620-call checkpoint: at most 80 for diagnosis and affected-case
 retesting, followed by one 516-call complete comparison only after the known defects are
-resolved. Diagnostics 24-39 used forty-six of the 80 (28 and 39 were offline), leaving at most 34 diagnostic/retest calls and
-516 final-comparison calls (550 total) in this segment. This is an operational ceiling, not
+resolved. Diagnostics 24-40 used forty-seven of the 80 (28 and 39 were offline), leaving at most 33 diagnostic/retest calls and
+516 final-comparison calls (549 total) in this segment. This is an operational ceiling, not
 a promise of qualification within it. Main development conversation and separately identified
 control/setup requests are outside these CLI counts. Stop for a usage reset when the native
 subscription limit is reached; do not enable credits, API billing fallback or substitute models.
