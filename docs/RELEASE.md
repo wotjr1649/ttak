@@ -86,6 +86,21 @@ The latest 14 responses were manually read; four findings and exact result hashe
 in `.superpowers/release-run-10/manual-review.json`. Its 19 frozen inputs are archived under
 `inputs/`. No latest-pilot blind grade or blanket factual pass is claimed.
 
+A subsequent bounded diagnostic isolated the common policy from the explanation skill. In the
+task-local Claude profile, normal native controls switched TTAK OFF, two fresh expert conversations
+loaded the unchanged explanation skill, and normal control restored ON. Native transcripts confirm
+Sonnet 5/medium, the explanation body present, and all three common policy bodies absent. Both
+responses still assert a post-commit re-read without the required mode/retry qualification.
+One additionally applies FOR UPDATE to COUNT aggregation, which PostgreSQL 18 does not allow.
+See [the SELECT locking clause](https://www.postgresql.org/docs/18/sql-select.html#SQL-FOR-UPDATE-SHARE).
+No database execution is claimed for that source check.
+
+This disproves common policy as a necessary cause of this observed error; two samples do not
+measure its effect size or exclude an interaction. Keep the common policy and diagnose
+explanation-specific verification next. Do not repeat this OFF experiment to seek a favorable
+sample or score it as a release condition. The plan, native evidence, outputs and restored state
+are in `.superpowers/explanation-policy-diagnostic-11/`; both controls used zero model tokens.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -128,10 +143,11 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject and grading records now total **591 calls**: Claude 250 subject/activation + 66
-grades = 316; Codex 211 subject/activation + 64 grades = 275. Failed and superseded trials remain
-included. Two Codex setup/control calls are separate: status consumed model tokens; enabling
-TTAK consumed none. No historical grading calls remain. Snapshot 10 has 14 of 64 candidate
+Saved subject and grading records now total **595 calls**: Claude 254 subject/activation + 66
+grades = 320; Codex 211 subject/activation + 64 grades = 275. This includes four calls from the
+policy-OFF diagnostic as well as failed and superseded trials. Control calls are separate: the two
+earlier Codex calls (status consumed model tokens, enabling consumed none) and the two zero-token
+Claude OFF/ON diagnostic controls. No historical grading calls remain. Snapshot 10 has 14 of 64 candidate
 trials; collecting its other 50 candidate trials would require 94 calls before grading. That is
 an inventory, not a decision to rerun all of them: establish valid evidence reuse and resolve
 the known explanation findings first. Further diagnosis and changed-input retesting are
