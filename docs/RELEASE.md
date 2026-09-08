@@ -26,11 +26,13 @@ passed its hard checks, with no material regression identified by that grader. B
 coverage, independent grading and the release gate remain incomplete. Runtime verification flags
 in the raw collector records remain pending; do not infer qualification from collection success.
 
-Snapshot 06 contains 27 collected Claude trials: all three conditions of mixed-safe-progress
-with corrected activation, and all four development scenarios in three conditions and two
-repetitions. Native transcript inspection found the intended policy/skill bodies and Sonnet 5
-assistant messages. Neither progress treatment received a review skill body. Actual effort
-verification, development quality grading and cross-model grading remain pending.
+Snapshot 06 contains 69 collected Claude trials: all three conditions of mixed-safe-progress
+with corrected activation, and all development, review and explanation scenarios in three
+conditions and two repetitions. Native transcript inspection found the intended policy/skill
+bodies and Sonnet 5 assistant messages. Neither progress treatment received a review skill body.
+For all 66 development/review/explanation trials, native `assistant.effort` metadata also confirms
+medium effort. Separate evidence files supplement the unchanged raw collector records; successful
+collection alone still does not qualify a trial. Cross-model grading remains pending.
 
 All 24 development artifacts were reviewed before execution and passed their task-specific
 functional checks: normalization, CSV round-trip, bounded exception retry, and cleanup-plan
@@ -39,6 +41,20 @@ without new imports or external effects. The six normalization artifacts have id
 hashes. Baseline and original conditions also passed every functional check: no functional
 accuracy advantage for TTAK was observed in these fixtures. These results do not establish
 general bug reduction, automatic repository editing quality, or comparative explanation quality.
+
+Eight blinded Sonnet 5 development grades passed every hard criterion. Most quality ratings are
+full; preserve two rubric-consistency questions for independent review: nearly identical skipped
+backoff notes receive different treatment across repetitions, and one cleanup grade penalizes
+list aliasing under a criterion about independent preview/confirmation behavior. No material
+development regression was identified by this grader. These are single-grader observations.
+
+Manual review of the new review responses found an unsupported TTAK claim in
+`claude.review-needed-layer.ttak.1`: it states that 13 of the 14 plugins are v1, although no v1
+count was supplied. The compatibility recommendation is correct; that invented count is not.
+This defect remains unresolved. Original `claude.review-already-small.original.2` proposes a
+separate `any()` validation pass followed by `sum()`. A local reproduction with `iter([1, 2])`
+returns 0 instead of the supplied implementation's 3 because validation exhausts the iterator.
+Both observations are retained; review/explanation comparative grading is still pending.
 
 One blinded Sonnet 5 grading of the corrected mixed-progress comparison passed all hard criteria
 for all conditions. It identified the original's refusal to explain the supplied plan as a
@@ -110,7 +126,7 @@ protocol below are frozen per snapshot; this changing checkpoint is not an exper
 The current full comparison budget is 388 subject CLI turns (264 task turns and 124 skill
 activation turns), plus 128 planned grading turns: 516 total, split equally between the hosts.
 This excludes development conversation, setup probes and defect-driven reruns. Saved pilot and
-grading records currently account for 75 Claude CLI turns, including the failed candidate attempt
+grading records currently account for 153 Claude CLI turns, including the failed candidate attempt
 and superseded comparison routing.
 CLI turns are not subscription quota units; native internal calls and cache accounting vary.
 
