@@ -326,6 +326,27 @@ are in `.superpowers/codex-routing-probe-27/`. The distinction agrees with the
 [official skills documentation](https://learn.chatgpt.com/docs/build-skills): metadata supports
 selection, while actual use loads the full SKILL.md. A self-reported skill choice is insufficient.
 
+Diagnostic 29 tested a distinct execution path: the explanation skill drafts, then invokes a
+separate task-local `ttak-explain-check` skill with the original request and full draft. Both
+unchanged expert tasks invoked that stage, loaded its exact body and retrieved official PostgreSQL
+documentation at Sonnet 5/medium. Both final answers give SSI and retry/overhead and omit the
+earlier aggregate-lock and refreshed-count claims. However, the drafts already selected SSI;
+this did not demonstrate correction of the known failure. Unrequested review prefaces and missing
+direct citation links remained. Four calls and native stage evidence are retained under
+`.superpowers/staged-explanation-diagnostic-29/`.
+
+Diagnostic 30 then supplied the unchanged faulty diagnostic-25 draft, without fault hints, directly
+to the same checker in two fresh native sessions. Both sessions received the exact draft and
+checker at Sonnet 5/medium and retrieved primary vendor documentation. They corrected some
+vendor statements but preserved aggregate FOR UPDATE and the post-wait refreshed-count claim,
+explicitly declaring the remaining locking mechanism correct. This regression fails: an observed
+stage transition and a source lookup do not establish complete verification. Do not integrate
+the helper or treat diagnostic 29 as a passed correction. The main product is unchanged, the
+task-local explanation body/readiness were restored, and the task-created helper was removed.
+Two calls and their audit are in `.superpowers/staged-repair-regression-30/`. Further work needs
+observable coverage of the draft's claims and supporting evidence, not another unstructured
+whole-answer review or an unchanged retry of this helper.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -375,8 +396,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **633 calls**: Claude has 274 subject/activation
-calls, 66 grades and fifteen review/repair/source diagnostic calls (355 total); Codex has 212 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **639 calls**: Claude has 278 subject/activation
+calls, 66 grades and seventeen review/repair/source diagnostic calls (361 total); Codex has 212 subject/activation calls, 64 grades and two
 claim-verification calls (278 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
@@ -391,8 +412,8 @@ percentage, money conversion or fixed calls-to-release promise follows from thes
 The September 8 usage briefing bounds the next development/verification segment at 596
 additional CLI calls from the 620-call checkpoint: at most 80 for diagnosis and affected-case
 retesting, followed by one 516-call complete comparison only after the known defects are
-resolved. Diagnostics 24-27 used thirteen of the 80, leaving at most 67 diagnostic/retest calls and
-516 final-comparison calls (583 total) in this segment. This is an operational ceiling, not
+resolved. Diagnostics 24-30 used nineteen of the 80 (28 was offline), leaving at most 61 diagnostic/retest calls and
+516 final-comparison calls (577 total) in this segment. This is an operational ceiling, not
 a promise of qualification within it. Main development conversation and separately identified
 control/setup requests are outside these CLI counts. Stop for a usage reset when the native
 subscription limit is reached; do not enable credits, API billing fallback or substitute models.
