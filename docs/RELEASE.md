@@ -12,9 +12,9 @@ Implementation presence is not comparative qualification. Work is isolated on
 | Evidence | Claude | Codex |
 |---|---|---|
 | Full historical subject coverage | 96 trials, snapshot 06 | 96 trials, snapshot 09 |
-| First-model comparison grades | 32 Sonnet comparisons | 8 Sonnet development comparisons |
-| Independent comparison grades | 32 Luna comparisons | Pending: 32 Luna comparisons |
-| Remaining first-model grades | None | 24 Sonnet comparisons |
+| First-model comparison grades | 32 Sonnet comparisons | 32 Sonnet comparisons |
+| Independent comparison grades | 32 Luna comparisons | 8 Luna development comparisons; 24 remaining |
+| Remaining first-model grades | None | None |
 | Development functional checks | Baseline 8/8; original 8/8; TTAK 8/8 | Baseline 8/8; original 7/8; TTAK 8/8 |
 | Current explanation pilot, snapshot 10 | Seven TTAK trials | Seven TTAK trials |
 | Current candidate release verdict | Not qualified | Not qualified |
@@ -31,8 +31,22 @@ with packet/subject equality checks and unchanged original grades. This review s
 mappings and is not a third blind grade. Three disputed hard ratings remain non-passes.
 Both graders missed a known database explanation error. Their agreement cannot clear that
 finding; jointly missed facts and the remaining criteria still require review before scoring.
-Snapshot 09 has eight validated Sonnet grades; its original retry failure is retained. Grades
-being valid JSON does not prove their judgments correct. No overall win rate is claimed.
+Snapshot 09 has 32 validated Sonnet grades covering all 96 responses exactly once, plus eight
+independent Luna development grades. Native transcripts confirm Sonnet 5/medium and Luna/high,
+including exact canonical grading prompts; condition mappings were not supplied. Preparing the
+remaining Sonnet batch first failed a prompt-hash check before any model call or packet write.
+Recovering the exact recorded prefix resolved the mismatch; no subject or grade was repeated.
+The completed batch added 24 Sonnet and eight Luna calls.
+
+Both graders identify the original retry failure. Four development quality ratings differ;
+static AST inspection confirms one Luna reason incorrectly says the unused CleanupReport
+definition was removed. The expert explanation again receives high grades despite the known
+lock-wait error. The raw first Sonnet review grades include six null hard ratings and two failed
+inspection-claim ratings that still need adjudication. A separate manual-adjudication JSON write
+was blocked by the host complex-shell-syntax hook and was not retried; no such artifact is claimed.
+Completed audits remain in snapshot 09's `grading-coverage-summary.json`,
+`development-grader-disagreements.json` and `development-grading-observations.json`.
+Valid JSON and grader agreement do not prove correctness. No overall win rate is claimed.
 
 ## Findings that determine the next work
 
@@ -106,10 +120,10 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject and grading records now total **535 calls**: Claude 250 subject/activation + 42
-grades = 292; Codex 211 subject/activation + 32 grades = 243. Failed and superseded trials remain
+Saved subject and grading records now total **567 calls**: Claude 250 subject/activation + 66
+grades = 316; Codex 211 subject/activation + 40 grades = 251. Failed and superseded trials remain
 included. Two Codex setup/control calls are separate: status consumed model tokens; enabling
-TTAK consumed none. Remaining historical grading is 56 calls (24 Claude, 32 Codex), bringing
+TTAK consumed none. Remaining historical grading is 24 calls (all Codex), bringing
 that recorded subtotal to 591 if completed. Further diagnosis and changed-input retesting are
 additional; one entire additional comparative set would require another 516 calls. No quota
 percentage, money conversion or fixed calls-to-release promise follows from these figures.
