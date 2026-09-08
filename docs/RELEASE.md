@@ -142,6 +142,29 @@ Do not repeat instruction-only source-check wording in the same source-unavailab
 The next diagnostic must test an actual evidence path while retaining the existing comparison
 history and qualification gate; a source-supplied diagnostic alone cannot clear the original cases.
 
+Diagnostic 13 supplied short, reviewed paraphrases of PostgreSQL 18 isolation and SELECT rules
+alongside the unchanged expert question. Both fresh Claude conversations received the current
+snapshot-10 skill, ON common policy, exact reference-augmented prompt and Sonnet 5/medium.
+Both answers correctly mention stable snapshots and whole-transaction retries, but also repeat
+the contradictory post-wait/current-state claim in their locking remedies. Supplying facts alone
+did not fix consistency. This added four subject/activation calls and changed no release input.
+Evidence is in `.superpowers/explanation-source-diagnostic-13/`.
+
+Diagnostic 14 instead tested isolated claim-to-source judgments: four manually selected claims,
+two repetitions, with supported and contradicted controls and hidden expected labels. Two native
+Luna/high calls matched seven of eight expected labels. Both incorrect claims (snapshot refresh
+after waiting, and locking an aggregate query) were rejected in both repetitions. One intended
+positive control received `not_established`: the checker distinguished a prescribed retry from
+proof that an application actually performs it. Preserve that mismatch; the control wording and
+modality need review before broader reliability claims. Exact prompts and native model/effort
+were verified. Evidence is in `.superpowers/claim-source-diagnostic-14/`.
+
+This is a possible verification component, not an implemented product workflow. Automatic claim
+selection, faithful source acquisition, correction of the actual answer and native plugin
+integration have not been demonstrated. Neither diagnostic replaces the original comparison,
+changes its rubric, or establishes TTAK superiority. Next work must demonstrate that complete
+verification path on bounded public examples, including correct claims that must be preserved.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -184,10 +207,10 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject and grading records now total **599 calls**: Claude 258 subject/activation + 66
-grades = 324; Codex 211 subject/activation + 64 grades = 275. This includes four calls from the
-policy-OFF diagnostic and four from the rejected snapshot-12 pilot, along with other failed and
-superseded trials. Control calls are separate: the two
+Saved subject, grading and diagnostic records now total **605 calls**: Claude 262 subject/activation
++ 66 grades = 328; Codex 211 subject/activation + 64 grades + two claim-verification calls = 277.
+This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
+diagnostics, along with other failed and superseded trials. Control calls are separate: the two
 earlier Codex calls (status consumed model tokens, enabling consumed none) and the two zero-token
 Claude OFF/ON diagnostic controls. No historical grading calls remain. Snapshot 10 has 14 of 64 candidate
 trials; collecting its other 50 candidate trials would require 94 calls before grading. That is
