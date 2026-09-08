@@ -1,103 +1,117 @@
 # First release candidate
 
-Status: implementation and validation in progress. This candidate is not yet qualified for release.
+Status: implementation and validation in progress. **Not qualified for release.**
 
 ## Current checkpoint
 
-Candidate version: `0.2.0-rc.1`. The reviewer is implemented; development, explanation and progress
-guidance have been updated. The original working tree and its uncommitted grading records are
-preserved separately from this candidate worktree.
+Candidate version: `0.2.0-rc.1`. All four intended capabilities are implemented in the
+candidate: development guidance, focused review, audience explanation and progress guidance.
+Implementation presence is not comparative qualification. Work is isolated on
+`ttak-first-release`; the user's original working tree and unrelated changes are preserved.
 
-Observed local checks: 72 existing plugin tests passed with no skips; ten new release-corpus and
-functional-oracle tests previously passed; the current release suite passes all thirteen tests,
-including rejection of a lossy normalization helper and task-appropriate skill activation.
-The historical conformance runner and guard-checker selftests
-passed. Claude's validator accepted the plugin and marketplace manifests. Its attempted directory
-validation reported no skill contents, so that result does not validate the new skill. The bundled
-skill validator did not run because its Python environment lacks PyYAML; no dependency was installed.
+| Evidence | Claude | Codex |
+|---|---|---|
+| Full historical subject coverage | 96 trials, snapshot 06 | 96 trials, snapshot 09 |
+| First-model comparison grades | 32 Sonnet comparisons | 8 Sonnet development comparisons |
+| Independent comparison grades | 32 Luna comparisons | Pending: 32 Luna comparisons |
+| Remaining first-model grades | None | 24 Sonnet comparisons |
+| Development functional checks | Baseline 8/8; original 8/8; TTAK 8/8 | Baseline 8/8; original 7/8; TTAK 8/8 |
+| Current explanation pilot, snapshot 10 | Seven TTAK trials | Seven TTAK trials |
+| Current candidate release verdict | Not qualified | Not qualified |
 
-Seven Claude subject trial records and two blinded Claude grading records exist across snapshots
-04 and 05. These are pilot evidence, not seven release-qualified passes: one candidate response
-omitted the requested manager explanation, and its corrected rerun completed that deliverable.
-The three mixed-progress records used an unnecessary review activation; retain their history but
-exclude that comparison from release scoring and rerun with task-appropriate activation.
-The review-and-explanation comparison has only one repetition and one grader; all three conditions
-passed its hard checks, with no material regression identified by that grader. Both-host repeated
-coverage, independent grading and the release gate remain incomplete. Runtime verification flags
-in the raw collector records remain pending; do not infer qualification from collection success.
+Each comparison grade covers three anonymous conditions. Historical snapshots used different
+candidate instruction revisions; their 192 collected responses are not full coverage of the
+current revision. Snapshot 10 covers the expert explanation twice and child, practitioner,
+decision, mixed review/explanation and mixed progress once per host. It is not a completed
+three-condition repeated comparison. Inputs and results are retained without relabeling them.
 
-Snapshot 06 contains all 96 planned Claude trials across the sixteen scenarios, three conditions
-and two repetitions. Native transcript inspection found the intended policy/skill
-bodies and Sonnet 5 assistant messages. Neither progress treatment received a review skill body.
-For all 96 trials, native `assistant.effort` metadata also confirms
-medium effort. Separate evidence files supplement the unchanged raw collector records; successful
-collection alone still does not qualify a trial. Cross-model grading remains pending.
+Snapshot 06 has 64 shape-validated grades and 26 criterion-level differences between the two
+graders. Both graders missed a known database explanation error. Their agreement cannot clear
+that finding; disagreements and source-grounded findings remain to be resolved before scoring.
+Snapshot 09 has eight validated Sonnet grades; its original retry failure is retained. Grades
+being valid JSON does not prove their judgments correct. No overall win rate is claimed.
 
-All 24 development artifacts were reviewed before execution and passed their task-specific
-functional checks: normalization, CSV round-trip, bounded exception retry, and cleanup-plan
-preview/containment. Changes were limited to the requested functions or reporting scaffolding,
-without new imports or external effects. The six normalization artifacts have identical code
-hashes. Baseline and original conditions also passed every functional check: no functional
-accuracy advantage for TTAK was observed in these fixtures. These results do not establish
-general bug reduction, automatic repository editing quality, or comparative explanation quality.
+## Findings that determine the next work
 
-Eight blinded Sonnet 5 development grades passed every hard criterion. Most quality ratings are
-full; preserve two rubric-consistency questions for independent review: nearly identical skipped
-backoff notes receive different treatment across repetitions, and one cleanup grade penalizes
-list aliasing under a criterion about independent preview/confirmation behavior. No material
-development regression was identified by this grader. These are single-grader observations.
+- Development: every returned module was reviewed before the bounded functional check ran.
+  Codex original `develop-retry.2` uses bare `raise` outside the exception handler, producing
+  `RuntimeError` instead of the last `OSError`. TTAK passes these small fixtures, but this does
+  not establish general accuracy improvement, bug reduction or autonomous repository-edit quality.
+- Review: the earlier TTAK unsupported count of 13 v1 plugins was not repeated in the targeted
+  corrected trials. The original's separate iterator validation and summation consumed the
+  iterator, mechanically producing 0 instead of 3. Full comparative review adjudication remains.
+- Explanation: shortening the skill did not resolve the failure. Snapshot 10 Claude expert
+  repetition 1 again says a waiting `FOR UPDATE` transaction re-reads the updated count, without
+  specifying a different isolation mode or whole-transaction retry. PostgreSQL 18 Repeatable Read
+  can abort in that situation. This is an implementation-specific counterexample to the universal
+  sequence, not a claim that every engine behaves alike.
+- The same latest pilot contains two additional Claude concerns: a final recommendation to key
+  the idempotency store on `(key, request_hash)` conflicts with its earlier same-key payload
+  rejection requirement unless key-only uniqueness is also enforced; the decision explanation
+  declares instrumentation essentially cost-free despite no supplied cost. Neither is cleared.
+- Mixed workflows: both latest review/explanation answers provide both requested deliverables
+  and preserve the formula/API. Both progress answers distinguish preview from confirmation and
+  attribute completion to the user's report. Claude adds unrequested completion checks; scope
+  control still needs comparative adjudication.
 
-Manual review of the new review responses found an unsupported TTAK claim in
-`claude.review-needed-layer.ttak.1`: it states that 13 of the 14 plugins are v1, although no v1
-count was supplied. The compatibility recommendation is correct; that invented count is not.
-Original `claude.review-already-small.original.2` proposes a
-separate `any()` validation pass followed by `sum()`. A local reproduction with `iter([1, 2])`
-returns 0 instead of the supplied implementation's 3 because validation exhausts the iterator.
-Both observations are retained for the final comparison.
+The current skill is a recorded experiment, not a passed correction. No further unchanged reruns
+will be used to obtain a favorable sample. The next work is evidence-based adjudication and a
+bounded diagnosis of the explanation failure mechanism before another instruction revision.
+The latest 14 responses were manually read; four findings and exact result hashes are recorded
+in `.superpowers/release-run-10/manual-review.json`. Its 19 frozen inputs are archived under
+`inputs/`. No latest-pilot blind grade or blanket factual pass is claimed.
 
-Snapshot 06's first-grader pass is complete: 32 three-condition comparisons cover all 96 Claude
-responses exactly once. The audit matched each packet's task, rubric and answers to the frozen
-cases and original records. Producer hashes cover UTF-8 LF prompt text; Windows stored CRLF
-separators, so the audit records canonical-text and on-disk hashes separately without changing
-historical files. All 32 grader transcripts confirm Sonnet 5/medium. Initial ratings mark all
-32 TTAK trials' hard criteria true, but known missed factual errors and inconsistent quality
-ratings prevent treating that number as validated superiority or release readiness. Baseline's
-two review/explanation refusals leave one hard criterion unassessable; these are not passes.
+Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
+[Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
+[Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
+24 hours, not a universal exact expiration. The idempotency finding above also follows directly
+from the mismatch between the response's lookup advice and the frozen task's conflict requirement.
 
-The six first-grader review ratings are saved and shape-validated. The grader missed the
-unsupported count and declared no material regressions despite the independently reproduced
-iterator issue; these ratings are insufficient to clear the manual findings. Independent grading
-and grading-disagreement resolution remain.
+## Local and native verification
 
-Snapshot 07 tests a narrow instruction correction: ground review quantities/dependencies in
-evidence, and keep implementation/mode assumptions consistent in explanations. Two repetitions
-of each affected failure scenario received the revised bodies and Sonnet 5/medium. The count 13
-did not recur. However, `claude.explain-expert.ttak.2` incorrectly states that neither transaction
-writes a row read by the other, contradicting its own doctors example. Explanation accuracy is
-still unresolved; the correction is not qualified. In snapshot 06, the claim that a waiting
-transaction simply reads updated rows also needs implementation-specific qualification:
-[PostgreSQL 18 Repeatable Read](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ)
-can abort after a concurrent update and requires retrying the entire transaction.
+Previously observed: 72 existing plugin tests passed without skips; the current release suite
+passes thirteen tests, including independent functional-oracle negatives and original-plugin
+selection validation. Historical conformance runner and guard-checker selftests passed.
+Claude accepted the manifests, but its directory validator reported no skill contents; that
+result is not skill validation. Bundled skill/plugin validators remain unrun because their
+Python environment lacks PyYAML. No global dependency was installed to satisfy them.
 
-Snapshot 08 replaces the general consistency sentence with an example-tracing check covering
-starting conditions, actions, resulting state and remedy failure/retry paths. Two Sonnet 5/medium
-expert-explanation trials received the revised body. The earlier reversed read/write sentence did
-not recur, but both responses still make unqualified lock-behavior claims; one again says the
-waiting transaction re-reads the updated count. This is partial improvement, not a passed
-explanation correction. Further same-pattern wording changes are paused pending source-grounded
-factual review and independent grading. No neighbor-case success is claimed for this revision.
+Claude subject transcripts confirmed Sonnet 5/medium and intended bodies. Codex subject sidecars
+record Luna/high and delivered bodies for all 96 snapshot-09 trials. All fourteen snapshot-10
+trials have corresponding native evidence for the revised body and active TTAK policies.
+Collector result flags intentionally remain pending; evidence sidecars supplement rather than
+rewrite raw records. Native delivery is necessary and does not establish answer quality.
 
-Source-grounded review confirms the PostgreSQL isolation distinction above. For the payment
-example, [Stripe's idempotency documentation](https://docs.stripe.com/api/idempotent_requests)
-supports result replay and parameter-conflict detection, but its retention statement is at least
-24 hours, not a universal exact expiry. [Python's CSV documentation](https://docs.python.org/3/library/csv.html)
-supports the reader replacement, matching dialect parameters and `newline=''` file handling.
-Some progress responses still offer file operations unavailable in the trial, and several
-decision explanations call instrumentation cheap without supplied cost evidence; retain those
-scope/assumption observations rather than treating all fluent prose as verified.
+All three task-local Codex subject profiles now use verified ChatGPT subscription login.
+Claude uses its existing native OAuth environment. No credential files were copied; a denied
+credential inspection was not retried. Both hosts' extra usage is disabled per the owner's
+confirmation. Native hook trust and the TTAK ON control were observed. Latest native Codex
+installation is `0.2.0-rc.1+codex.20260908082818`; all twelve installed files matched their
+prepared source. Original Git installation converted LF to CRLF; normalized source text matches,
+not raw bytes. Historical installed versions and records remain intact.
 
-Snapshot 06 usage medians below include skill activation and task turns, excluding graders and
-later reruns. They describe the pre-correction Claude candidate, not the current revision or Codex.
+Codex original selection uses native version-checked `config/batchWrite`, an exclusive task lock,
+visibility verification and restoration. Four no-model checks verified each original separately
+and all together, restoring configuration byte-for-byte. No hook/trust/provider controls are
+changed by selection. CLI `-c` plugin-enabled overrides did not affect observed visibility and
+are not used. Claude's early-access `plugin eval init --bare` was unavailable; no feature flag
+or historical hook-trust bypass was used.
+
+## Usage and remaining work
+
+The full initial budget is 388 subject CLI turns (264 task and 124 activation), plus 128
+comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
+units. Development conversation, setup and defect-driven reruns are separate.
+
+Saved subject and grading records now total **535 calls**: Claude 250 subject/activation + 42
+grades = 292; Codex 211 subject/activation + 32 grades = 243. Failed and superseded trials remain
+included. Two Codex setup/control calls are separate: status consumed model tokens; enabling
+TTAK consumed none. Remaining historical grading is 56 calls (24 Claude, 32 Codex), bringing
+that recorded subtotal to 591 if completed. Further diagnosis and changed-input retesting are
+additional; one entire additional comparative set would require another 516 calls. No quota
+percentage, money conversion or fixed calls-to-release promise follows from these figures.
+
+Historical snapshot-06 Claude medians include activation and task calls, excluding graders:
 
 | Capability | Original seconds | TTAK seconds | Original output tokens | TTAK output tokens |
 |---|---:|---:|---:|---:|
@@ -107,133 +121,38 @@ later reruns. They describe the pre-correction Claude candidate, not the current
 | Progress | 13.40 | 13.65 | 448.5 | 454 |
 | Mixed | 22.82 | 35.61 | 667.5 | 2161.5 |
 
-No time/cost-saving claim follows from these observations. Concurrent collection, native internal
-calls and the small scenario corpus affect elapsed time. Output tokens are not subscription
-quota or money; input/cache categories remain separately recorded in `usage-summary.json`.
+These small, concurrently collected samples do not support time/cost-saving claims. They are
+not current-candidate or Codex measurements. Cache and internal-call accounting also affect
+comparisons; output tokens cannot be converted into subscription allowance.
 
-One blinded Sonnet 5 grading of the corrected mixed-progress comparison passed all hard criteria
-for all conditions. It identified the original's refusal to explain the supplied plan as a
-material shortfall, and rated TTAK partially on scope control because it added CI/caller checks.
-The baseline also mentions CI/test coverage but received full scope credit; retain that
-consistency question for independent review rather than silently adjusting the rating.
+## Reproduction and evidence layout
 
-An authentication-metadata inspection was denied by the host's credential-path guard;
-it was not retried through another route. The owner subsequently confirmed that extra usage is
-disabled on both accounts. The task-local Claude profile uses the existing native OAuth environment
-without copying a credential file; native `ttak on` was observed blocked and consumed by its hook,
-with the setting saved ON. The owner completed the Codex login prerequisite during preparation;
-normal CLI checks now confirm ChatGPT subscription login in all three profiles. The TTAK hooks
-have normal trust entries. A native `ttak on` control turn was consumed with zero model tokens,
-and the task plugin's saved state is enabled. No authentication files were copied and no login
-or trust bypass was used.
-
-Codex preparation now points to the current candidate instruction bytes. The old pinned local-Git
-source is preserved; the scaffold helper changed the task-only marketplace entry to a local source,
-and native `codex plugin add` installed `0.2.0-rc.1+codex.20260908074334`. All twelve installed
-files, including policy, skills, hooks, license, attribution and the manifest-referenced logo,
-were checked against the prepared source. Login and normal hook operation were then verified
-as described above. The bundled plugin validator also depends on unavailable PyYAML, so its validation
-is not claimed. Native installation and byte verification are the checks actually observed.
-
-The Codex collector now selects original plugins using native `config/batchWrite`, validates the
-enabled set, and restores the previous settings with a configuration-version check. An exclusive
-task lock prevents two collectors selecting conflicting conditions in one profile. Failure leaves
-the lock for inspection; do not clear it without confirming process termination and settings.
-No hook/trust/provider/permission settings are changed. CLI `-c` overrides did not change plugin
-visibility in the observed debug input, so that route is not used. Four native checks confirmed
-Ponytail-only, ELI5-only, i-have-adhd-only and all-three skill visibility, with the original config
-restored byte-for-byte after each. These preparation checks made no model calls. Snapshot 09
-freezes this collector change; previous Claude evidence remains historical and unchanged.
-
-Snapshot 09 now contains six Codex expert-explanation trials: all three conditions, twice.
-Native records confirm `gpt-5.6-luna` / high and the intended input bodies. The original ELI5
-Git installation converted LF to CRLF; exact normalized text matches the pinned source and this
-transport difference is recorded rather than claiming raw-byte equality. TTAK repetition 1 again
-describes an unqualified wait-then-current-state recheck; repetition 2 gives a serializable
-abort/retry remedy and does not repeat that claim. The known explanation issue is therefore not
-unique to Claude and remains unresolved. This small comparison does not establish general
-model or plugin superiority. Further Codex coverage and independent cross-grading remain.
-
-Snapshot 09 also contains all 24 Codex development trials. Their native model/effort and input
-bodies were verified; none of the eight TTAK development trials loaded either on-demand skill
-body. Every returned module was reviewed before task-specific functional execution. Baseline
-and TTAK passed 8/8 checks each; original passed 7/8. In
-`codex.develop-retry.original.2`, a bare `raise` after the `except` block produces `RuntimeError`
-instead of preserving the last `OSError`. That failure is retained without repairing the original
-response. Baseline `develop-safe-trim.2` leaves the now-unused reporting class in the module;
-its functional pass does not settle the requested simplification's quality. These observations
-are a small comparison, not a general bug-reduction claim.
-
-Codex independently graded the two historical Claude expert-explanation comparisons using the
-same recovered canonical prompt text and hidden condition mapping. Native records confirm
-`gpt-5.6-luna` / high. Both graders missed the source-grounded lock-wait issue despite high
-ratings. Agreement between these graders therefore does not clear that known factual finding.
-The first retrieval attempt found a LF/CRLF mismatch before any model call; canonical text was
-then matched to the recorded first-grader prompt without changing task content or scores.
-
-The installed Claude CLI advertises `plugin eval`, but its offline `init --bare` command returned
-`plugin eval is currently in early access`. No template was created and no feature flag was changed.
-This native evaluator is unavailable in this environment; comparison execution must use an
-independently permitted host workflow. The existing historical runner is not a release runner:
-it lacks multi-turn cases and original-plugin conditions, and its Codex with-arm contains a hook
-trust bypass that will not be used for this candidate.
-
-Offline preparation:
+Run from this candidate worktree using the existing Python executable (examples name Python
+conventionally; no runtime installation is required):
 
 ```text
 python -B tests/release/test_release.py
 python -B tests/release/prepare.py --check
-python -B tests/release/prepare.py --freeze .superpowers/release-run-new
-python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-09
-python -B tests/release/collect.py --experiment .superpowers/release-run-09 --trial claude.explain-child.ttak.1
+python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-10
+python -B tests/release/collect.py --experiment .superpowers/release-run-10 --trial claude.explain-child.ttak.1
 ```
 
-These commands do not call a model. The freeze example requires a destination that does not yet
-exist; snapshot 09 is the current existing snapshot used by the next two examples.
-`prepare.py` freezes inputs and comparison assignments, not
-results. The 16 scenarios, functional checks and pinned original source bytes live in
-`tests/release/`. Public source texts are stored as `skill-source.md` data, accompanied by their
-unchanged upstream licenses, instead of being discoverable installed skills.
+These commands do not call a model. The collector defaults to a dry run. Execution requires
+an explicit trial and a normally prepared task-local profile. It activates the required native
+skills in the same session before the task, counts activation usage, disables shell/connectors
+in subject turns, and never executes returned code. Original i-have-adhd requires explicit
+activation; automatic skill routing is a separate integration check still to complete.
 
-`collect.py` defaults to printing one native-host command without invoking it. Execution requires
-an explicitly selected trial and a prepared profile inside this worktree's `.superpowers` runtime
-directory. Profiles can be reused across input revisions without moving their native login state. Its
-`readiness.json` records host, condition, subscription-only and disabled-extra-usage confirmation,
-connector-free setup, normal hook trust, installed plugin roots and `skill_invocations` mapping
-each required skill to its verified native name. This preparation record does
-not prove runtime delivery or grant permission. Profiles must be prepared through normal host
-installation, login and trust controls; the collector does none of those itself. It uses no shell
-or external connector tools in model turns, preserves a real session for multi-turn cases and
-never executes generated code. Observed delivery, actual model and effort must be independently
-verified before a collected response can enter the release score. The collector's command and
-capture tests are offline. Claude pilot execution has been observed; Codex subject execution
-still needs the task-profile login and normal hook-trust setup.
+Snapshots 01-03 are unused preparation; profiles in 03 are reused. Snapshots 04-05 contain seven
+historical pilot subjects, including superseded mixed-progress activation. Snapshots 06-09
+preserve the full comparisons and earlier corrections. Snapshot 10 matches current frozen inputs;
+verify against its manifest before any further use. Historical manifests describe preparation,
+not live completion; trial/grade files and audits provide execution evidence. Do not overwrite
+old snapshots or reuse their frozen inputs as if they were the latest candidate.
 
-Treated trials explicitly activate the applicable native skills before sending the task in the
-same session. This is required for the original i-have-adhd skill, which disables model-initiated
-invocation. Activation responses, tokens and elapsed time are recorded separately and must be
-included when reporting total usage; they are not additional independent trials or graded task
-answers. Baseline trials activate nothing. Native activation itself still needs transcript
-verification: a model saying it loaded a skill is not proof. This measures deliberately selected
-skills; automatic routing is a separate integration check.
-
-Preparation snapshots 01 and 02 predate the collector's explicit activation support and are
-retained as unused preparation records. Neither contains subject trials; verification rejects
-their now-stale collector hashes. Snapshot 03 predates native plugin selection and subscription
-environment forwarding; its profiles remain in place and can be referenced by snapshot 04.
-Snapshots 04 through 08 contain the records described above and archived input bytes. Their
-hashes differ from the current corrected collector and oracle; do not overwrite them or silently
-relabel their results. Snapshot 09 freezes the current inputs and Codex selector. Executable inputs and the
-protocol below are frozen per snapshot; this changing checkpoint is not an experimental input.
-
-The current full comparison budget is 388 subject CLI turns (264 task turns and 124 skill
-activation turns), plus 128 planned grading turns: 516 total, split equally between the hosts.
-This excludes development conversation, setup probes and defect-driven reruns. Saved pilot and
-grading records currently account for 267 Claude CLI turns, 42 Codex subject CLI turns and two
-Codex grading turns,
-including the failed candidate attempt and superseded comparison routing. Two additional Codex
-setup/control turns were observed separately: status used model tokens; enabling TTAK used none.
-CLI turns are not subscription quota units; native internal calls and cache accounting vary.
+The executable corpus, pinned MIT sources and independent functional checks are in
+`tests/release/`. Native transcripts and raw results remain task-local under `.superpowers`;
+no private runtime evidence has been published. The agreed protocol below is unchanged.
 
 ## Agreed outcome
 

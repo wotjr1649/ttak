@@ -4,55 +4,31 @@ description: "Explain a topic, code, error, document or decision for a specific 
 license: MIT
 ---
 
-# Explain for a reader
+# Explain for the reader
 
-Adapt the explanation to the reader. Accuracy is not traded for simplicity at any level.
+Use the user's language and stated age, role and background. When no audience is stated,
+assume a capable adult unfamiliar with the subject. Do not infer age, relationships, intelligence,
+education or medical diagnoses from insufficient evidence.
 
-## Reader
+Lead with the answer or conclusion the reader needs, then explain the mechanism and the
+conditions that change it. Match the requested depth and format.
 
-Follow a stated audience. When none is stated, assume a capable adult who may be unfamiliar with the
-subject — neither unexplained jargon nor childish simplification.
-
-Infer expertise only from the user's own terminology and context. Never infer age, diagnosis,
-education, intelligence, or a relationship from insufficient evidence, and never let a lack of domain
-knowledge be treated as a lack of intelligence.
-
-| Profile | Lead with |
+| Reader | Useful emphasis |
 |---|---|
-| Beginner | Plain vocabulary, the core idea, one short concrete example |
-| Practitioner | Purpose, operating flow, where it is applied, common failure points |
-| Expert | Internal mechanics, edge cases, performance, trade-offs |
-| Decision-maker | Outcome, cost, risk, scope, alternatives, the decision required |
+| Beginner or child | Plain words, a concrete example, necessary terms defined briefly |
+| Practitioner | Operating flow, implementation decisions and failure paths |
+| Expert | Precise mechanism, assumptions, a concrete interleaving or example, and trade-offs |
+| Decision-maker | Outcome, evidence, cost, risk, recommendation and when to reconsider |
 
-An explicitly named age, school level, role or reader overrides these broad profiles. Use the
-background the user provides to choose vocabulary, examples and depth; a relationship alone does
-not establish expertise. For a child or a reader new to the subject, use short concrete sentences
-and explain one idea at a time. For a specialist, retain the mechanisms and exceptions needed to
-reason correctly. For a decision-maker, connect the facts to a recommendation when the evidence
-supports one, and identify the missing fact when it does not.
+An explicit audience overrides these broad profiles. Keep facts, estimates and unknowns distinct.
+Read supplied material and preserve its numbers, causal relationships and constraints. An analogy
+must not add a guarantee that the real system lacks.
 
-## Method
+Prefer a conceptual example unless concrete code or configuration is requested. For a proposed
+remedy, explain the requested remedy and its trade-off. Name the implementation and operating
+mode when they determine behavior; an unverified execution sequence is not a guaranteed result.
+Keep the example's starting conditions, actions and outcome consistent.
 
-State the core idea before the details. For code, systems and processes, explain purpose before
-mechanism — syntax matters only after the reason for it is clear.
-
-Read supplied source material before explaining it. Keep the causal relationship and any condition
-that changes the conclusion, even in a short explanation. Introduce detail in layers so the reader
-can use the core answer before reading the mechanics. Check the explanation against the source:
-an appealing analogy must not imply a guarantee the underlying system does not provide.
-Before presenting an example, trace its starting conditions, each action and the resulting state.
-Check that every causal claim agrees with that trace, including the failure or retry path of a
-proposed remedy. When behavior depends on an implementation or operating mode, name it beside
-the claim it qualifies. Prefer one complete, checked remedy to extra alternatives whose behavior
-has not been established; keep the general mechanism distinct from implementation-specific behavior.
-
-Do not avoid a necessary domain term; define it briefly when the reader may not know it. Analogies are
-optional; use one only when it reduces confusion, and drop it when it would build a false model.
-
-Simplification must not distort the conclusion, the constraints, or the risk. "Simple" means easier
-to understand, not less true. "Detailed" means more useful depth, not more words.
-
-Deliver the explanation in the conversation. Produce no file, artifact, or document unless
-the user asks for one.
-
-Answer in the user's language unless the subject matter requires another.
+Finish the requested explanation without repeating it or adding optional alternatives. Include
+an exception when omitting it would change the conclusion. Accuracy is not traded for simplicity.
+Deliver the explanation in the conversation; create an artifact only when requested.
