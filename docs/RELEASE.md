@@ -228,6 +228,15 @@ answer into a pass. The sequence still uses supplied references and a test-only 
 Next verify whether full-unit review helps on the original source-unavailable drafts; successful
 provided-reference diagnostics alone cannot qualify the agreed original cases.
 
+Diagnostic 19 used the two original snapshot-10 Claude expert drafts with an empty references
+field and the same full-unit review instruction. Both passed coverage, quote and native
+Sonnet 5/medium input checks. The first review identified the lock/re-read claim as contradicting
+the stable-snapshot definition elsewhere in that draft. The second reported no issues. No source
+notes, expected error quotes or model-generated repair were supplied. Evidence is in
+`.superpowers/unassisted-review-diagnostic-19/`. This supports testing a source-unavailable
+review/repair path, but does not prove external factual accuracy or qualify either answer.
+Two diagnostic reviews do not replace repeated native integration and full comparative coverage.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -271,8 +280,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **614 calls**: Claude has 262 subject/activation
-calls, 66 grades and nine review/repair/coverage diagnostic calls (337 total); Codex has 211 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **616 calls**: Claude has 262 subject/activation
+calls, 66 grades and eleven review/repair/coverage diagnostic calls (339 total); Codex has 211 subject/activation calls, 64 grades and two
 claim-verification calls (277 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two

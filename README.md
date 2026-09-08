@@ -23,7 +23,8 @@ An operating discipline and two independently callable skills.
 - **The reviewer.** A focused review for unnecessary complexity, grounded in current requirements
   and callers. It reports justified simplifications without editing unless fixes are requested.
   Invoke with `/ttak:ttak-review` on Claude Code or `$ttak:ttak-review` on Codex, or ask for an
-  over-engineering review. Discovery and behavioral validation of this new skill are still pending.
+  over-engineering review. Explicit native invocation has been verified in isolated test profiles
+  on both hosts. Automatic selection and release qualification remain incomplete.
 - **Progress guidance.** The operating discipline keeps the current step, completed result and
   blocker visible as work changes, and reconnects interruptions to unfinished work.
 
