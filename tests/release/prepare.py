@@ -78,6 +78,23 @@ def inputs(case, condition):
     raise ValueError(f"unknown condition: {condition}")
 
 
+def activation_skills(case, condition):
+    if condition == "baseline":
+        return []
+    if condition == "original":
+        if case["original"] != "all":
+            return [case["original"]]
+        names = ["ponytail", "eli5", "i-have-adhd"]
+        if case.get("requires_review", False):
+            names.insert(1, "ponytail-review")
+        return names
+    if condition == "ttak":
+        if case["capability"] == "mixed":
+            return (["ttak-review"] if case.get("requires_review", False) else []) + ["ttak-explain"]
+        return {"review": ["ttak-review"], "explanation": ["ttak-explain"]}.get(case["capability"], [])
+    raise ValueError("unknown comparison condition")
+
+
 def plan():
     suite = load_suite()
     rows = []
@@ -89,6 +106,7 @@ def plan():
                                  "case": case["id"], "capability": case["capability"],
                                  "host": host, **model, "condition": condition, "trial": trial,
                                  "turn_count": len(case["turns"]),
+                                 "activation_skills": activation_skills(case, condition),
                                  "instruction_sources": [
                                      {"path": p.relative_to(ROOT).as_posix(),
                                       "sha256": sha(p.read_bytes())} for p in inputs(case, condition)]})

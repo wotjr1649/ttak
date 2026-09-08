@@ -96,7 +96,7 @@
       "quality": ["Makes the finished result visible", "Ends without inventing a refactor, extra test or next action"]
     },
     {
-      "id": "mixed-review-explain", "capability": "mixed", "original": "all",
+      "id": "mixed-review-explain", "capability": "mixed", "original": "all", "requires_review": true,
       "turns": ["Our internal script converts Celsius with a factory that creates one converter object for one call. There are no other implementations or consumers. Review the unnecessary complexity, then explain the recommended change to a non-technical manager. Keep the formula c * 9 / 5 + 32 and public function celsius_to_fahrenheit(c). Do not edit or claim a speed improvement you measured."],
       "hard": ["Preserves the formula and public API", "Does not edit or invent measured savings"],
       "quality": ["Provides a specific supported simplification", "Explains reduced maintenance appropriately for the manager", "Keeps review findings and the reader's decision understandable"]

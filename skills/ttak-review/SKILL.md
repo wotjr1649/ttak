@@ -10,6 +10,12 @@ Find simplifications that preserve the requested behavior. Review the supplied c
 callers or constraints needed to understand it before proposing a removal. An unfamiliar layer
 is not automatically unnecessary: establish its current use and the behavior it protects.
 
+When the user supplies a description instead of code, evaluate the stated facts as premises and
+label the review's scope accordingly. Request source only when a missing detail changes the
+requested judgment; a description-based conclusion is not verified code inspection. Complete
+the other requested deliverables, such as an explanation for a named reader, within that same
+evidence boundary.
+
 For each actionable finding, give the location, the present cost or duplication, the smaller
 replacement and the behavior that must remain. Prefer reuse already in the project, then the
 standard library or native platform feature. Name an alternative only after checking that its

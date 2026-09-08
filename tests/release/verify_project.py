@@ -22,8 +22,9 @@ def raises(error_type, operation):
 
 def verify(module, case, workspace):
     if case == "reuse":
-        for name in ["  Ada   LOVELACE ", "Straße", " A\tB\nC "]:
-            expected = module.normalize_name(name)
+        for name, expected in [("  Ada   LOVELACE ", "ada lovelace"), ("Straße", "strasse"),
+                               (" A\tB\nC ", "a b c")]:
+            assert module.normalize_name(name) == expected, "existing helper behavior changed"
             assert module.create_user(name) == {"name": expected}
             user = {"id": 7, "name": "old"}
             assert module.rename_user(user, name) == {"id": 7, "name": expected}

@@ -53,10 +53,13 @@ class ReleaseTests(unittest.TestCase):
         readiness["skill_invocations"]["i-have-adhd"] = "unrelated-skill"
         with self.assertRaises(ValueError):
             activation_prompts(case, "original", "claude", readiness)
-        mixed = {"original": "all", "capability": "mixed"}
+        mixed = {"original": "all", "capability": "mixed", "requires_review": True}
         self.assertEqual(set(activation_skills(mixed, "original")),
                          {"ponytail", "ponytail-review", "eli5", "i-have-adhd"})
         self.assertEqual(activation_skills(mixed, "ttak"), ["ttak-review", "ttak-explain"])
+        progress = {"original": "all", "capability": "mixed"}
+        self.assertEqual(activation_skills(progress, "original"), ["ponytail", "eli5", "i-have-adhd"])
+        self.assertEqual(activation_skills(progress, "ttak"), ["ttak-explain"])
 
     def test_native_commands_preserve_controls_and_resume_the_observed_session(self):
         session = "00000000-0000-4000-8000-000000000001"
@@ -145,6 +148,21 @@ class ReleaseTests(unittest.TestCase):
         for case in ["reuse", "csv", "retry"]:
             with self.subTest(case=case), self.assertRaises(AssertionError):
                 verify(module, case, ROOT)
+
+    def test_reuse_oracle_does_not_derive_expected_values_from_the_candidate(self):
+        module = fixture()
+
+        def lossy_normalize(name):
+            value = " ".join(name.split()).lower()
+            if not value:
+                raise ValueError("empty name")
+            return value
+
+        module.normalize_name = lossy_normalize
+        module.create_user = lambda name: {"name": module.normalize_name(name)}
+        module.rename_user = lambda user, name: {**user, "name": module.normalize_name(name)}
+        with self.assertRaises(AssertionError):
+            verify(module, "reuse", ROOT)
 
     def test_oracles_accept_valid_independent_implementations(self):
         module = fixture()

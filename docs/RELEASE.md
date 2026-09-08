@@ -9,14 +9,33 @@ guidance have been updated. The original working tree and its uncommitted gradin
 preserved separately from this candidate worktree.
 
 Observed local checks: 72 existing plugin tests passed with no skips; ten new release-corpus and
-functional-oracle tests passed; the historical conformance runner and guard-checker selftests
+functional-oracle tests previously passed; the current release suite passes all eleven tests,
+including rejection of a lossy normalization helper and task-appropriate skill activation.
+The historical conformance runner and guard-checker selftests
 passed. Claude's validator accepted the plugin and marketplace manifests. Its attempted directory
 validation reported no skill contents, so that result does not validate the new skill. The bundled
 skill validator did not run because its Python environment lacks PyYAML; no dependency was installed.
 
-Subject model trials completed for this candidate: **0 of 192**. Native discovery and delivery of
-the new skill, subscription-only trial execution, comparative grading and the release gate remain
-unverified. An authentication-metadata inspection was denied by the host's credential-path guard;
+Seven Claude subject trial records and two blinded Claude grading records exist across snapshots
+04 and 05. These are pilot evidence, not seven release-qualified passes: one candidate response
+omitted the requested manager explanation, and its corrected rerun completed that deliverable.
+The three mixed-progress records used an unnecessary review activation; retain their history but
+exclude that comparison from release scoring and rerun with task-appropriate activation.
+The review-and-explanation comparison has only one repetition and one grader; all three conditions
+passed its hard checks, with no material regression identified by that grader. Both-host repeated
+coverage, independent grading and the release gate remain incomplete. Runtime verification flags
+in the raw collector records remain pending; do not infer qualification from collection success.
+
+Snapshot 06 adds four collected Claude trials: all three conditions of mixed-safe-progress,
+with the corrected activation, and the first TTAK develop-reuse response. Native transcript
+inspection found the intended policy/skill bodies and Sonnet 5 assistant messages. Neither
+progress treatment received a review skill body. Actual effort verification and blinded grading
+of these new records remain pending. The complete develop-reuse code was inspected: only the two
+requested helper calls changed, with no new imports or side effects. Its independent functional
+check passed, including Unicode casefolding, whitespace, empty names and input preservation.
+This is one functional result, not proof of comparative development quality.
+
+An authentication-metadata inspection was denied by the host's credential-path guard;
 it was not retried through another route. The owner subsequently confirmed that extra usage is
 disabled on both accounts. The task-local Claude profile uses the existing native OAuth environment
 without copying a credential file; native `ttak on` was observed blocked and consumed by its hook,
@@ -34,12 +53,14 @@ Offline preparation:
 ```text
 python -B tests/release/test_release.py
 python -B tests/release/prepare.py --check
-python -B tests/release/prepare.py --freeze .superpowers/release-run-04
-python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-04
-python -B tests/release/collect.py --experiment .superpowers/release-run-04 --trial claude.explain-child.ttak.1
+python -B tests/release/prepare.py --freeze .superpowers/release-run-new
+python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-06
+python -B tests/release/collect.py --experiment .superpowers/release-run-06 --trial claude.explain-child.ttak.1
 ```
 
-These commands do not call a model. `prepare.py` freezes inputs and comparison assignments, not
+These commands do not call a model. The freeze example requires a destination that does not yet
+exist; snapshot 06 is the current existing snapshot used by the next two examples.
+`prepare.py` freezes inputs and comparison assignments, not
 results. The 16 scenarios, functional checks and pinned original source bytes live in
 `tests/release/`. Public source texts are stored as `skill-source.md` data, accompanied by their
 unchanged upstream licenses, instead of being discoverable installed skills.
@@ -55,7 +76,8 @@ installation, login and trust controls; the collector does none of those itself.
 or external connector tools in model turns, preserves a real session for multi-turn cases and
 never executes generated code. Observed delivery, actual model and effort must be independently
 verified before a collected response can enter the release score. The collector's command and
-capture tests are offline; live host execution is still unverified.
+capture tests are offline. Claude pilot execution has been observed; Codex subject execution
+still needs the task-profile login and normal hook-trust setup.
 
 Treated trials explicitly activate the applicable native skills before sending the task in the
 same session. This is required for the original i-have-adhd skill, which disables model-initiated
@@ -69,8 +91,17 @@ Preparation snapshots 01 and 02 predate the collector's explicit activation supp
 retained as unused preparation records. Neither contains subject trials; verification rejects
 their now-stale collector hashes. Snapshot 03 predates native plugin selection and subscription
 environment forwarding; its profiles remain in place and can be referenced by snapshot 04.
-Snapshot 04 is the current preparation, not a measured result. Executable inputs and the protocol
-below are frozen; this changing checkpoint is not an experimental input.
+Snapshots 04 and 05 contain the pilot records described above and archived input bytes. Their
+hashes differ from the current corrected collector and oracle; do not overwrite them or silently
+relabel their results. Snapshot 06 freezes the corrected run. Executable inputs and the
+protocol below are frozen per snapshot; this changing checkpoint is not an experimental input.
+
+The current full comparison budget is 388 subject CLI turns (264 task turns and 124 skill
+activation turns), plus 128 planned grading turns: 516 total, split equally between the hosts.
+This excludes development conversation, setup probes and defect-driven reruns. Saved pilot and
+grading records currently account for 43 Claude CLI turns, including the failed candidate attempt
+and superseded comparison routing.
+CLI turns are not subscription quota units; native internal calls and cache accounting vary.
 
 ## Agreed outcome
 

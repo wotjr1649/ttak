@@ -14,19 +14,7 @@ import time
 import tomllib
 import uuid
 
-from prepare import ROOT, HERE, load_suite, verify_freeze
-
-
-def activation_skills(case, condition):
-    if condition == "baseline":
-        return []
-    if condition == "original":
-        return (["ponytail", "ponytail-review", "eli5", "i-have-adhd"]
-                if case["original"] == "all" else [case["original"]])
-    if condition == "ttak":
-        return {"review": ["ttak-review"], "explanation": ["ttak-explain"],
-                "mixed": ["ttak-review", "ttak-explain"]}.get(case["capability"], [])
-    raise ValueError("unknown comparison condition")
+from prepare import ROOT, HERE, activation_skills, load_suite, verify_freeze
 
 
 def activation_prompts(case, condition, host, readiness):
