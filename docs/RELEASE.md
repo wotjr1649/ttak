@@ -55,10 +55,19 @@ separate `any()` validation pass followed by `sum()`. A local reproduction with 
 returns 0 instead of the supplied implementation's 3 because validation exhausts the iterator.
 Both observations are retained for the final comparison.
 
-Six first-grader review ratings are now saved and shape-validated. The grader missed the
+Snapshot 06's first-grader pass is complete: 32 three-condition comparisons cover all 96 Claude
+responses exactly once. The audit matched each packet's task, rubric and answers to the frozen
+cases and original records. Producer hashes cover UTF-8 LF prompt text; Windows stored CRLF
+separators, so the audit records canonical-text and on-disk hashes separately without changing
+historical files. All 32 grader transcripts confirm Sonnet 5/medium. Initial ratings mark all
+32 TTAK trials' hard criteria true, but known missed factual errors and inconsistent quality
+ratings prevent treating that number as validated superiority or release readiness. Baseline's
+two review/explanation refusals leave one hard criterion unassessable; these are not passes.
+
+The six first-grader review ratings are saved and shape-validated. The grader missed the
 unsupported count and declared no material regressions despite the independently reproduced
-iterator issue; these ratings are insufficient to clear the manual findings. Explanation and
-remaining progress/mixed ratings, independent grading and grading-disagreement resolution remain.
+iterator issue; these ratings are insufficient to clear the manual findings. Independent grading
+and grading-disagreement resolution remain.
 
 Snapshot 07 tests a narrow instruction correction: ground review quantities/dependencies in
 evidence, and keep implementation/mode assumptions consistent in explanations. Two repetitions
@@ -78,6 +87,30 @@ waiting transaction re-reads the updated count. This is partial improvement, not
 explanation correction. Further same-pattern wording changes are paused pending source-grounded
 factual review and independent grading. No neighbor-case success is claimed for this revision.
 
+Source-grounded review confirms the PostgreSQL isolation distinction above. For the payment
+example, [Stripe's idempotency documentation](https://docs.stripe.com/api/idempotent_requests)
+supports result replay and parameter-conflict detection, but its retention statement is at least
+24 hours, not a universal exact expiry. [Python's CSV documentation](https://docs.python.org/3/library/csv.html)
+supports the reader replacement, matching dialect parameters and `newline=''` file handling.
+Some progress responses still offer file operations unavailable in the trial, and several
+decision explanations call instrumentation cheap without supplied cost evidence; retain those
+scope/assumption observations rather than treating all fluent prose as verified.
+
+Snapshot 06 usage medians below include skill activation and task turns, excluding graders and
+later reruns. They describe the pre-correction Claude candidate, not the current revision or Codex.
+
+| Capability | Original seconds | TTAK seconds | Original output tokens | TTAK output tokens |
+|---|---:|---:|---:|---:|
+| Development | 8.85 | 13.59 | 654 | 966.5 |
+| Review | 7.65 | 12.65 | 259 | 703.5 |
+| Explanation | 16.22 | 19.56 | 972.5 | 1298 |
+| Progress | 13.40 | 13.65 | 448.5 | 454 |
+| Mixed | 22.82 | 35.61 | 667.5 | 2161.5 |
+
+No time/cost-saving claim follows from these observations. Concurrent collection, native internal
+calls and the small scenario corpus affect elapsed time. Output tokens are not subscription
+quota or money; input/cache categories remain separately recorded in `usage-summary.json`.
+
 One blinded Sonnet 5 grading of the corrected mixed-progress comparison passed all hard criteria
 for all conditions. It identified the original's refusal to explain the supplied plan as a
 material shortfall, and rated TTAK partially on scope control because it added CI/caller checks.
@@ -89,6 +122,9 @@ it was not retried through another route. The owner subsequently confirmed that 
 disabled on both accounts. The task-local Claude profile uses the existing native OAuth environment
 without copying a credential file; native `ttak on` was observed blocked and consumed by its hook,
 with the setting saved ON. The new Codex profile reports not logged in through the normal CLI.
+The latest normal CLI check still reports not logged in for all three Codex conditions. Owner
+login through `tests/release/login_codex.ps1` is the next prerequisite for the requested independent
+model comparison. No authentication files were copied and no login or trust bypass was used.
 
 The installed Claude CLI advertises `plugin eval`, but its offline `init --bare` command returned
 `plugin eval is currently in early access`. No template was created and no feature flag was changed.
@@ -148,7 +184,7 @@ protocol below are frozen per snapshot; this changing checkpoint is not an exper
 The current full comparison budget is 388 subject CLI turns (264 task turns and 124 skill
 activation turns), plus 128 planned grading turns: 516 total, split equally between the hosts.
 This excludes development conversation, setup probes and defect-driven reruns. Saved pilot and
-grading records currently account for 250 Claude CLI turns, including the failed candidate attempt
+grading records currently account for 267 Claude CLI turns, including the failed candidate attempt
 and superseded comparison routing.
 CLI turns are not subscription quota units; native internal calls and cache accounting vary.
 
