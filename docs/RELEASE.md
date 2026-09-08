@@ -477,6 +477,19 @@ changed evidence and session conditions prevent attributing that difference sole
 isolation. The adapter establishes coverage, not independent judgment. Independent source
 selection, review/repair integration, both-host support and repeated comparisons remain open.
 
+Snapshot 42 tested a small explanation-skill revision that prefers a remedy directly enforcing
+the requirement and requires its operating conditions, failure handling and application duties
+to be traced before stating the result. No database-specific facts or expected answers were
+added. The first unchanged expert task still gives the known incorrect post-wait re-read
+explanation. It also says neither transaction writes a row the other read, contradicting its
+own interleaving. Native evidence confirms the exact revised body and task at Sonnet 5/medium;
+the result cannot be dismissed as missing skill delivery. The second repetition was not run.
+This rejected variant cost two CLI calls (activation and task), 25.695 seconds total. Its frozen
+inputs and response remain in `.superpowers/release-run-42/`; findings and the rejected body are
+in `.superpowers/remedy-choice-42/`. Main and isolated Claude skill bytes and profile readiness
+were restored exactly. This generic wording change did not fix the observed defect and is not
+part of the current candidate. Snapshot 23 again matches the current frozen inputs.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -526,8 +539,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **669 calls**: Claude has 282 subject/activation
-calls, 66 grades and forty-three review/repair/source diagnostic calls (391 total); Codex has 212 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **671 calls**: Claude has 284 subject/activation
+calls, 66 grades and forty-three review/repair/source diagnostic calls (393 total); Codex has 212 subject/activation calls, 64 grades and two
 claim-verification calls (278 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
@@ -542,8 +555,8 @@ percentage, money conversion or fixed calls-to-release promise follows from thes
 The September 8 usage briefing bounds the next development/verification segment at 596
 additional CLI calls from the 620-call checkpoint: at most 80 for diagnosis and affected-case
 retesting, followed by one 516-call complete comparison only after the known defects are
-resolved. Diagnostics 24-41 and the owner's manual smoke used forty-nine of the 80 (28 and 39 were offline), leaving at most 31 diagnostic/retest calls and
-516 final-comparison calls (547 total) in this segment. This is an operational ceiling, not
+resolved. Diagnostics 24-42 and the owner's manual smoke used fifty-one of the 80 (28 and 39 were offline), leaving at most 29 diagnostic/retest calls and
+516 final-comparison calls (545 total) in this segment. This is an operational ceiling, not
 a promise of qualification within it. Main development conversation and separately identified
 control/setup requests are outside these CLI counts. Stop for a usage reset when the native
 subscription limit is reached; do not enable credits, API billing fallback or substitute models.
