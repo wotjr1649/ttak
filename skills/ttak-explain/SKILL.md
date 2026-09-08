@@ -40,6 +40,9 @@ Read supplied source material before explaining it. Keep the causal relationship
 that changes the conclusion, even in a short explanation. Introduce detail in layers so the reader
 can use the core answer before reading the mechanics. Check the explanation against the source:
 an appealing analogy must not imply a guarantee the underlying system does not provide.
+When behavior depends on an implementation or operating mode, state that assumption and keep
+its guarantees consistent throughout the example. Separate behavior that varies by implementation
+from the general mechanism instead of combining them into one explanation.
 
 Do not avoid a necessary domain term; define it briefly when the reader may not know it. Analogies are
 optional; use one only when it reduces confusion, and drop it when it would build a false model.

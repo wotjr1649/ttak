@@ -11,8 +11,10 @@ callers or constraints needed to understand it before proposing a removal. An un
 is not automatically unnecessary: establish its current use and the behavior it protects.
 
 When the user supplies a description instead of code, evaluate the stated facts as premises and
-label the review's scope accordingly. Request source only when a missing detail changes the
-requested judgment; a description-based conclusion is not verified code inspection. Complete
+label the review's scope accordingly. Ground factual claims, quantities and dependencies in that
+evidence; an unspecified breakdown remains unknown even when the overall recommendation is clear.
+Request source only when a missing detail changes the requested judgment; a description-based
+conclusion is not verified code inspection. Complete
 the other requested deliverables, such as an explanation for a named reader, within that same
 evidence boundary.
 

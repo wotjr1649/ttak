@@ -26,11 +26,10 @@ passed its hard checks, with no material regression identified by that grader. B
 coverage, independent grading and the release gate remain incomplete. Runtime verification flags
 in the raw collector records remain pending; do not infer qualification from collection success.
 
-Snapshot 06 contains 69 collected Claude trials: all three conditions of mixed-safe-progress
-with corrected activation, and all development, review and explanation scenarios in three
-conditions and two repetitions. Native transcript inspection found the intended policy/skill
+Snapshot 06 contains all 96 planned Claude trials across the sixteen scenarios, three conditions
+and two repetitions. Native transcript inspection found the intended policy/skill
 bodies and Sonnet 5 assistant messages. Neither progress treatment received a review skill body.
-For all 66 development/review/explanation trials, native `assistant.effort` metadata also confirms
+For all 96 trials, native `assistant.effort` metadata also confirms
 medium effort. Separate evidence files supplement the unchanged raw collector records; successful
 collection alone still does not qualify a trial. Cross-model grading remains pending.
 
@@ -51,10 +50,25 @@ development regression was identified by this grader. These are single-grader ob
 Manual review of the new review responses found an unsupported TTAK claim in
 `claude.review-needed-layer.ttak.1`: it states that 13 of the 14 plugins are v1, although no v1
 count was supplied. The compatibility recommendation is correct; that invented count is not.
-This defect remains unresolved. Original `claude.review-already-small.original.2` proposes a
+Original `claude.review-already-small.original.2` proposes a
 separate `any()` validation pass followed by `sum()`. A local reproduction with `iter([1, 2])`
 returns 0 instead of the supplied implementation's 3 because validation exhausts the iterator.
-Both observations are retained; review/explanation comparative grading is still pending.
+Both observations are retained for the final comparison.
+
+Six first-grader review ratings are now saved and shape-validated. The grader missed the
+unsupported count and declared no material regressions despite the independently reproduced
+iterator issue; these ratings are insufficient to clear the manual findings. Explanation and
+remaining progress/mixed ratings, independent grading and grading-disagreement resolution remain.
+
+Snapshot 07 tests a narrow instruction correction: ground review quantities/dependencies in
+evidence, and keep implementation/mode assumptions consistent in explanations. Two repetitions
+of each affected failure scenario received the revised bodies and Sonnet 5/medium. The count 13
+did not recur. However, `claude.explain-expert.ttak.2` incorrectly states that neither transaction
+writes a row read by the other, contradicting its own doctors example. Explanation accuracy is
+still unresolved; the correction is not qualified. In snapshot 06, the claim that a waiting
+transaction simply reads updated rows also needs implementation-specific qualification:
+[PostgreSQL 18 Repeatable Read](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ)
+can abort after a concurrent update and requires retrying the entire transaction.
 
 One blinded Sonnet 5 grading of the corrected mixed-progress comparison passed all hard criteria
 for all conditions. It identified the original's refusal to explain the supplied plan as a
@@ -81,12 +95,12 @@ Offline preparation:
 python -B tests/release/test_release.py
 python -B tests/release/prepare.py --check
 python -B tests/release/prepare.py --freeze .superpowers/release-run-new
-python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-06
-python -B tests/release/collect.py --experiment .superpowers/release-run-06 --trial claude.explain-child.ttak.1
+python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-07
+python -B tests/release/collect.py --experiment .superpowers/release-run-07 --trial claude.explain-child.ttak.1
 ```
 
 These commands do not call a model. The freeze example requires a destination that does not yet
-exist; snapshot 06 is the current existing snapshot used by the next two examples.
+exist; snapshot 07 is the current existing snapshot used by the next two examples.
 `prepare.py` freezes inputs and comparison assignments, not
 results. The 16 scenarios, functional checks and pinned original source bytes live in
 `tests/release/`. Public source texts are stored as `skill-source.md` data, accompanied by their
@@ -118,15 +132,15 @@ Preparation snapshots 01 and 02 predate the collector's explicit activation supp
 retained as unused preparation records. Neither contains subject trials; verification rejects
 their now-stale collector hashes. Snapshot 03 predates native plugin selection and subscription
 environment forwarding; its profiles remain in place and can be referenced by snapshot 04.
-Snapshots 04 and 05 contain the pilot records described above and archived input bytes. Their
+Snapshots 04, 05 and 06 contain the records described above and archived input bytes. Their
 hashes differ from the current corrected collector and oracle; do not overwrite them or silently
-relabel their results. Snapshot 06 freezes the corrected run. Executable inputs and the
+relabel their results. Snapshot 07 freezes the current instruction correction. Executable inputs and the
 protocol below are frozen per snapshot; this changing checkpoint is not an experimental input.
 
 The current full comparison budget is 388 subject CLI turns (264 task turns and 124 skill
 activation turns), plus 128 planned grading turns: 516 total, split equally between the hosts.
 This excludes development conversation, setup probes and defect-driven reruns. Saved pilot and
-grading records currently account for 153 Claude CLI turns, including the failed candidate attempt
+grading records currently account for 246 Claude CLI turns, including the failed candidate attempt
 and superseded comparison routing.
 CLI turns are not subscription quota units; native internal calls and cache accounting vary.
 
