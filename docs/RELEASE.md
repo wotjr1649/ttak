@@ -400,6 +400,27 @@ diagnostics 33-37. Product skills and hooks remain unchanged. This prototype is 
 option, not a newly imposed release requirement; source reuse and native integration still need
 assessment against the original four-capability comparison criteria.
 
+Diagnostic 38 reused the pinned ELI5 body rather than the shorter custom explanation workflow.
+Adaptations preserved the explicit audience, adult default, factual fidelity and source constraints,
+replacing the upstream allowance for 80% accuracy and default-to-age-five behavior. Both unchanged
+expert tasks received that body and ON policies at Sonnet 5/medium with the original Skill-only
+tool set. Both again claim a post-wait re-read of committed state. The four-call revision is
+rejected; the task profile and readiness were restored byte-for-byte and the main skill unchanged.
+The upstream source and tested adaptation remain archived in
+`.superpowers/upstream-explainer-diagnostic-38/`. Historical original answers also contain
+imprecise claims; source reuse is not itself quality certification.
+
+`scripts/review-session.cjs` now supplies a small, dependency-free sequencing module for future
+native integration. It issues one paragraph at a time, accepts only that paragraph's valid record,
+retains the pending unit after rejection, and refuses completion until every unit is accepted.
+It limits draft size, unit count and accumulated report size; copies records to prevent caller
+mutation; and rejects foreign quotes, replay, skipped units, sparse arrays and inconsistent
+assessments. Its six tests pass. The initial uncapped Node test command was rejected by the test
+guard; the documented compliant command with `--test-concurrency=1` passed. Replaying the sixteen
+actual diagnostic-33 records preserves every unit and finding, as recorded under
+`.superpowers/review-session-replay-39/`. The module performs no I/O or model calls and explicitly
+does not certify factual correctness. No hook, MCP registration or native workflow was activated.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -449,8 +470,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **662 calls**: Claude has 278 subject/activation
-calls, 66 grades and forty review/repair/source diagnostic calls (384 total); Codex has 212 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **666 calls**: Claude has 282 subject/activation
+calls, 66 grades and forty review/repair/source diagnostic calls (388 total); Codex has 212 subject/activation calls, 64 grades and two
 claim-verification calls (278 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
@@ -465,8 +486,8 @@ percentage, money conversion or fixed calls-to-release promise follows from thes
 The September 8 usage briefing bounds the next development/verification segment at 596
 additional CLI calls from the 620-call checkpoint: at most 80 for diagnosis and affected-case
 retesting, followed by one 516-call complete comparison only after the known defects are
-resolved. Diagnostics 24-37 used forty-two of the 80 (28 was offline), leaving at most 38 diagnostic/retest calls and
-516 final-comparison calls (554 total) in this segment. This is an operational ceiling, not
+resolved. Diagnostics 24-39 used forty-six of the 80 (28 and 39 were offline), leaving at most 34 diagnostic/retest calls and
+516 final-comparison calls (550 total) in this segment. This is an operational ceiling, not
 a promise of qualification within it. Main development conversation and separately identified
 control/setup requests are outside these CLI counts. Stop for a usage reset when the native
 subscription limit is reached; do not enable credits, API billing fallback or substitute models.
