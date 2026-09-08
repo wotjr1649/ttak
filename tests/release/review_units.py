@@ -96,6 +96,21 @@ def validate_review(draft, review):
             "factual_correctness_verified": False}
 
 
+def validate_assigned_review(draft, unit_id, review):
+    """Validate a single worker's assigned unit without granting whole-draft coverage."""
+    units = {unit["id"]: unit for unit in split_units(draft)}
+    if not isinstance(unit_id, str) or unit_id not in units:
+        raise ValueError("unknown assigned unit")
+    if not isinstance(review, dict) or review.get("id") != unit_id:
+        raise ValueError("review does not match its assigned unit")
+    # The existing validator numbers a standalone paragraph U001. Check the original
+    # identity first, then normalize only this internal copy; retain all other checks.
+    validate_review(units[unit_id]["text"], {"units": [{**review, "id": "U001"}]})
+    return {"unit_id": unit_id, "assigned_unit_valid": True,
+            "flagged": review["assessment"] == "needs_review",
+            "whole_draft_coverage_valid": False, "factual_correctness_verified": False}
+
+
 def apply_patches(draft, review, patches):
     """Replace only uniquely located, reviewed error quotes; preserve all other text.
 

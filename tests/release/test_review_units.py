@@ -2,7 +2,8 @@
 import copy
 import unittest
 
-from review_units import MAX_CHARS, MAX_UNITS, apply_patches, parse_review, split_units, validate_review
+from review_units import (MAX_CHARS, MAX_UNITS, apply_patches, parse_review, split_units,
+                          validate_assigned_review, validate_review)
 
 
 class ReviewUnitTests(unittest.TestCase):
@@ -22,6 +23,27 @@ class ReviewUnitTests(unittest.TestCase):
                 self.assertFalse(covered[index])
                 covered[index] = True
         self.assertTrue(all(covered[i] or char.isspace() for i, char in enumerate(draft)))
+
+    def test_assigned_review_retains_identity_and_only_partial_coverage(self):
+        row = copy.deepcopy(self.review["units"][1])
+        result = validate_assigned_review(self.draft, "U002", row)
+        self.assertEqual(row, self.review["units"][1])
+        self.assertEqual(result["unit_id"], "U002")
+        self.assertTrue(result["assigned_unit_valid"])
+        self.assertTrue(result["flagged"])
+        self.assertFalse(result["whole_draft_coverage_valid"])
+        self.assertFalse(result["factual_correctness_verified"])
+        with self.assertRaises(ValueError):
+            validate_review(self.draft, {"units": [row]})
+
+    def test_assigned_review_rejects_other_worker_and_other_unit_quote(self):
+        row = copy.deepcopy(self.review["units"][1])
+        for identifier in ("U001", "U999", []):
+            with self.subTest(identifier=identifier), self.assertRaises(ValueError):
+                validate_assigned_review(self.draft, identifier, row)
+        row["issues"][0]["quote"] = "First claim."
+        with self.assertRaises(ValueError):
+            validate_assigned_review(self.draft, "U002", row)
 
     def test_identical_paragraphs_still_need_distinct_reviews(self):
         units = split_units("Same.\n\nSame.")

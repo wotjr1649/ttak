@@ -347,6 +347,30 @@ Two calls and their audit are in `.superpowers/staged-repair-regression-30/`. Fu
 observable coverage of the draft's claims and supporting evidence, not another unstructured
 whole-answer review or an unchanged retry of this helper.
 
+Diagnostic 31 reused deterministic paragraph coverage with live primary-source retrieval. Its
+first whole-draft review added prose before JSON, so the unchanged strict parser rejected it
+and the second call was not run. Manual inspection also finds U013/U014 marked no_issue_found
+despite the known aggregate-lock and refreshed-count errors. Only the vendor claims in U007
+were flagged. One call and the exact native prompt/model audit are retained under
+`.superpowers/live-unit-review-diagnostic-31/`; there is no accepted review from that run.
+
+Diagnostic 32 assigns one unit per fresh native call, with the full draft supplied only as context,
+and uses Claude's supported `--json-schema` structured output. Four targeted units were tested:
+U013/U014 (the previously missed errors), U008 (a heading), and U016 (the SSI mitigation/trade-off).
+Both error units were flagged with source-backed reasons; the two controls had no findings. All
+four native structured objects match the session's tool inputs, exact prompts and Sonnet 5/medium.
+The existing quote/shape checks passed. This is four selected units from one sixteen-unit draft,
+not full coverage, repeated quality qualification or a broad false-positive estimate. In
+particular, one control is only a heading. Four calls and their evidence are retained under
+`.superpowers/assigned-unit-diagnostic-32/`.
+
+The prototype now validates a single assigned review against its original unit ID and text before
+combining results. Its result explicitly denies whole-draft coverage and factual certification;
+another worker's ID or a quote from another unit is rejected. Two added negative/scope tests pass,
+and all four saved native results pass the new validator without more model calls. Complete
+coverage, bounded correction/recheck and native product integration remain required. None of
+this prototype has been installed as a product verification guarantee.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -362,8 +386,8 @@ This adds no model calls and is not license clearance or an extension of the ear
 ## Local and native verification
 
 Previously observed: 72 existing plugin tests passed without skips; the current release suite
-passes 33 tests, including independent functional-oracle negatives, original-plugin selection,
-three model/environment checks, eight review-coverage checks and nine bounded-repair checks. Historical conformance
+passes 35 tests, including independent functional-oracle negatives, original-plugin selection,
+three model/environment checks, ten review-coverage/assignment checks and nine bounded-repair checks. Historical conformance
 runner and guard-checker selftests passed.
 Claude accepted the manifests, but its directory validator reported no skill contents; that
 result is not skill validation. Bundled skill/plugin validators remain unrun because their
@@ -396,8 +420,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **639 calls**: Claude has 278 subject/activation
-calls, 66 grades and seventeen review/repair/source diagnostic calls (361 total); Codex has 212 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **644 calls**: Claude has 278 subject/activation
+calls, 66 grades and twenty-two review/repair/source diagnostic calls (366 total); Codex has 212 subject/activation calls, 64 grades and two
 claim-verification calls (278 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
@@ -412,8 +436,8 @@ percentage, money conversion or fixed calls-to-release promise follows from thes
 The September 8 usage briefing bounds the next development/verification segment at 596
 additional CLI calls from the 620-call checkpoint: at most 80 for diagnosis and affected-case
 retesting, followed by one 516-call complete comparison only after the known defects are
-resolved. Diagnostics 24-30 used nineteen of the 80 (28 was offline), leaving at most 61 diagnostic/retest calls and
-516 final-comparison calls (577 total) in this segment. This is an operational ceiling, not
+resolved. Diagnostics 24-32 used twenty-four of the 80 (28 was offline), leaving at most 56 diagnostic/retest calls and
+516 final-comparison calls (572 total) in this segment. This is an operational ceiling, not
 a promise of qualification within it. Main development conversation and separately identified
 control/setup requests are outside these CLI counts. Stop for a usage reset when the native
 subscription limit is reached; do not enable credits, API billing fallback or substitute models.
