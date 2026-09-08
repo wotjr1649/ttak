@@ -56,6 +56,15 @@ that disputed reading requires contextual adjudication rather than silently trea
 confirmed execution lie. Neither historical raw score set qualifies the current candidate.
 Valid JSON and grader agreement do not prove correctness. No overall win rate is claimed.
 
+[Codex quality adjudication](RELEASE_CODEX_QUALITY.md) now resolves all 25 quality differences and
+the separate mixed-progress H3 disagreement from the 34-item set. It matches each packet to the
+original response and records exact result hashes. The mixed-progress wording describes what the
+planned verification establishes, rather than claiming the assistant ran it; that H3 is accepted.
+The eight other review hard-rating differences remain outside this artifact. Retained concerns
+include the actual incomplete scaffolding removal and unsupported time estimate; formatting
+preferences are not substituted for frozen quality requirements. Known jointly missed factual
+errors and final current-candidate qualification remain open.
+
 ## Findings that determine the next work
 
 - Development: every returned module was reviewed before the bounded functional check ran.
