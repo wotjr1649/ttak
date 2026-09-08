@@ -128,7 +128,7 @@ def apply_patches(draft, review, patches):
             if issue["kind"] == "not_established":
                 unresolved += 1
                 quote = issue["quote"]
-                if unit["text"].count(quote) == 1:
+                if unit["text"].find(quote, unit["text"].index(quote) + 1) < 0:
                     start = unit["start"] + unit["text"].index(quote)
                     protected.append((start, start + len(quote)))
                 else:
@@ -136,7 +136,7 @@ def apply_patches(draft, review, patches):
                 continue
             quote = issue["quote"]
             key = (row["id"], quote)
-            if key in eligible or unit["text"].count(quote) != 1:
+            if key in eligible or unit["text"].find(quote, unit["text"].index(quote) + 1) >= 0:
                 raise ValueError("ambiguous reviewed error location")
             start = unit["start"] + unit["text"].index(quote)
             eligible[key] = (start, start + len(quote))

@@ -503,6 +503,32 @@ it tests one known faulty paragraph, not new errors, false positives, repair or 
 Session isolation and assignment scope changed together, so their separate effects are unknown.
 No product integration or release pass is inferred from this result.
 
+`scripts/review-repair.cjs` now ports the tested repair-boundary operation to the existing Node
+runtime without adding Python or package dependencies to the runtime component. It reuses
+ReviewSession to validate full coverage and own-unit quotes before applying exactly one change
+per uniquely located contradicted/inconsistent quote. Unresolved claims are preserved; duplicate,
+overlapping, missing, unreviewed, empty and oversized edits are rejected. Source text outside the
+accepted spans is copied unchanged, including Unicode and original line endings. It performs no
+I/O, model calls or execution of replacement text; its result explicitly leaves factual correctness
+unverified. The module is not registered as an MCP tool or connected to the shipped explanation
+skill, and review records do not themselves grant authority to edit a user's artifact.
+
+Port review exposed a Python prototype bug: counting non-overlapping occurrences treated `aa`
+inside `aaa` as a unique location. A regression test failed before the fix. Both implementations
+now search from one character after the first match, reject self-overlapping error quotes and
+protect the whole unit when an unresolved quote has an ambiguous location. Two Python regressions
+pass. All seventeen Node session/adapter/repair tests pass, including six repair tests covering
+preservation, review scope, ambiguity, unresolved claims, malformed edits and size boundaries.
+
+Offline diagnostic 44 replays both historical repair stages (three patches, then one patch) and
+matches the entire recorded Python result objects exactly. The replay initially selected the
+review wrapper instead of its `review` field, then exposed a transport mismatch between the
+CRLF-exported draft file and the original LF prompt string. Selecting the original JSON prompt
+draft resolved the input mismatch without changing the repair checks. Exported Markdown is
+compared after explicit CRLF-to-LF normalization; the JSON result comparison remains exact.
+Evidence is under `.superpowers/repair-replay-44/`. This adds zero model calls and does not verify
+the truth of replacements, execute SQL or qualify the candidate.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -518,8 +544,8 @@ This adds no model calls and is not license clearance or an extension of the ear
 ## Local and native verification
 
 Previously observed: 72 existing plugin tests passed without skips; the current release suite
-passes 35 tests, including independent functional-oracle negatives, original-plugin selection,
-three model/environment checks, ten review-coverage/assignment checks and nine bounded-repair checks. Historical conformance
+passes 37 tests, including independent functional-oracle negatives, original-plugin selection,
+three model/environment checks, ten review-coverage/assignment checks and eleven bounded-repair checks. Historical conformance
 runner and guard-checker selftests passed.
 Claude accepted the manifests, but its directory validator reported no skill contents; that
 result is not skill validation. Bundled skill/plugin validators remain unrun because their
@@ -568,7 +594,7 @@ percentage, money conversion or fixed calls-to-release promise follows from thes
 The September 8 usage briefing bounds the next development/verification segment at 596
 additional CLI calls from the 620-call checkpoint: at most 80 for diagnosis and affected-case
 retesting, followed by one 516-call complete comparison only after the known defects are
-resolved. Diagnostics 24-43 and the owner's manual smoke used fifty-two of the 80 (28 and 39 were offline), leaving at most 28 diagnostic/retest calls and
+resolved. Diagnostics 24-44 and the owner's manual smoke used fifty-two of the 80 (28, 39 and 44 were offline), leaving at most 28 diagnostic/retest calls and
 516 final-comparison calls (544 total) in this segment. This is an operational ceiling, not
 a promise of qualification within it. Main development conversation and separately identified
 control/setup requests are outside these CLI counts. Stop for a usage reset when the native

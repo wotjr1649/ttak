@@ -146,6 +146,21 @@ class ReviewUnitTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             apply_patches(self.draft, review, patches)
 
+    def test_self_overlapping_quote_is_ambiguous(self):
+        review = {"units": [{"id": "U001", "assessment": "needs_review", "issues": [
+            {"quote": "aa", "kind": "contradicted", "reason": "Ambiguous location."}]}]}
+        with self.assertRaises(ValueError):
+            apply_patches("aaa", review,
+                          [{"unit_id": "U001", "quote": "aa", "replacement": "b"}])
+
+    def test_self_overlapping_unknown_quote_protects_the_unit(self):
+        review = {"units": [{"id": "U001", "assessment": "needs_review", "issues": [
+            {"quote": "aa", "kind": "not_established", "reason": "Ambiguous location."},
+            {"quote": "b", "kind": "contradicted", "reason": "A proposed change."}]}]}
+        with self.assertRaises(ValueError):
+            apply_patches("aaab", review,
+                          [{"unit_id": "U001", "quote": "b", "replacement": "c"}])
+
     def test_replacements_cannot_be_empty_unchanged_or_oversized(self):
         review, patch = self.correction()
         for replacement in ("", " ", patch["quote"], "x" * MAX_CHARS):
