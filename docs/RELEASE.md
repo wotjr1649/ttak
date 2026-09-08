@@ -542,12 +542,12 @@ All twenty Node session/adapter/repair tests pass, including a real stdio repair
 and rejection paths that leave the previous review usable. The adapter still performs no file
 writes, network access, credential access or model calls. No persistent MCP registration or
 shipped-skill integration was made. The existing native permission scope covered review_start
-and review_submit; the new review_repair permission is pending. A concrete one-call Sonnet 5/medium
+and review_submit; review_repair initially awaited permission. A concrete one-call Sonnet 5/medium
 smoke is prepared at `.superpowers/manual-review-repair-check.py`, with hashes for all three
 runtime modules, a 120-second timeout, no retry and no persistent permission change. Its syntax
-was checked without running it. Native diagnostic 45 has not run; no additional usage is counted.
+was checked before execution. The subsequently authorized execution is recorded below.
 
-While the three-tool native permission request remains pending, local boundary review reproduced
+While the three-tool native permission request was pending, local boundary review reproduced
 two Unicode corruption cases: a quote containing only half of an emoji's surrogate pair was
 accepted as a repair location, and an unpaired surrogate was accepted as replacement text.
 Two regression tests failed before the fix. Repair now rejects malformed quote/replacement text
@@ -555,6 +555,18 @@ while accepting a complete emoji; it does not normalize or rewrite unrelated sou
 All twenty-two Node session/adapter/repair tests pass. The prepared manual smoke's repair-module
 hash was updated after review; its three-tool scope, one-call bound and unexecuted status remain
 unchanged. This adds no model calls and does not resolve the pending native permission or quality gate.
+
+On September 9 the owner explicitly authorized one Claude check with review_start, review_submit
+and review_repair in the isolated test profile. Diagnostic 45 completed that one call in 10.53
+seconds at Sonnet 5/medium. The native transcript confirms the exact prompt and four successful
+tool calls: start R1, submit its finding, repair the reviewed quote, and submit the new R2 review.
+The corrected text is `2 + 2 = 4.`; the repair response requires rechecking with coverage false,
+and the final R2 response has coverage true while factual correctness remains unverified.
+There were zero permission denials and no matching test processes remained. Raw results are
+preserved with a separate `native-audit.json` in `.superpowers/native-review-repair-45/`.
+This completes the authorized transport/state-machine smoke, not explanation-quality validation,
+independent-session review integration, Codex support or release qualification. No persistent
+permission/configuration changes were made, and no second native call was launched.
 
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
@@ -605,8 +617,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **672 calls**: Claude has 284 subject/activation
-calls, 66 grades and forty-four review/repair/source diagnostic calls (394 total); Codex has 212 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **673 calls**: Claude has 284 subject/activation
+calls, 66 grades and forty-five review/repair/source diagnostic calls (395 total); Codex has 212 subject/activation calls, 64 grades and two
 claim-verification calls (278 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
@@ -621,8 +633,8 @@ percentage, money conversion or fixed calls-to-release promise follows from thes
 The September 8 usage briefing bounds the next development/verification segment at 596
 additional CLI calls from the 620-call checkpoint: at most 80 for diagnosis and affected-case
 retesting, followed by one 516-call complete comparison only after the known defects are
-resolved. Diagnostics 24-44 and the owner's manual smoke used fifty-two of the 80 (28, 39 and 44 were offline; 45 is pending), leaving at most 28 diagnostic/retest calls and
-516 final-comparison calls (544 total) in this segment. This is an operational ceiling, not
+resolved. Diagnostics 24-45 and the owner's manual smoke used fifty-three of the 80 (28, 39 and 44 were offline), leaving at most 27 diagnostic/retest calls and
+516 final-comparison calls (543 total) in this segment. This is an operational ceiling, not
 a promise of qualification within it. Main development conversation and separately identified
 control/setup requests are outside these CLI counts. Stop for a usage reset when the native
 subscription limit is reached; do not enable credits, API billing fallback or substitute models.
