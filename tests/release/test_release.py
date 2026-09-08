@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 from prepare import freeze, plan, source_records, verify_freeze
-from collect import command, parse
+from collect import activation_prompts, activation_skills, command, parse
 from verify_project import verify
 
 ROOT = Path(__file__).resolve().parent
@@ -22,6 +22,25 @@ def fixture():
 
 
 class ReleaseTests(unittest.TestCase):
+    def test_explicit_only_original_is_activated_and_baseline_stays_unmodified(self):
+        case = {"original": "i-have-adhd", "capability": "progress"}
+        self.assertEqual(activation_skills(case, "baseline"), [])
+        self.assertEqual(activation_prompts(case, "baseline", "claude", {}), [])
+        with self.assertRaises(ValueError):
+            activation_prompts(case, "original", "claude", {})
+        readiness = {"skill_invocations": {"i-have-adhd": "i-have-adhd:i-have-adhd"}}
+        self.assertTrue(activation_prompts(case, "original", "claude", readiness)[0].startswith(
+            "/i-have-adhd:i-have-adhd "))
+        self.assertTrue(activation_prompts(case, "original", "codex", readiness)[0].startswith(
+            "$i-have-adhd:i-have-adhd "))
+        readiness["skill_invocations"]["i-have-adhd"] = "unrelated-skill"
+        with self.assertRaises(ValueError):
+            activation_prompts(case, "original", "claude", readiness)
+        mixed = {"original": "all", "capability": "mixed"}
+        self.assertEqual(set(activation_skills(mixed, "original")),
+                         {"ponytail", "ponytail-review", "eli5", "i-have-adhd"})
+        self.assertEqual(activation_skills(mixed, "ttak"), ["ttak-review", "ttak-explain"])
+
     def test_native_commands_preserve_controls_and_resume_the_observed_session(self):
         session = "00000000-0000-4000-8000-000000000001"
         for host, model, effort in [("claude", "claude-sonnet-5", "medium"),

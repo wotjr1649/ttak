@@ -17,6 +17,33 @@ import uuid
 from prepare import ROOT, HERE, load_suite, verify_freeze
 
 
+def activation_skills(case, condition):
+    if condition == "baseline":
+        return []
+    if condition == "original":
+        return (["ponytail", "ponytail-review", "eli5", "i-have-adhd"]
+                if case["original"] == "all" else [case["original"]])
+    if condition == "ttak":
+        return {"review": ["ttak-review"], "explanation": ["ttak-explain"],
+                "mixed": ["ttak-review", "ttak-explain"]}.get(case["capability"], [])
+    raise ValueError("unknown comparison condition")
+
+
+def activation_prompts(case, condition, host, readiness):
+    prompts = []
+    names = readiness.get("skill_invocations", {})
+    for skill in activation_skills(case, condition):
+        package = "ttak" if skill.startswith("ttak-") else ("ponytail" if skill == "ponytail-review" else skill)
+        allowed = {skill, f"{package}:{skill}"}
+        native_name = names.get(skill)
+        if native_name not in allowed:
+            raise ValueError(f"missing or unsupported native invocation for {skill}")
+        prefix = "/" if host == "claude" else "$"
+        prompts.append(f"{prefix}{native_name} Load this skill for the upcoming task. "
+                       "No task artifact is supplied yet; do not invent one or claim work is complete.")
+    return prompts
+
+
 def command(host, model, effort, session=None):
     if host == "claude":
         args = ["claude", "-p", "--model", model, "--effort", effort,
@@ -113,9 +140,12 @@ def run_trial(experiment, trial_id, profile, timeout, execute):
     args = command(row["host"], row["model"], row["effort"])
     if not execute:
         print(json.dumps({"trial": row, "command": args, "turns": len(case["turns"]),
+                          "activation_skills": activation_skills(case, row["condition"]),
                           "status": "dry run; no host invoked"}, indent=2))
         return
     profile = preflight(profile, experiment, row["host"], row["condition"])
+    readiness = json.loads((profile / "readiness.json").read_text(encoding="utf-8"))
+    activations = activation_prompts(case, row["condition"], row["host"], readiness)
     destination = experiment / "trials" / trial_id
     if destination.exists():
         raise ValueError("trial already has state; inspect it instead of silently rerunning")
@@ -128,13 +158,15 @@ def run_trial(experiment, trial_id, profile, timeout, execute):
            if key.upper() in {"PATH", "SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT",
                               "SYSTEMDRIVE", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "TEMP", "TMP"}}
     env["CODEX_HOME" if row["host"] == "codex" else "CLAUDE_CONFIG_DIR"] = str(profile)
-    record = {**row, "turns": [], "delivery_verified": False, "actual_model_verified": False,
+    record = {**row, "turns": [], "activation_turns": [], "delivery_verified": False, "actual_model_verified": False,
               "effort_verified": False, "release_qualified": False,
               "scope": "native skill use with supplied source; generated code is checked separately"}
     session = None
     try:
-        for index, prompt in enumerate(case["turns"]):
-            if index == 0 and "fixture" in case:
+        conversation = [("activation_turns", prompt) for prompt in activations]
+        conversation += [("turns", prompt) for prompt in case["turns"]]
+        for index, (phase, prompt) in enumerate(conversation):
+            if phase == "turns" and not record["turns"] and "fixture" in case:
                 prompt += "\n\nSupplied project.py:\n```python\n" + (work / case["fixture"]).read_text(encoding="utf-8") + "\n```"
             args = command(row["host"], row["model"], row["effort"], session)
             args[0] = shutil.which(args[0]) or args[0]
@@ -144,10 +176,12 @@ def run_trial(experiment, trial_id, profile, timeout, execute):
             if result.returncode:
                 raise ValueError(f"host exit {result.returncode}; no retry attempted")
             turn = parse(row["host"], result.stdout)
+            if phase == "activation_turns" and re.search(r"unknown (?:command|skill)|skill not found", turn["answer"], re.I):
+                raise ValueError("native skill activation failed; no task turn will be scored")
             session = turn["session"] or session
-            if index < len(case["turns"]) - 1 and not session:
+            if index < len(conversation) - 1 and not session:
                 raise ValueError("cannot continue without an observed session id")
-            record["turns"].append({**turn, "duration_s": round(time.monotonic() - started, 3)})
+            record[phase].append({**turn, "duration_s": round(time.monotonic() - started, 3)})
         record["status"] = "collected; runtime evidence and grading pending"
     except (ValueError, OSError, subprocess.TimeoutExpired) as error:
         record["status"] = "stopped; inspect host and child-process state before any continuation"
