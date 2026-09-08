@@ -26,8 +26,11 @@ decision, mixed review/explanation and mixed progress once per host. It is not a
 three-condition repeated comparison. Inputs and results are retained without relabeling them.
 
 Snapshot 06 has 64 shape-validated grades and 26 criterion-level differences between the two
-graders. Both graders missed a known database explanation error. Their agreement cannot clear
-that finding; disagreements and source-grounded findings remain to be resolved before scoring.
+graders. All 26 recorded differences now have [manual adjudication](RELEASE_ADJUDICATION.md),
+with packet/subject equality checks and unchanged original grades. This review saw condition
+mappings and is not a third blind grade. Three disputed hard ratings remain non-passes.
+Both graders missed a known database explanation error. Their agreement cannot clear that
+finding; jointly missed facts and the remaining criteria still require review before scoring.
 Snapshot 09 has eight validated Sonnet grades; its original retry failure is retained. Grades
 being valid JSON does not prove their judgments correct. No overall win rate is claimed.
 
