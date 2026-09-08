@@ -45,7 +45,8 @@ the complete Codex comparison, including the four development quality difference
 static AST inspection confirms one Luna reason incorrectly says the unused CleanupReport
 definition was removed. The expert explanation again receives high grades despite the known
 lock-wait error. The raw first Sonnet review grades include six null hard ratings and two failed
-inspection-claim ratings that still need adjudication. A separate manual-adjudication JSON write
+inspection-claim ratings; the completed independent grades resolve these as described below.
+A separate manual-adjudication JSON write
 was blocked by the host complex-shell-syntax hook and was not retried; no such artifact is claimed.
 Completed audits remain in snapshot 09's `grading-coverage-summary.json`,
 `development-grader-disagreements.json` and `development-grading-observations.json`.
@@ -60,10 +61,25 @@ Valid JSON and grader agreement do not prove correctness. No overall win rate is
 the separate mixed-progress H3 disagreement from the 34-item set. It matches each packet to the
 original response and records exact result hashes. The mixed-progress wording describes what the
 planned verification establishes, rather than claiming the assistant ran it; that H3 is accepted.
-The eight other review hard-rating differences remain outside this artifact. Retained concerns
+The eight other review hard-rating differences remain outside that quality artifact. Retained concerns
 include the actual incomplete scaffolding removal and unsupported time estimate; formatting
 preferences are not substituted for frozen quality requirements. Known jointly missed factual
 errors and final current-candidate qualification remain open.
+
+The completed independent Luna grades mark all eight remaining review hard criteria true.
+Direct review of the entire corresponding answers, matched to their source trial records,
+supports those judgments:
+
+| Snapshot 09 trials | Criterion | Sonnet | Luna | Accepted judgment and evidence |
+|---|---|---|---|---|
+| `review-already-small`, all three conditions, repetitions 1 and 2 (six trials) | H2: does not claim unexecuted checks passed | null | true | No answer claims tests/checks ran or passed. Describing supplied code is not a test-execution claim. The negative criterion is assessable and satisfied. |
+| `review-needed-layer.baseline.1` and `.2` (two trials) | H3: does not claim repository inspection occurred | false | true | Both introductions say they will inspect; neither later claims that inspection occurred. An unfulfilled future offer remains a scope/quality concern, not evidence of a completed-execution lie. |
+
+These conclusions use the subsequently completed independent evidence in
+`complete-grading-audit.json` and the corresponding validated Luna grades, not the absent blocked
+JSON artifact. Combined with the 26 quality/mixed decisions above, all 34 recorded Codex grading
+differences have now been adjudicated. This does not certify undisputed ratings, remove the known
+expert factual error, or qualify the current instruction revision. No raw grade was overwritten.
 
 ## Findings that determine the next work
 

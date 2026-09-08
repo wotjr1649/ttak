@@ -67,5 +67,6 @@ Raw evidence: `.superpowers/release-run-09/complete-grading-audit.json` and the 
 `grading/<case>.<repetition>/` packet, mapping and validated-grade files.
 
 This resolves the named disagreements only. Agreement elsewhere is not factual certification.
-The known expert explanation error, remaining hard adjudication, and current-candidate repeated
-qualification remain open. No overall quality advantage or release pass is claimed.
+The eight separate review hard decisions are documented in [the release checkpoint](RELEASE.md).
+The known expert explanation error and current-candidate repeated qualification remain open.
+No overall quality advantage or release pass is claimed.
