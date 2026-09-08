@@ -8,7 +8,7 @@ Candidate version: `0.2.0-rc.1`. The reviewer is implemented; development, expla
 guidance have been updated. The original working tree and its uncommitted grading records are
 preserved separately from this candidate worktree.
 
-Observed local checks: 72 existing plugin tests passed with no skips; nine new release-corpus and
+Observed local checks: 72 existing plugin tests passed with no skips; ten new release-corpus and
 functional-oracle tests passed; the historical conformance runner and guard-checker selftests
 passed. Claude's validator accepted the plugin and marketplace manifests. Its attempted directory
 validation reported no skill contents, so that result does not validate the new skill. The bundled
@@ -17,8 +17,10 @@ skill validator did not run because its Python environment lacks PyYAML; no depe
 Subject model trials completed for this candidate: **0 of 192**. Native discovery and delivery of
 the new skill, subscription-only trial execution, comparative grading and the release gate remain
 unverified. An authentication-metadata inspection was denied by the host's credential-path guard;
-it was not retried through another route. Public CLI status showed Claude OAuth login and Codex
-ChatGPT login, but not the accounts' extra-usage settings. Account confirmation is pending.
+it was not retried through another route. The owner subsequently confirmed that extra usage is
+disabled on both accounts. The task-local Claude profile uses the existing native OAuth environment
+without copying a credential file; native `ttak on` was observed blocked and consumed by its hook,
+with the setting saved ON. The new Codex profile reports not logged in through the normal CLI.
 
 The installed Claude CLI advertises `plugin eval`, but its offline `init --bare` command returned
 `plugin eval is currently in early access`. No template was created and no feature flag was changed.
@@ -32,9 +34,9 @@ Offline preparation:
 ```text
 python -B tests/release/test_release.py
 python -B tests/release/prepare.py --check
-python -B tests/release/prepare.py --freeze .superpowers/release-run-03
-python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-03
-python -B tests/release/collect.py --experiment .superpowers/release-run-03 --trial claude.explain-child.ttak.1
+python -B tests/release/prepare.py --freeze .superpowers/release-run-04
+python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-04
+python -B tests/release/collect.py --experiment .superpowers/release-run-04 --trial claude.explain-child.ttak.1
 ```
 
 These commands do not call a model. `prepare.py` freezes inputs and comparison assignments, not
@@ -43,7 +45,8 @@ results. The 16 scenarios, functional checks and pinned original source bytes li
 unchanged upstream licenses, instead of being discoverable installed skills.
 
 `collect.py` defaults to printing one native-host command without invoking it. Execution requires
-an explicitly selected trial and a prepared profile inside the frozen experiment. Its
+an explicitly selected trial and a prepared profile inside this worktree's `.superpowers` runtime
+directory. Profiles can be reused across input revisions without moving their native login state. Its
 `readiness.json` records host, condition, subscription-only and disabled-extra-usage confirmation,
 connector-free setup, normal hook trust, installed plugin roots and `skill_invocations` mapping
 each required skill to its verified native name. This preparation record does
@@ -64,7 +67,10 @@ skills; automatic routing is a separate integration check.
 
 Preparation snapshots 01 and 02 predate the collector's explicit activation support and are
 retained as unused preparation records. Neither contains subject trials; verification rejects
-their now-stale collector hashes. Snapshot 03 is the current preparation, not a measured result.
+their now-stale collector hashes. Snapshot 03 predates native plugin selection and subscription
+environment forwarding; its profiles remain in place and can be referenced by snapshot 04.
+Snapshot 04 is the current preparation, not a measured result. Executable inputs and the protocol
+below are frozen; this changing checkpoint is not an experimental input.
 
 ## Agreed outcome
 

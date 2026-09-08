@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 from prepare import freeze, plan, source_records, verify_freeze
-from collect import activation_prompts, activation_skills, command, parse
+from collect import activation_prompts, activation_skills, command, parse, selected_plugins
 from verify_project import verify
 
 ROOT = Path(__file__).resolve().parent
@@ -22,6 +22,23 @@ def fixture():
 
 
 class ReleaseTests(unittest.TestCase):
+    def test_only_the_relevant_original_plugin_is_loaded(self):
+        with tempfile.TemporaryDirectory(prefix="plugins-test-", dir=ROOT) as temp:
+            profile = Path(temp)
+            roots = {name: f"plugins/{name}" for name in ["ponytail", "eli5", "i-have-adhd", "ttak"]}
+            for relative in roots.values():
+                (profile / relative).mkdir(parents=True)
+            readiness = {"source_roots": roots, "plugin_roots": list(roots.values())}
+            case = {"original": "eli5", "capability": "explanation"}
+            self.assertEqual(selected_plugins(profile, readiness, case, "baseline"), [])
+            actual = selected_plugins(profile, readiness, case, "original")
+            self.assertEqual(actual, [(profile / "plugins/eli5").resolve()])
+            args = command("claude", "claude-sonnet-5", "medium", plugin_roots=actual)
+            self.assertEqual(args.count("--plugin-dir"), 1)
+            self.assertIn(str(actual[0]), args)
+            mixed = {"original": "all", "capability": "mixed"}
+            self.assertEqual(len(selected_plugins(profile, readiness, mixed, "original")), 3)
+
     def test_explicit_only_original_is_activated_and_baseline_stays_unmodified(self):
         case = {"original": "i-have-adhd", "capability": "progress"}
         self.assertEqual(activation_skills(case, "baseline"), [])

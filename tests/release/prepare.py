@@ -28,6 +28,14 @@ def sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
+def protocol():
+    text = (ROOT / "docs/RELEASE.md").read_text(encoding="utf-8")
+    marker = "## Agreed outcome\n"
+    if text.count(marker) != 1:
+        raise ValueError("release protocol needs exactly one agreed-outcome section")
+    return marker + text.split(marker, 1)[1]
+
+
 def source_records():
     records = json.loads((SOURCES / "manifest.json").read_text(encoding="utf-8"))
     for record in records:
@@ -97,16 +105,20 @@ def freeze(destination):
     suite = load_suite()
     rows = plan()
     files = [SUITE, HERE / "fixtures/project.py", HERE / "verify_project.py", HERE / "prepare.py", HERE / "collect.py",
-             SOURCES / "manifest.json", ROOT / "docs/RELEASE.md"]
+             SOURCES / "manifest.json"]
     files += [ROOT / p for p in POLICY + SKILLS]
     files += [SOURCES / r["path"] for r in source_records()]
     records = [{"path": p.relative_to(ROOT).as_posix(), "sha256": sha(p.read_bytes())} for p in files]
+    protocol_text = protocol()
     manifest = {"schema_version": 1, "planned_trials": len(rows), "files": records,
+                "protocol_sha256": sha(protocol_text.encode("utf-8")),
                 "status": "prepared; no subject trials executed",
                 "qualification": "Native host delivery, actual model/effort, subscription-only execution, "
                                  "functional checks and blind grading remain required. A prompt-text "
                                  "simulation alone does not qualify this plugin for release."}
     destination.mkdir(parents=True)
+    with (destination / "protocol.md").open("x", encoding="utf-8", newline="\n") as handle:
+        handle.write(protocol_text)
     for name, value in [("manifest.json", manifest), ("plan.json", rows), ("cases.json", suite)]:
         with (destination / name).open("x", encoding="utf-8", newline="\n") as handle:
             json.dump(value, handle, ensure_ascii=False, indent=2)
@@ -116,6 +128,9 @@ def freeze(destination):
 
 def verify_freeze(destination):
     manifest = json.loads((destination / "manifest.json").read_text(encoding="utf-8"))
+    protocol_text = (destination / "protocol.md").read_text(encoding="utf-8")
+    if sha(protocol_text.encode("utf-8")) != manifest["protocol_sha256"] or protocol_text != protocol():
+        raise ValueError("frozen release protocol changed")
     for record in manifest["files"]:
         path = (ROOT / record["path"]).resolve(strict=True)
         if not path.is_relative_to(ROOT.resolve()) or sha(path.read_bytes()) != record["sha256"]:

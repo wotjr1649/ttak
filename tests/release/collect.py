@@ -44,11 +44,13 @@ def activation_prompts(case, condition, host, readiness):
     return prompts
 
 
-def command(host, model, effort, session=None):
+def command(host, model, effort, session=None, plugin_roots=()):
     if host == "claude":
         args = ["claude", "-p", "--model", model, "--effort", effort,
                 "--output-format", "json", "--tools", "Skill",
                 "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}']
+        for root in plugin_roots:
+            args += ["--plugin-dir", str(root)]
         if session:
             args += ["--resume", str(uuid.UUID(session))]
     elif host == "codex":
@@ -65,6 +67,24 @@ def command(host, model, effort, session=None):
     if any("bypass" in arg or "ignore-rules" in arg or "skip-permissions" in arg for arg in args):
         raise ValueError("a release trial cannot bypass host controls")
     return args
+
+
+def selected_plugins(profile, readiness, case, condition):
+    if condition == "baseline":
+        return []
+    sources = (["ttak"] if condition == "ttak" else
+               ["ponytail", "eli5", "i-have-adhd"] if case["original"] == "all" else
+               ["ponytail" if case["original"] == "ponytail-review" else case["original"]])
+    selected = []
+    for source in sources:
+        relative = readiness.get("source_roots", {}).get(source)
+        if relative not in readiness.get("plugin_roots", []):
+            raise ValueError(f"missing prepared native plugin for {source}")
+        root = (profile / relative).resolve(strict=True)
+        if not root.is_relative_to(profile.resolve()):
+            raise ValueError("native plugin escaped the trial profile")
+        selected.append(root)
+    return selected
 
 
 def parse(host, stdout):
@@ -100,8 +120,10 @@ def parse(host, stdout):
 
 def preflight(profile, experiment, host, condition):
     profile = profile.resolve(strict=True)
-    if not profile.is_dir() or not profile.is_relative_to(experiment.resolve()):
-        raise ValueError("profile must be inside this frozen experiment directory")
+    if not profile.is_dir() or not profile.is_relative_to((ROOT / ".superpowers").resolve()):
+        raise ValueError("profile must be inside this worktree's task-local runtime directory")
+    if profile.name != f"{host}-{condition}":
+        raise ValueError("profile directory must identify its host and condition")
     # This contains operator-reviewed preparation evidence, not credentials. None of these
     # declarations proves runtime delivery; that remains a separate transcript inspection.
     readiness = json.loads((profile / "readiness.json").read_text(encoding="utf-8"))
@@ -146,6 +168,7 @@ def run_trial(experiment, trial_id, profile, timeout, execute):
     profile = preflight(profile, experiment, row["host"], row["condition"])
     readiness = json.loads((profile / "readiness.json").read_text(encoding="utf-8"))
     activations = activation_prompts(case, row["condition"], row["host"], readiness)
+    plugin_roots = selected_plugins(profile, readiness, case, row["condition"])
     destination = experiment / "trials" / trial_id
     if destination.exists():
         raise ValueError("trial already has state; inspect it instead of silently rerunning")
@@ -158,6 +181,13 @@ def run_trial(experiment, trial_id, profile, timeout, execute):
            if key.upper() in {"PATH", "SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT",
                               "SYSTEMDRIVE", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "TEMP", "TMP"}}
     env["CODEX_HOME" if row["host"] == "codex" else "CLAUDE_CONFIG_DIR"] = str(profile)
+    if row["host"] == "claude" and "CLAUDE_CODE_OAUTH_TOKEN" in os.environ:
+        # Native subscription login already present in this process. Forward only to the
+        # first-party CLI; do not read, copy or persist a credential file or an API key.
+        env["CLAUDE_CODE_OAUTH_TOKEN"] = os.environ["CLAUDE_CODE_OAUTH_TOKEN"]
+    if row["host"] == "claude":
+        env["DISABLE_AUTOUPDATER"] = "1"
+        env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] = "1"
     record = {**row, "turns": [], "activation_turns": [], "delivery_verified": False, "actual_model_verified": False,
               "effort_verified": False, "release_qualified": False,
               "scope": "native skill use with supplied source; generated code is checked separately"}
@@ -168,7 +198,7 @@ def run_trial(experiment, trial_id, profile, timeout, execute):
         for index, (phase, prompt) in enumerate(conversation):
             if phase == "turns" and not record["turns"] and "fixture" in case:
                 prompt += "\n\nSupplied project.py:\n```python\n" + (work / case["fixture"]).read_text(encoding="utf-8") + "\n```"
-            args = command(row["host"], row["model"], row["effort"], session)
+            args = command(row["host"], row["model"], row["effort"], session, plugin_roots)
             args[0] = shutil.which(args[0]) or args[0]
             started = time.monotonic()
             result = subprocess.run(args, input=prompt, cwd=work, env=env, capture_output=True,
