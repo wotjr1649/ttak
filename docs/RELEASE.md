@@ -216,6 +216,18 @@ remain unchanged. Evidence is in `.superpowers/bounded-repair-diagnostic-17/`, i
 no-model recheck after strengthening unresolved-overlap protection. This establishes bounded
 editing, not complete semantic repair, automatic source acquisition or installed integration.
 
+Diagnostic 18 independently reviewed both complete repaired drafts again with the same full-unit
+protocol at Sonnet 5/medium. Both passed structural coverage and native input/model checks.
+The first remains `needs_review`: its general write-skew description contradicts its own count
+query about which rows are read, and its blanket dismissal of row-level locking contradicts the
+later explicit-locking mitigation. These are two issues in one unit. The second is
+`no_issues_reported`, not factually certified; the manually observed imprecise refusal wording
+is still disclosed. Evidence is in `.superpowers/repair-verification-diagnostic-18/`.
+This closes the diagnostic review/apply/review sequence without falsely turning an incomplete
+answer into a pass. The sequence still uses supplied references and a test-only coordinator.
+Next verify whether full-unit review helps on the original source-unavailable drafts; successful
+provided-reference diagnostics alone cannot qualify the agreed original cases.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -259,8 +271,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **612 calls**: Claude has 262 subject/activation
-calls, 66 grades and seven review/repair/coverage diagnostic calls (335 total); Codex has 211 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **614 calls**: Claude has 262 subject/activation
+calls, 66 grades and nine review/repair/coverage diagnostic calls (337 total); Codex has 211 subject/activation calls, 64 grades and two
 claim-verification calls (277 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
