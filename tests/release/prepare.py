@@ -123,7 +123,7 @@ def freeze(destination):
     suite = load_suite()
     rows = plan()
     files = [SUITE, HERE / "fixtures/project.py", HERE / "verify_project.py", HERE / "prepare.py", HERE / "collect.py",
-             SOURCES / "manifest.json"]
+             HERE / "codex_profile.py", SOURCES / "manifest.json"]
     files += [ROOT / p for p in POLICY + SKILLS]
     files += [SOURCES / r["path"] for r in source_records()]
     records = [{"path": p.relative_to(ROOT).as_posix(), "sha256": sha(p.read_bytes())} for p in files]

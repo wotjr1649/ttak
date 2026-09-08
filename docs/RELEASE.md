@@ -9,7 +9,7 @@ guidance have been updated. The original working tree and its uncommitted gradin
 preserved separately from this candidate worktree.
 
 Observed local checks: 72 existing plugin tests passed with no skips; ten new release-corpus and
-functional-oracle tests previously passed; the current release suite passes all eleven tests,
+functional-oracle tests previously passed; the current release suite passes all thirteen tests,
 including rejection of a lossy normalization helper and task-appropriate skill activation.
 The historical conformance runner and guard-checker selftests
 passed. Claude's validator accepted the plugin and marketplace manifests. Its attempted directory
@@ -126,6 +126,24 @@ The latest normal CLI check still reports not logged in for all three Codex cond
 login through `tests/release/login_codex.ps1` is the next prerequisite for the requested independent
 model comparison. No authentication files were copied and no login or trust bypass was used.
 
+Codex preparation now points to the current candidate instruction bytes. The old pinned local-Git
+source is preserved; the scaffold helper changed the task-only marketplace entry to a local source,
+and native `codex plugin add` installed `0.2.0-rc.1+codex.20260908074334`. All twelve installed
+files, including policy, skills, hooks, license, attribution and the manifest-referenced logo,
+were checked against the prepared source; login and normal hook trust remain
+unverified. The bundled plugin validator also depends on unavailable PyYAML, so its validation
+is not claimed. Native installation and byte verification are the checks actually observed.
+
+The Codex collector now selects original plugins using native `config/batchWrite`, validates the
+enabled set, and restores the previous settings with a configuration-version check. An exclusive
+task lock prevents two collectors selecting conflicting conditions in one profile. Failure leaves
+the lock for inspection; do not clear it without confirming process termination and settings.
+No hook/trust/provider/permission settings are changed. CLI `-c` overrides did not change plugin
+visibility in the observed debug input, so that route is not used. Four native checks confirmed
+Ponytail-only, ELI5-only, i-have-adhd-only and all-three skill visibility, with the original config
+restored byte-for-byte after each. These preparation checks made no model calls. Snapshot 09
+freezes this collector change; previous Claude evidence remains historical and unchanged.
+
 The installed Claude CLI advertises `plugin eval`, but its offline `init --bare` command returned
 `plugin eval is currently in early access`. No template was created and no feature flag was changed.
 This native evaluator is unavailable in this environment; comparison execution must use an
@@ -139,12 +157,12 @@ Offline preparation:
 python -B tests/release/test_release.py
 python -B tests/release/prepare.py --check
 python -B tests/release/prepare.py --freeze .superpowers/release-run-new
-python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-08
-python -B tests/release/collect.py --experiment .superpowers/release-run-08 --trial claude.explain-child.ttak.1
+python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-09
+python -B tests/release/collect.py --experiment .superpowers/release-run-09 --trial claude.explain-child.ttak.1
 ```
 
 These commands do not call a model. The freeze example requires a destination that does not yet
-exist; snapshot 08 is the current existing snapshot used by the next two examples.
+exist; snapshot 09 is the current existing snapshot used by the next two examples.
 `prepare.py` freezes inputs and comparison assignments, not
 results. The 16 scenarios, functional checks and pinned original source bytes live in
 `tests/release/`. Public source texts are stored as `skill-source.md` data, accompanied by their
@@ -176,9 +194,9 @@ Preparation snapshots 01 and 02 predate the collector's explicit activation supp
 retained as unused preparation records. Neither contains subject trials; verification rejects
 their now-stale collector hashes. Snapshot 03 predates native plugin selection and subscription
 environment forwarding; its profiles remain in place and can be referenced by snapshot 04.
-Snapshots 04 through 07 contain the records described above and archived input bytes. Their
+Snapshots 04 through 08 contain the records described above and archived input bytes. Their
 hashes differ from the current corrected collector and oracle; do not overwrite them or silently
-relabel their results. Snapshot 08 freezes the current instruction correction. Executable inputs and the
+relabel their results. Snapshot 09 freezes the current inputs and Codex selector. Executable inputs and the
 protocol below are frozen per snapshot; this changing checkpoint is not an experimental input.
 
 The current full comparison budget is 388 subject CLI turns (264 task turns and 124 skill

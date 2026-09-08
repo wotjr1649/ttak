@@ -10,6 +10,7 @@ import unittest
 from prepare import freeze, plan, source_records, verify_freeze
 from collect import activation_prompts, activation_skills, command, parse, selected_plugins
 from verify_project import verify
+from codex_profile import MARKETPLACE, NAMES, selection_edits
 
 ROOT = Path(__file__).resolve().parent
 
@@ -22,6 +23,29 @@ def fixture():
 
 
 class ReleaseTests(unittest.TestCase):
+    def test_codex_selection_preserves_original_enabled_states(self):
+        config = {"plugins": {f"{name}@{MARKETPLACE}": {"enabled": name != "eli5"} for name in NAMES}}
+        edits, restore = selection_edits(config, ["ponytail"])
+        self.assertEqual(sum(edit["value"] for edit in edits), 1)
+        self.assertEqual(next(edit["value"] for edit in restore if '"eli5@' in edit["keyPath"]), False)
+        self.assertEqual(sum(edit["value"] for edit in selection_edits(config, sorted(NAMES))[0]), 3)
+        self.assertFalse(config["plugins"][f"eli5@{MARKETPLACE}"]["enabled"])
+
+    def test_codex_selection_rejects_unrelated_or_ambiguous_profile_state(self):
+        config = {"plugins": {f"{name}@{MARKETPLACE}": {"enabled": True} for name in NAMES}}
+        for selected in [[], ["unrelated"], ["ponytail", "unrelated"]]:
+            with self.assertRaises(ValueError):
+                selection_edits(config, selected)
+        config["plugins"]["unrelated@external"] = {"enabled": True}
+        with self.assertRaises(ValueError):
+            selection_edits(config, ["ponytail"])
+        with self.assertRaises(ValueError):
+            selection_edits({}, ["ponytail"])
+        config["plugins"].pop("unrelated@external")
+        config["plugins"][f"eli5@{MARKETPLACE}"] = "invalid"
+        with self.assertRaises(ValueError):
+            selection_edits(config, ["ponytail"])
+
     def test_only_the_relevant_original_plugin_is_loaded(self):
         with tempfile.TemporaryDirectory(prefix="plugins-test-", dir=ROOT) as temp:
             profile = Path(temp)

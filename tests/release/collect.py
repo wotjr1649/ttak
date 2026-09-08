@@ -4,6 +4,7 @@ Default is a dry run. This does not install plugins, copy credentials, approve h
 grade responses, execute generated code or claim successful instruction delivery.
 """
 import argparse
+from contextlib import nullcontext
 import json
 import os
 from pathlib import Path
@@ -15,6 +16,7 @@ import tomllib
 import uuid
 
 from prepare import ROOT, HERE, activation_skills, load_suite, verify_freeze
+from codex_profile import original_selection
 
 
 def activation_prompts(case, condition, host, readiness):
@@ -180,28 +182,35 @@ def run_trial(experiment, trial_id, profile, timeout, execute):
               "effort_verified": False, "release_qualified": False,
               "scope": "native skill use with supplied source; generated code is checked separately"}
     session = None
+    original_names = sorted({"ponytail" if name == "ponytail-review" else name
+                             for name in activation_skills(case, "original")})
+    selection_context = (original_selection(profile, original_names, env, ROOT / ".superpowers")
+                         if row["host"] == "codex" and row["condition"] == "original" else nullcontext())
     try:
-        conversation = [("activation_turns", prompt) for prompt in activations]
-        conversation += [("turns", prompt) for prompt in case["turns"]]
-        for index, (phase, prompt) in enumerate(conversation):
-            if phase == "turns" and not record["turns"] and "fixture" in case:
-                prompt += "\n\nSupplied project.py:\n```python\n" + (work / case["fixture"]).read_text(encoding="utf-8") + "\n```"
-            args = command(row["host"], row["model"], row["effort"], session, plugin_roots)
-            args[0] = shutil.which(args[0]) or args[0]
-            started = time.monotonic()
-            result = subprocess.run(args, input=prompt, cwd=work, env=env, capture_output=True,
-                                    text=True, encoding="utf-8", errors="strict", timeout=timeout)
-            if result.returncode:
-                raise ValueError(f"host exit {result.returncode}; no retry attempted")
-            turn = parse(row["host"], result.stdout)
-            if phase == "activation_turns" and re.search(r"unknown (?:command|skill)|skill not found", turn["answer"], re.I):
-                raise ValueError("native skill activation failed; no task turn will be scored")
-            session = turn["session"] or session
-            if index < len(conversation) - 1 and not session:
-                raise ValueError("cannot continue without an observed session id")
-            record[phase].append({**turn, "duration_s": round(time.monotonic() - started, 3)})
+        with selection_context as selection:
+            if selection is not None:
+                record["plugin_selection"] = selection
+            conversation = [("activation_turns", prompt) for prompt in activations]
+            conversation += [("turns", prompt) for prompt in case["turns"]]
+            for index, (phase, prompt) in enumerate(conversation):
+                if phase == "turns" and not record["turns"] and "fixture" in case:
+                    prompt += "\n\nSupplied project.py:\n```python\n" + (work / case["fixture"]).read_text(encoding="utf-8") + "\n```"
+                args = command(row["host"], row["model"], row["effort"], session, plugin_roots)
+                args[0] = shutil.which(args[0]) or args[0]
+                started = time.monotonic()
+                result = subprocess.run(args, input=prompt, cwd=work, env=env, capture_output=True,
+                                        text=True, encoding="utf-8", errors="strict", timeout=timeout)
+                if result.returncode:
+                    raise ValueError(f"host exit {result.returncode}; no retry attempted")
+                turn = parse(row["host"], result.stdout)
+                if phase == "activation_turns" and re.search(r"unknown (?:command|skill)|skill not found", turn["answer"], re.I):
+                    raise ValueError("native skill activation failed; no task turn will be scored")
+                session = turn["session"] or session
+                if index < len(conversation) - 1 and not session:
+                    raise ValueError("cannot continue without an observed session id")
+                record[phase].append({**turn, "duration_s": round(time.monotonic() - started, 3)})
         record["status"] = "collected; runtime evidence and grading pending"
-    except (ValueError, OSError, subprocess.TimeoutExpired) as error:
+    except (ValueError, OSError, KeyError, TypeError, subprocess.SubprocessError) as error:
         record["status"] = "stopped; inspect host and child-process state before any continuation"
         record["error_type"] = type(error).__name__
         with (destination / "result.json").open("x", encoding="utf-8", newline="\n") as handle:
