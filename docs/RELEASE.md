@@ -154,6 +154,23 @@ abort/retry remedy and does not repeat that claim. The known explanation issue i
 unique to Claude and remains unresolved. This small comparison does not establish general
 model or plugin superiority. Further Codex coverage and independent cross-grading remain.
 
+Snapshot 09 also contains all 24 Codex development trials. Their native model/effort and input
+bodies were verified; none of the eight TTAK development trials loaded either on-demand skill
+body. Every returned module was reviewed before task-specific functional execution. Baseline
+and TTAK passed 8/8 checks each; original passed 7/8. In
+`codex.develop-retry.original.2`, a bare `raise` after the `except` block produces `RuntimeError`
+instead of preserving the last `OSError`. That failure is retained without repairing the original
+response. Baseline `develop-safe-trim.2` leaves the now-unused reporting class in the module;
+its functional pass does not settle the requested simplification's quality. These observations
+are a small comparison, not a general bug-reduction claim.
+
+Codex independently graded the two historical Claude expert-explanation comparisons using the
+same recovered canonical prompt text and hidden condition mapping. Native records confirm
+`gpt-5.6-luna` / high. Both graders missed the source-grounded lock-wait issue despite high
+ratings. Agreement between these graders therefore does not clear that known factual finding.
+The first retrieval attempt found a LF/CRLF mismatch before any model call; canonical text was
+then matched to the recorded first-grader prompt without changing task content or scores.
+
 The installed Claude CLI advertises `plugin eval`, but its offline `init --bare` command returned
 `plugin eval is currently in early access`. No template was created and no feature flag was changed.
 This native evaluator is unavailable in this environment; comparison execution must use an
@@ -212,7 +229,8 @@ protocol below are frozen per snapshot; this changing checkpoint is not an exper
 The current full comparison budget is 388 subject CLI turns (264 task turns and 124 skill
 activation turns), plus 128 planned grading turns: 516 total, split equally between the hosts.
 This excludes development conversation, setup probes and defect-driven reruns. Saved pilot and
-grading records currently account for 267 Claude CLI turns and 10 Codex subject CLI turns,
+grading records currently account for 267 Claude CLI turns, 42 Codex subject CLI turns and two
+Codex grading turns,
 including the failed candidate attempt and superseded comparison routing. Two additional Codex
 setup/control turns were observed separately: status used model tokens; enabling TTAK used none.
 CLI turns are not subscription quota units; native internal calls and cache accounting vary.
