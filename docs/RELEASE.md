@@ -26,14 +26,25 @@ passed its hard checks, with no material regression identified by that grader. B
 coverage, independent grading and the release gate remain incomplete. Runtime verification flags
 in the raw collector records remain pending; do not infer qualification from collection success.
 
-Snapshot 06 adds four collected Claude trials: all three conditions of mixed-safe-progress,
-with the corrected activation, and the first TTAK develop-reuse response. Native transcript
-inspection found the intended policy/skill bodies and Sonnet 5 assistant messages. Neither
-progress treatment received a review skill body. Actual effort verification and blinded grading
-of these new records remain pending. The complete develop-reuse code was inspected: only the two
-requested helper calls changed, with no new imports or side effects. Its independent functional
-check passed, including Unicode casefolding, whitespace, empty names and input preservation.
-This is one functional result, not proof of comparative development quality.
+Snapshot 06 contains 27 collected Claude trials: all three conditions of mixed-safe-progress
+with corrected activation, and all four development scenarios in three conditions and two
+repetitions. Native transcript inspection found the intended policy/skill bodies and Sonnet 5
+assistant messages. Neither progress treatment received a review skill body. Actual effort
+verification, development quality grading and cross-model grading remain pending.
+
+All 24 development artifacts were reviewed before execution and passed their task-specific
+functional checks: normalization, CSV round-trip, bounded exception retry, and cleanup-plan
+preview/containment. Changes were limited to the requested functions or reporting scaffolding,
+without new imports or external effects. The six normalization artifacts have identical code
+hashes. Baseline and original conditions also passed every functional check: no functional
+accuracy advantage for TTAK was observed in these fixtures. These results do not establish
+general bug reduction, automatic repository editing quality, or comparative explanation quality.
+
+One blinded Sonnet 5 grading of the corrected mixed-progress comparison passed all hard criteria
+for all conditions. It identified the original's refusal to explain the supplied plan as a
+material shortfall, and rated TTAK partially on scope control because it added CI/caller checks.
+The baseline also mentions CI/test coverage but received full scope credit; retain that
+consistency question for independent review rather than silently adjusting the rating.
 
 An authentication-metadata inspection was denied by the host's credential-path guard;
 it was not retried through another route. The owner subsequently confirmed that extra usage is
@@ -99,7 +110,7 @@ protocol below are frozen per snapshot; this changing checkpoint is not an exper
 The current full comparison budget is 388 subject CLI turns (264 task turns and 124 skill
 activation turns), plus 128 planned grading turns: 516 total, split equally between the hosts.
 This excludes development conversation, setup probes and defect-driven reruns. Saved pilot and
-grading records currently account for 43 Claude CLI turns, including the failed candidate attempt
+grading records currently account for 75 Claude CLI turns, including the failed candidate attempt
 and superseded comparison routing.
 CLI turns are not subscription quota units; native internal calls and cache accounting vary.
 
