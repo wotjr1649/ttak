@@ -165,6 +165,21 @@ integration have not been demonstrated. Neither diagnostic replaces the original
 changes its rubric, or establishes TTAK superiority. Next work must demonstrate that complete
 verification path on bounded public examples, including correct claims that must be preserved.
 
+Diagnostic 15 tested two source-supplied drafts with independent Sonnet 5/medium review, followed
+by one same-model native TTAK repair. Every extracted quote matched the draft. Review 1 found the
+locking/re-read error (but added prose outside the requested JSON); review 2 omitted the critical
+sentence entirely. Only the usable correction from review 1 was sent to repair after manual
+inspection. The repaired answer correctly explains serialization failure and whole-transaction
+retry, but retains imprecise read/write wording elsewhere. Review 2 was not silently supplemented
+with a manually injected correction, and its repair was not attempted.
+
+All three calls have native model/effort and exact prompt evidence; the repair also has verified
+explanation skill delivery. Evidence is in `.superpowers/explanation-repair-diagnostic-15/`.
+This demonstrates one targeted repair, not reliable automatic verification or product integration.
+Next implementation should cover the whole draft with deterministic text units and reject omitted
+review IDs; model selection of important claims left a demonstrated gap. Mechanical coverage will
+still not prove semantic correctness, source completeness or absence of other errors.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -207,8 +222,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **605 calls**: Claude has 262 subject/activation
-calls and 66 grades (328 total); Codex has 211 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **608 calls**: Claude has 262 subject/activation
+calls, 66 grades and three review/repair diagnostic calls (331 total); Codex has 211 subject/activation calls, 64 grades and two
 claim-verification calls (277 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
