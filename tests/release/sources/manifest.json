@@ -1,0 +1,62 @@
+[
+  {
+    "source": "ponytail",
+    "revision": "2ed6c52c9d7e5e56942508591085fd45dea277d3",
+    "path": "ponytail/skills/ponytail/skill-source.md",
+    "url": "https://raw.githubusercontent.com/DietrichGebert/ponytail/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail/SKILL.md",
+    "bytes": 6637,
+    "sha256": "1316a2f3f95741d2300b116fe0c2d81ce4a9568656ed0a62643f54aaf09957f2",
+    "upstream_path": "skills/ponytail/SKILL.md"
+  },
+  {
+    "source": "ponytail",
+    "revision": "2ed6c52c9d7e5e56942508591085fd45dea277d3",
+    "path": "ponytail/skills/ponytail-review/skill-source.md",
+    "url": "https://raw.githubusercontent.com/DietrichGebert/ponytail/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail-review/SKILL.md",
+    "bytes": 2383,
+    "sha256": "40df33b58fc6ef889b93585733feb9566b76e9586efa7f376785c1e995197ac0",
+    "upstream_path": "skills/ponytail-review/SKILL.md"
+  },
+  {
+    "source": "ponytail",
+    "revision": "2ed6c52c9d7e5e56942508591085fd45dea277d3",
+    "path": "ponytail/LICENSE",
+    "url": "https://raw.githubusercontent.com/DietrichGebert/ponytail/2ed6c52c9d7e5e56942508591085fd45dea277d3/LICENSE",
+    "bytes": 1071,
+    "sha256": "fb1bc6909ac3ef82d5c22106e32ef682b0cff66788fa915fb9b53b15c9d2f3ab"
+  },
+  {
+    "source": "eli5",
+    "revision": "a766623b062331fdde53467001379b4ddf3acc2f",
+    "path": "eli5/skills/eli5/skill-source.md",
+    "url": "https://raw.githubusercontent.com/DreambigOu/ELI5/a766623b062331fdde53467001379b4ddf3acc2f/skills/eli5/SKILL.md",
+    "bytes": 7965,
+    "sha256": "a671efd44a818aee7dbe4ea2ec634079401c3f578c08cb634c2b6181ced2dbe9",
+    "upstream_path": "skills/eli5/SKILL.md"
+  },
+  {
+    "source": "eli5",
+    "revision": "a766623b062331fdde53467001379b4ddf3acc2f",
+    "path": "eli5/LICENSE",
+    "url": "https://raw.githubusercontent.com/DreambigOu/ELI5/a766623b062331fdde53467001379b4ddf3acc2f/LICENSE",
+    "bytes": 1056,
+    "sha256": "1126322e2cc8d165adc4c792eeb195717de2bcc7b39be1ce77959d78e87ef685"
+  },
+  {
+    "source": "i-have-adhd",
+    "revision": "58494af57962b2d7a996b4d419474380a299af5e",
+    "path": "i-have-adhd/skills/i-have-adhd/skill-source.md",
+    "url": "https://raw.githubusercontent.com/ayghri/i-have-adhd/58494af57962b2d7a996b4d419474380a299af5e/skills/i-have-adhd/SKILL.md",
+    "bytes": 6813,
+    "sha256": "938d0e350a0c2b0e2e6c3a9032542e062846d108e0f89dd27c798ba5b436397e",
+    "upstream_path": "skills/i-have-adhd/SKILL.md"
+  },
+  {
+    "source": "i-have-adhd",
+    "revision": "58494af57962b2d7a996b4d419474380a299af5e",
+    "path": "i-have-adhd/LICENSE",
+    "url": "https://raw.githubusercontent.com/ayghri/i-have-adhd/58494af57962b2d7a996b4d419474380a299af5e/LICENSE",
+    "bytes": 1069,
+    "sha256": "8acbb618089b738404f76ac60fca1aaa995d9a87995eddf95f0b777acd7f7d2c"
+  }
+]

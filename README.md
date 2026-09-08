@@ -2,17 +2,17 @@
 
 <img src="assets/logo.png" alt="TTAK" width="128" align="right">
 
-An opt-in instruction set for Claude Code and Codex CLI, plus one audience-adaptive explainer skill.
-It changes what the model is told. **It is not known to change what the model does well**: no
-measurement in this project or in the predecessor it is built from has shown an improvement in model
-output, and the predecessor's paired studies found no resolvable difference at all. Read
-[What is measured](#what-is-measured) before installing it for a benefit.
+An opt-in instruction set for Claude Code and Codex CLI with focused review and audience-adaptive
+explanation. It supports lean development and visible progress during long work.
+**This is an unqualified release candidate.** Its four capabilities and comparison gate are defined
+in [the current release scope](docs/RELEASE.md). Historical measurements below concern the earlier
+policy; they do not validate this candidate or establish general improvements in quality or cost.
 
 한국어: [README.ko.md](README.ko.md)
 
 ## What it is
 
-Two independent pieces.
+An operating discipline and two independently callable skills.
 
 - **The operating discipline.** Three short policy files — where this guidance ranks against
   everything else, engineering invariants, and a response contract — injected by host lifecycle hooks
@@ -20,6 +20,12 @@ Two independent pieces.
 - **The explainer.** One model-invocable skill that adapts an explanation to a stated or inferred
   reader, defaulting to a capable adult who may be unfamiliar with the topic. It works whether or not
   the discipline is on.
+- **The reviewer.** A focused review for unnecessary complexity, grounded in current requirements
+  and callers. It reports justified simplifications without editing unless fixes are requested.
+  Invoke with `/ttak:ttak-review` on Claude Code or `$ttak:ttak-review` on Codex, or ask for an
+  over-engineering review. Discovery and behavioral validation of this new skill are still pending.
+- **Progress guidance.** The operating discipline keeps the current step, completed result and
+  blocker visible as work changes, and reconnects interruptions to unfinished work.
 
 ## What it is not
 
@@ -152,8 +158,9 @@ language instead — the host-invoked route needs no syntax.
 
 ## What is measured
 
-**TTAK has not measured its own effect on a model's output, and the figures below are not its
-measurements.** They come from an earlier plugin by the same author, built for the same two hosts,
+**The figures in this opening subsection concern the predecessor.** TTAK's own later experiments
+and their limitations are recorded below and in `docs/FINDINGS.md`.
+The predecessor figures come from an earlier plugin by the same author, built for the same two hosts,
 whose policy text TTAK's was adapted from. They are published here, unfavourable ones included,
 because they are the closest evidence that exists for this kind of guidance and because leaving them
 out would make TTAK look untested rather than tested-and-null. That plugin's repository is being
@@ -217,8 +224,8 @@ Measured from the shipped `policy/*.md` files:
 
 | Scope | Bytes | Approx. tokens (~4 chars/token) |
 |---|---|---|
-| Session start (precedence + invariants + contract) | 2,977 | 744 |
-| Subagent start (precedence + invariants) | 2,000 | 499 |
+| Session start (precedence + invariants + contract) | 3,645 | 911 |
+| Subagent start (precedence + invariants) | 2,303 | 575 |
 
 These are byte counts taken directly from the shipped files with the composition the hook performs,
 plus a token approximation at four characters per token — an estimate, not an exact token count.

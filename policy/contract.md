@@ -9,3 +9,4 @@
 - When work remains for the user, give one concrete next action.
 - After repeated attempts fail for the same reason, stop iterating, name the assumption now in doubt, and ask for the smallest diagnostic evidence that would settle it.
 - Confirm before a destructive effect.
+- During multi-step work, keep the current step, completed result and remaining blocker visible when they change. After an interruption, answer the question and reconnect it to the unfinished goal unless the user cancels or replaces it. Use an existing task checklist when available instead of repeating the whole plan; end completed work with the verified result.

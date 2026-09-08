@@ -120,6 +120,21 @@ Every paragraph or bullet of the instruction text TTAK ships:
 Not in scope: documentation, tests, manifests, and the hook runtime, none of which reproduce source
 text. `README.md` and `README.ko.md` are covered by a single row at the end.
 
+## Current release candidate additions
+
+The original per-unit tables and measurements below describe the earlier candidate. Existing unit
+IDs are retained; new units are appended rather than renumbering the historical record.
+
+| Current artifact | Addition | Derivation |
+|---|---|---|
+| `policy/invariants.md` I9 | Identify and preserve protected behavior before simplifying | New operational prose supporting the existing safety invariant |
+| `policy/contract.md` C10 | Current step, completed result, blockers and interruption recovery | Re-expression of `SRC-IHAVEADHD` progress and completion principles |
+| `skills/ttak-explain/SKILL.md` | Explicit audience overrides, layered explanation and source fidelity | Re-expression of `SRC-DREAMBIG-ELI5` audience adaptation; factual fidelity remains TTAK's requirement |
+| `skills/ttak-review/SKILL.md` | Focused complexity review with evidence and false-positive checks | Derived purpose from `SRC-PONYTAIL` `skills/ponytail-review/SKILL.md`; new prose, same pinned MIT notice in `ATTRIBUTIONS.md` |
+
+Historical word-run measurements have not been remeasured for these additions and must not be
+read as file-wide measurements of the new candidate. No upstream license notice was changed.
+
 ## Sources and pinned revisions
 
 | Source | Repository | Pinned revision | Licence at that revision |

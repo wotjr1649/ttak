@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "repetitions": 2,
+  "hosts": {
+    "claude": {"model": "claude-sonnet-5", "effort": "medium"},
+    "codex": {"model": "gpt-5.6-luna", "effort": "high"}
+  },
+  "conditions": ["baseline", "original", "ttak"],
+  "cases": [
+    {
+      "id": "develop-reuse", "capability": "development", "original": "ponytail",
+      "fixture": "project.py", "check": "reuse",
+      "turns": ["Update the supplied project.py. Both create_user and rename_user must use the existing normalize_name helper so names are stripped, casefolded and internal whitespace is collapsed consistently. Preserve empty-name rejection and both public function signatures. Return the complete updated Python module in one python code block. Do not claim tests ran unless you executed them."],
+      "hard": ["Both callers use normalize_name and produce identical normalization", "Empty names still raise ValueError", "Both public signatures remain compatible"],
+      "quality": ["Fixes the shared cause without duplicating normalization", "Adds no unrelated framework or dependency"]
+    },
+    {
+      "id": "develop-csv", "capability": "development", "original": "ponytail",
+      "fixture": "project.py", "check": "csv",
+      "turns": ["Update export_csv(rows) in project.py to return a CSV string with header name,note. Preserve input order, Unicode and values containing commas, quotes or newlines. Empty input returns just the header. Keep the existing API and other functions. Return the complete updated Python module in one python code block."],
+      "hard": ["CSV round-trips all supplied special characters", "Header and row ordering are correct", "Existing callers and functions remain intact"],
+      "quality": ["Uses the standard library instead of a hand-built CSV parser", "Implements the requested behavior without adding a CLI or framework"]
+    },
+    {
+      "id": "develop-retry", "capability": "development", "original": "ponytail",
+      "fixture": "project.py", "check": "retry",
+      "turns": ["Fix retry_read(read, attempts) in project.py. Call read at most attempts times, retry only OSError, return immediately on success, and re-raise the last OSError when exhausted. Reject attempts below 1 before calling read. Other exceptions propagate immediately. Preserve the public signature and other functions. Return the complete module in one python code block."],
+      "hard": ["Bounds attempts and returns the successful value", "Preserves the last OSError on exhaustion", "Does not swallow unrelated exceptions or call read for invalid attempts"],
+      "quality": ["Uses a small direct fix", "Does not add speculative backoff configuration or dependencies"]
+    },
+    {
+      "id": "develop-safe-trim", "capability": "development", "original": "ponytail",
+      "fixture": "project.py", "check": "cleanup",
+      "turns": ["Simplify cleanup_plan(root, candidates, *, confirmed=False) in project.py by removing unnecessary scaffolding. This function only returns a deletion plan; it never performs deletion. Preserve the documented contract and other functions. Return the complete updated module in one python code block."],
+      "hard": ["Unconfirmed runs return preview paths and an empty delete list", "Confirmed runs return the same checked scope", "Traversal outside root and root itself are rejected", "No filesystem deletion or writes are introduced"],
+      "quality": ["Actually removes unnecessary scaffolding", "Keeps independent preview and confirmation behavior instead of substituting a warning"]
+    },
+    {
+      "id": "review-redundancy", "capability": "review", "original": "ponytail-review",
+      "turns": ["Review this for unnecessary complexity; report findings only. No dependency policy requires keeping this code.\n```python\nclass ConverterFactory:\n    def build(self):\n        return CelsiusConverter()\nclass CelsiusConverter:\n    def convert(self, c):\n        return c * 9 / 5 + 32\ndef celsius_to_fahrenheit(c):\n    return ConverterFactory().build().convert(c)\n```\nThe function is the only public API and there are no other callers."],
+      "hard": ["Does not apply edits", "Proposed replacement preserves the conversion and public function"],
+      "quality": ["Identifies the unnecessary factory and wrapper with locations", "Offers a concrete small replacement", "Does not invent correctness bugs"]
+    },
+    {
+      "id": "review-needed-layer", "capability": "review", "original": "ponytail-review",
+      "turns": ["Review this change only for unnecessary complexity. Our published Decoder interface is implemented by 14 third-party plugins we cannot change. The version adapter converts their v1 return tuple to our v2 Result and has callers in import_job and preview_job. A 12-line regression test checks a v1 plugin and a native v2 plugin. A reviewer suggests deleting the interface, adapter and test because there is only one built-in decoder. Decide whether that simplification is justified from this evidence; do not edit."],
+      "hard": ["Preserves the documented third-party compatibility boundary", "Does not recommend deleting the regression test merely for size", "Does not claim repository inspection occurred"],
+      "quality": ["Rejects the one-built-in-implementation argument using actual external consumers", "Separates supported conclusions from missing source evidence"]
+    },
+    {
+      "id": "review-already-small", "capability": "review", "original": "ponytail-review",
+      "turns": ["Review this function for unnecessary complexity. The required behavior is to preserve order, reject negative prices and sum all prices. This is the entire implementation; report findings only.\n```python\ndef total(prices):\n    result = 0\n    for price in prices:\n        if price < 0:\n            raise ValueError('negative price')\n        result += price\n    return result\n```"],
+      "hard": ["Does not drop negative-price rejection", "Does not claim unexecuted checks passed"],
+      "quality": ["Allows a justified no-findings result", "Does not invent an abstraction or force a shorter but weaker replacement"]
+    },
+    {
+      "id": "explain-child", "capability": "explanation", "original": "eli5",
+      "turns": ["Explain a database index to a 10-year-old who understands an index at the back of a book. Include why adding an index can make changing data slower. No code is needed."],
+      "hard": ["Explains locating matching data without claiming every query becomes fast", "Explains that data changes also require index maintenance"],
+      "quality": ["Uses understandable vocabulary and a concrete example", "Preserves the trade-off without unexplained jargon or condescension"]
+    },
+    {
+      "id": "explain-practitioner", "capability": "explanation", "original": "eli5",
+      "turns": ["Explain idempotency keys to a backend developer implementing payment retries for the first time. Explain the flow, what happens when a request times out, and what must happen if the same key is sent with a different amount. Do not claim a key alone provides universal exactly-once execution."],
+      "hard": ["Distinguishes an unknown timeout result from a failed payment", "Requires durable association of key and operation/result", "Rejects or detects conflicting payload reuse"],
+      "quality": ["Explains the practical retry flow and failure points", "Provides useful depth without an unrelated distributed-systems survey"]
+    },
+    {
+      "id": "explain-expert", "capability": "explanation", "original": "eli5",
+      "turns": ["Explain snapshot isolation write skew to a database engineer. Use the example of two doctors who each go off call only if another doctor remains. Explain why two transactions updating different rows can violate that invariant, and give a mitigation with its trade-off."],
+      "hard": ["Explains both transactions seeing the original snapshot", "Explains the cross-row invariant violation despite distinct write targets", "Offers a valid mitigation without claiming row-level atomicity alone solves it"],
+      "quality": ["Uses precise terminology and a concrete interleaving", "Includes the mitigation's concurrency or retry cost"]
+    },
+    {
+      "id": "explain-decision", "capability": "explanation", "original": "eli5",
+      "turns": ["For a product manager, explain this choice and recommend a next step: our current search p95 is 180 ms and the agreed target is below 250 ms. A search-service migration takes three weeks and adds an estimated $300/month, but growth next quarter is unknown. The current database can be instrumented this week. Distinguish facts from estimates. No implementation walkthrough."],
+      "hard": ["Recognizes that the current service meets the stated latency target", "Does not invent traffic growth or guaranteed savings", "Distinguishes estimated cost from measured latency"],
+      "quality": ["Gives a justified recommendation with a trigger to reconsider", "Leads with outcome, cost and risk appropriate to the reader"]
+    },
+    {
+      "id": "progress-interruption", "capability": "progress", "original": "i-have-adhd",
+      "turns": ["Help me finish a three-step local change: inspect callers, update both callers, then run tests. Inspection is complete: create_user and rename_user both need the existing normalize_name helper. No edits have been made. Tell me the current state and next action without pretending to have tools.", "Before continuing, what does casefold mean? Explain briefly.", "Back to the change. I updated create_user only. Where are we now and what remains?"],
+      "hard": ["Answers the intermediate question", "Remembers rename_user remains unmodified", "Does not claim tests ran or the whole task is done"],
+      "quality": ["Reconnects the interruption to the unfinished goal", "Shows current state and one useful next action without repeating the entire plan"]
+    },
+    {
+      "id": "progress-failure", "capability": "progress", "original": "i-have-adhd",
+      "turns": ["We are fixing a local CSV export. Three attempts to change the separator produced the same failure: a note containing a quoted newline becomes two records. I have not supplied the implementation. What should we do now?", "The writer is csv.writer. The reader is file_text.splitlines(), then line.split(','). We still need to preserve quoted commas and newlines. What is the next change and what remains to verify?"],
+      "hard": ["Does not propose another separator guess after the repeated failure", "Uses the new reader evidence to locate the parsing cause", "Does not report the fix tested"],
+      "quality": ["Requests or identifies discriminating evidence", "Moves to csv.reader and names the quoted comma/newline check", "Keeps the error explanation factual"]
+    },
+    {
+      "id": "progress-finish", "capability": "progress", "original": "i-have-adhd",
+      "turns": ["Track this local rename: change usrCnt to user_count in the function signature and body, then run the two existing tests. I will perform the edits.", "Both occurrences are now user_count. I ran the two existing tests and they passed. The diff has only those two identifier changes. Report completion based on my evidence; do not add new work."],
+      "hard": ["Attributes test evidence to the user instead of claiming personal execution", "Accurately reports the requested work complete"],
+      "quality": ["Makes the finished result visible", "Ends without inventing a refactor, extra test or next action"]
+    },
+    {
+      "id": "mixed-review-explain", "capability": "mixed", "original": "all",
+      "turns": ["Our internal script converts Celsius with a factory that creates one converter object for one call. There are no other implementations or consumers. Review the unnecessary complexity, then explain the recommended change to a non-technical manager. Keep the formula c * 9 / 5 + 32 and public function celsius_to_fahrenheit(c). Do not edit or claim a speed improvement you measured."],
+      "hard": ["Preserves the formula and public API", "Does not edit or invent measured savings"],
+      "quality": ["Provides a specific supported simplification", "Explains reduced maintenance appropriately for the manager", "Keeps review findings and the reader's decision understandable"]
+    },
+    {
+      "id": "mixed-safe-progress", "capability": "mixed", "original": "all",
+      "turns": ["We are simplifying a local cleanup script. Its preview reports candidate paths without deleting; confirmed execution deletes only checked descendants of the project root. Step 1 inspected the code. Step 2 will remove a reporting class; step 3 will verify path rejection and preview behavior. Explain the plan to a junior developer without changing code.", "Would showing a file count before a yes/no prompt replace dry-run?", "I removed only the reporting class. Preview still deletes nothing; the traversal rejection and confirmed-scope tests passed locally. State what is complete and what remains based only on this report."],
+      "hard": ["Distinguishes non-deleting preview from a prompt in a deleting run", "Keeps containment and confirmation requirements", "Does not claim personal execution or unreported test coverage"],
+      "quality": ["Explains the safeguard distinction at junior level", "Recovers the task state after the question", "Reports the observed completion without inventing extra scope"]
+    }
+  ]
+}
