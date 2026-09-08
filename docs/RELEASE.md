@@ -121,17 +121,18 @@ An authentication-metadata inspection was denied by the host's credential-path g
 it was not retried through another route. The owner subsequently confirmed that extra usage is
 disabled on both accounts. The task-local Claude profile uses the existing native OAuth environment
 without copying a credential file; native `ttak on` was observed blocked and consumed by its hook,
-with the setting saved ON. The new Codex profile reports not logged in through the normal CLI.
-The latest normal CLI check still reports not logged in for all three Codex conditions. Owner
-login through `tests/release/login_codex.ps1` is the next prerequisite for the requested independent
-model comparison. No authentication files were copied and no login or trust bypass was used.
+with the setting saved ON. The owner completed the Codex login prerequisite during preparation;
+normal CLI checks now confirm ChatGPT subscription login in all three profiles. The TTAK hooks
+have normal trust entries. A native `ttak on` control turn was consumed with zero model tokens,
+and the task plugin's saved state is enabled. No authentication files were copied and no login
+or trust bypass was used.
 
 Codex preparation now points to the current candidate instruction bytes. The old pinned local-Git
 source is preserved; the scaffold helper changed the task-only marketplace entry to a local source,
 and native `codex plugin add` installed `0.2.0-rc.1+codex.20260908074334`. All twelve installed
 files, including policy, skills, hooks, license, attribution and the manifest-referenced logo,
-were checked against the prepared source; login and normal hook trust remain
-unverified. The bundled plugin validator also depends on unavailable PyYAML, so its validation
+were checked against the prepared source. Login and normal hook operation were then verified
+as described above. The bundled plugin validator also depends on unavailable PyYAML, so its validation
 is not claimed. Native installation and byte verification are the checks actually observed.
 
 The Codex collector now selects original plugins using native `config/batchWrite`, validates the
@@ -143,6 +144,15 @@ visibility in the observed debug input, so that route is not used. Four native c
 Ponytail-only, ELI5-only, i-have-adhd-only and all-three skill visibility, with the original config
 restored byte-for-byte after each. These preparation checks made no model calls. Snapshot 09
 freezes this collector change; previous Claude evidence remains historical and unchanged.
+
+Snapshot 09 now contains six Codex expert-explanation trials: all three conditions, twice.
+Native records confirm `gpt-5.6-luna` / high and the intended input bodies. The original ELI5
+Git installation converted LF to CRLF; exact normalized text matches the pinned source and this
+transport difference is recorded rather than claiming raw-byte equality. TTAK repetition 1 again
+describes an unqualified wait-then-current-state recheck; repetition 2 gives a serializable
+abort/retry remedy and does not repeat that claim. The known explanation issue is therefore not
+unique to Claude and remains unresolved. This small comparison does not establish general
+model or plugin superiority. Further Codex coverage and independent cross-grading remain.
 
 The installed Claude CLI advertises `plugin eval`, but its offline `init --bare` command returned
 `plugin eval is currently in early access`. No template was created and no feature flag was changed.
@@ -202,8 +212,9 @@ protocol below are frozen per snapshot; this changing checkpoint is not an exper
 The current full comparison budget is 388 subject CLI turns (264 task turns and 124 skill
 activation turns), plus 128 planned grading turns: 516 total, split equally between the hosts.
 This excludes development conversation, setup probes and defect-driven reruns. Saved pilot and
-grading records currently account for 267 Claude CLI turns, including the failed candidate attempt
-and superseded comparison routing.
+grading records currently account for 267 Claude CLI turns and 10 Codex subject CLI turns,
+including the failed candidate attempt and superseded comparison routing. Two additional Codex
+setup/control turns were observed separately: status used model tokens; enabling TTAK used none.
 CLI turns are not subscription quota units; native internal calls and cache accounting vary.
 
 ## Agreed outcome
