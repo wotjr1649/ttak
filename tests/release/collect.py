@@ -108,6 +108,28 @@ def parse(host, stdout):
     return {"answer": answer, "session": session, "usage": safe_usage, "observed_models": models}
 
 
+def native_environment(host, profile, model, effort, environ=None):
+    """Build a process-local subscription environment without forwarding API billing keys."""
+    if host not in ("claude", "codex"):
+        raise ValueError("unknown host")
+    source = os.environ if environ is None else environ
+    env = {key: value for key, value in source.items()
+           if key.upper() in {"PATH", "SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT",
+                              "SYSTEMDRIVE", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "TEMP", "TMP"}}
+    env["CODEX_HOME" if host == "codex" else "CLAUDE_CONFIG_DIR"] = str(profile)
+    if host == "claude":
+        # Forward existing native subscription authentication only to the first-party CLI.
+        # Never log this dictionary or copy credential files into a prepared profile.
+        if "CLAUDE_CODE_OAUTH_TOKEN" in source:
+            env["CLAUDE_CODE_OAUTH_TOKEN"] = source["CLAUDE_CODE_OAUTH_TOKEN"]
+        env["DISABLE_AUTOUPDATER"] = "1"
+        env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] = "1"
+        # --model alone leaves WebFetch/background processing on a different default model.
+        env["ANTHROPIC_DEFAULT_HAIKU_MODEL"] = model
+        env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
+    return env
+
+
 def preflight(profile, experiment, host, condition):
     profile = profile.resolve(strict=True)
     if not profile.is_dir() or not profile.is_relative_to((ROOT / ".superpowers").resolve()):
@@ -167,17 +189,7 @@ def run_trial(experiment, trial_id, profile, timeout, execute):
     work.mkdir()
     if "fixture" in case:
         shutil.copyfile(HERE / "fixtures" / case["fixture"], work / case["fixture"])
-    env = {key: value for key, value in os.environ.items()
-           if key.upper() in {"PATH", "SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT",
-                              "SYSTEMDRIVE", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "TEMP", "TMP"}}
-    env["CODEX_HOME" if row["host"] == "codex" else "CLAUDE_CONFIG_DIR"] = str(profile)
-    if row["host"] == "claude" and "CLAUDE_CODE_OAUTH_TOKEN" in os.environ:
-        # Native subscription login already present in this process. Forward only to the
-        # first-party CLI; do not read, copy or persist a credential file or an API key.
-        env["CLAUDE_CODE_OAUTH_TOKEN"] = os.environ["CLAUDE_CODE_OAUTH_TOKEN"]
-    if row["host"] == "claude":
-        env["DISABLE_AUTOUPDATER"] = "1"
-        env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] = "1"
+    env = native_environment(row["host"], profile, row["model"], row["effort"])
     record = {**row, "turns": [], "activation_turns": [], "delivery_verified": False, "actual_model_verified": False,
               "effort_verified": False, "release_qualified": False,
               "scope": "native skill use with supplied source; generated code is checked separately"}
@@ -209,6 +221,8 @@ def run_trial(experiment, trial_id, profile, timeout, execute):
                 if index < len(conversation) - 1 and not session:
                     raise ValueError("cannot continue without an observed session id")
                 record[phase].append({**turn, "duration_s": round(time.monotonic() - started, 3)})
+                if row["host"] == "claude" and turn["observed_models"] != [row["model"]]:
+                    raise ValueError("native model usage differs from the requested model; stop further turns")
         record["status"] = "collected; runtime evidence and grading pending"
     except (ValueError, OSError, KeyError, TypeError, subprocess.SubprocessError) as error:
         record["status"] = "stopped; inspect host and child-process state before any continuation"

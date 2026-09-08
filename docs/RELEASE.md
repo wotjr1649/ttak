@@ -205,7 +205,7 @@ must have exactly one replacement; unreviewed, ambiguous, duplicate, overlapping
 unchanged edits are rejected. Quotes marked `not_established` remain unresolved and cannot be
 overwritten by overlapping error patches. Original offsets preserve all text outside the
 reviewed spans. Replacement size is bounded, and the result never claims factual verification.
-Nine additional tests cover repair boundaries; the standard release suite now passes 30 tests.
+Nine additional tests cover repair boundaries; the release suite at that checkpoint passed 30 tests.
 
 Diagnostic 17 requested one minimal replacement for each of the two previously identified
 errors, using Sonnet 5/medium. Both native proposals passed scope checks and exact input/model
@@ -250,9 +250,34 @@ authoritative evidence; a self-consistent invented exception is insufficient.
 Read-only capability research confirmed that Claude Code documents WebFetch and domain-scoped
 permissions ([tools](https://code.claude.com/docs/en/tools-reference),
 [permissions](https://code.claude.com/docs/en/permissions)); installed CLI help also lists tool
-selection controls. No native WebFetch call, permission change or integration was performed.
+selection controls. At that research-only checkpoint, no native WebFetch call, permission change
+or integration had been performed.
 Any actual retrieval experiment must preserve host controls, subscription-only execution and
 reviewed public payloads, and must be distinguished from the existing tool-limited comparison.
+
+Native source probe 21 then retrieved the one requested public PostgreSQL page through WebFetch
+under existing permissions, but model usage reported Haiku 4.5 as well as Sonnet 5. The main
+response was Sonnet 5/medium; the unexpected internal/background Haiku usage violates the fixed
+model qualification requirement. This probe is explicitly excluded and its usage retained.
+
+Probe 22 used documented process-local `ANTHROPIC_DEFAULT_HAIKU_MODEL=claude-sonnet-5` and
+`CLAUDE_CODE_EFFORT_LEVEL=medium` settings
+([model configuration](https://code.claude.com/docs/en/model-config)). The same native retrieval
+succeeded with only Sonnet 5 in reported model usage. The transcript confirms the requested URL,
+successful tool result, exact task prompt and main-response medium effort. Background effort is
+not separately exposed in the inspected transcript; configuration is not mislabeled as separate
+runtime observation. No allow rules, permission modes, guards, credentials or global settings
+were changed. Records are in `.superpowers/native-source-probe-21/` and `native-source-probe-22/`.
+
+The collector now centralizes its process environment, pins Claude background model/effort, and
+stops subsequent Claude turns if reported model usage differs from the requested model, preserving
+the offending response. Three new offline checks verify pinning, API-key/provider-variable isolation,
+parent-environment preservation and stopping after the first mismatched response. The complete
+release suite passes 33 tests. Model metadata still needs native verification; this does not
+establish every opaque internal request parameter. The original collector tool set is unchanged.
+Snapshot 23 freezes these new collector inputs; its 192 rows are prepared, not executed. Earlier
+snapshots and their archived collector bytes remain historical evidence. The plugin skill body
+remains at snapshot 10. Actual source-backed explanation and both-host integration remain to test.
 
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
@@ -263,8 +288,8 @@ from the mismatch between the response's lookup advice and the frozen task's con
 ## Local and native verification
 
 Previously observed: 72 existing plugin tests passed without skips; the current release suite
-passes 30 tests, including independent functional-oracle negatives, original-plugin selection
-validation, eight review-coverage checks and nine bounded-repair checks. Historical conformance
+passes 33 tests, including independent functional-oracle negatives, original-plugin selection,
+three model/environment checks, eight review-coverage checks and nine bounded-repair checks. Historical conformance
 runner and guard-checker selftests passed.
 Claude accepted the manifests, but its directory validator reported no skill contents; that
 result is not skill validation. Bundled skill/plugin validators remain unrun because their
@@ -297,8 +322,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **618 calls**: Claude has 262 subject/activation
-calls, 66 grades and thirteen review/repair/coverage diagnostic calls (341 total); Codex has 211 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **620 calls**: Claude has 262 subject/activation
+calls, 66 grades and fifteen review/repair/source diagnostic calls (343 total); Codex has 211 subject/activation calls, 64 grades and two
 claim-verification calls (277 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
@@ -332,8 +357,8 @@ conventionally; no runtime installation is required):
 ```text
 python -B tests/release/test_release.py
 python -B tests/release/prepare.py --check
-python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-10
-python -B tests/release/collect.py --experiment .superpowers/release-run-10 --trial claude.explain-child.ttak.1
+python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-23
+python -B tests/release/collect.py --experiment .superpowers/release-run-23 --trial claude.explain-child.ttak.1
 ```
 
 These commands do not call a model. The collector defaults to a dry run. Execution requires
@@ -344,7 +369,7 @@ activation; automatic skill routing is a separate integration check still to com
 
 Snapshots 01-03 are unused preparation; profiles in 03 are reused. Snapshots 04-05 contain seven
 historical pilot subjects, including superseded mixed-progress activation. Snapshots 06-09
-preserve the full comparisons and earlier corrections. Snapshot 10 matches current frozen inputs;
+preserve the full comparisons and earlier corrections. Snapshot 23 matches current frozen inputs;
 verify against its manifest before any further use. Historical manifests describe preparation,
 not live completion; trial/grade files and audits provide execution evidence. Do not overwrite
 old snapshots or reuse their frozen inputs as if they were the latest candidate.

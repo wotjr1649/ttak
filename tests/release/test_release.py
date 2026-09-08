@@ -3,12 +3,15 @@ import csv
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
+from types import SimpleNamespace
 
 from prepare import freeze, plan, source_records, verify_freeze
-from collect import activation_prompts, activation_skills, command, parse, selected_plugins
+from collect import activation_prompts, activation_skills, command, native_environment, parse, run_trial, selected_plugins
 from verify_project import verify
 from codex_profile import MARKETPLACE, NAMES, selection_edits
 from test_review_units import ReviewUnitTests
@@ -24,6 +27,56 @@ def fixture():
 
 
 class ReleaseTests(unittest.TestCase):
+    def test_wrong_native_model_stops_before_next_turn_and_preserves_evidence(self):
+        runtime = (ROOT.parents[1] / ".superpowers").resolve(strict=True)
+        self.assertTrue(runtime.is_relative_to(ROOT.parents[1].resolve()))
+        with tempfile.TemporaryDirectory(prefix="model-stop-test-", dir=runtime) as temp:
+            experiment = Path(temp) / "experiment"
+            freeze(experiment)
+            profile = Path(temp) / "claude-baseline"
+            profile.mkdir()
+            readiness = {"host": "claude", "condition": "baseline", "plugin_roots": []}
+            for key in ("subscription_only", "extra_usage_disabled", "no_external_connectors",
+                        "native_plugin_setup_verified", "normal_hook_trust_verified"):
+                readiness[key] = True
+            (profile / "readiness.json").write_text(json.dumps(readiness), encoding="utf-8")
+            response = {"result": "first response", "session_id": "00000000-0000-0000-0000-000000000001",
+                        "usage": {}, "modelUsage": {"claude-sonnet-5": {}, "claude-haiku-4-5-20251001": {}}}
+            completed = SimpleNamespace(returncode=0, stdout=json.dumps(response))
+            trial = "claude.progress-interruption.baseline.1"
+            with mock.patch.dict(os.environ, {}, clear=True), \
+                    mock.patch("collect.subprocess.run", return_value=completed) as process:
+                with self.assertRaisesRegex(ValueError, "model usage"):
+                    run_trial(experiment, trial, profile, 1, True)
+                self.assertEqual(process.call_count, 1)
+            record = json.loads((experiment / "trials" / trial / "result.json").read_text(encoding="utf-8"))
+            self.assertTrue(record["status"].startswith("stopped"))
+            self.assertEqual(len(record["turns"]), 1)
+            self.assertIn("claude-haiku-4-5-20251001", record["turns"][0]["observed_models"])
+            self.assertFalse(record["release_qualified"])
+
+    def test_claude_background_model_and_effort_are_pinned_without_parent_mutation(self):
+        source = {"PATH": "fixture-path", "CLAUDE_CODE_OAUTH_TOKEN": "test-only-placeholder",
+                  "ANTHROPIC_API_KEY": "test-only-placeholder", "OPENAI_API_KEY": "test-only-placeholder",
+                  "ANTHROPIC_DEFAULT_HAIKU_MODEL": "different-model",
+                  "CLAUDE_CODE_EFFORT_LEVEL": "low", "ANTHROPIC_BASE_URL": "https://invalid.example"}
+        original = source.copy()
+        env = native_environment("claude", Path("task-profile"), "claude-sonnet-5", "medium", source)
+        self.assertEqual(env["ANTHROPIC_DEFAULT_HAIKU_MODEL"], "claude-sonnet-5")
+        self.assertEqual(env["CLAUDE_CODE_EFFORT_LEVEL"], "medium")
+        self.assertEqual(env["CLAUDE_CONFIG_DIR"], "task-profile")
+        self.assertEqual(env["CLAUDE_CODE_OAUTH_TOKEN"], source["CLAUDE_CODE_OAUTH_TOKEN"])
+        self.assertFalse({"ANTHROPIC_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_BASE_URL"} & env.keys())
+        self.assertEqual(source, original)
+
+    def test_codex_does_not_receive_claude_auth_or_foreign_model_settings(self):
+        source = {"PATH": "fixture-path", "CLAUDE_CODE_OAUTH_TOKEN": "test-only-placeholder",
+                  "OPENAI_API_KEY": "test-only-placeholder", "CLAUDE_CODE_EFFORT_LEVEL": "low"}
+        env = native_environment("codex", Path("task-profile"), "gpt-5.6-luna", "high", source)
+        self.assertEqual(env, {"PATH": "fixture-path", "CODEX_HOME": "task-profile"})
+        with self.assertRaises(ValueError):
+            native_environment("unknown", Path("task-profile"), "model", "effort", source)
+
     def test_codex_selection_preserves_original_enabled_states(self):
         config = {"plugins": {f"{name}@{MARKETPLACE}": {"enabled": name != "eli5"} for name in NAMES}}
         edits, restore = selection_edits(config, ["ponytail"])
