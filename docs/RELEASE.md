@@ -200,6 +200,22 @@ prototype source snapshots are in `.superpowers/coverage-review-diagnostic-16/`.
 No original release score or installed plugin changed. This prototype still needs a validated
 correction path and native integration before it can support product claims.
 
+The prototype now also applies bounded replacement proposals. Every established error quote
+must have exactly one replacement; unreviewed, ambiguous, duplicate, overlapping, empty and
+unchanged edits are rejected. Quotes marked `not_established` remain unresolved and cannot be
+overwritten by overlapping error patches. Original offsets preserve all text outside the
+reviewed spans. Replacement size is bounded, and the result never claims factual verification.
+Nine additional tests cover repair boundaries; the standard release suite now passes 30 tests.
+
+Diagnostic 17 requested one minimal replacement for each of the two previously identified
+errors, using Sonnet 5/medium. Both native proposals passed scope checks and exact input/model
+verification. Each complete repaired draft differs only at its reviewed quote. Both replacements
+mention failure and whole-transaction retry; the second still imprecisely attributes refusal to
+the fresh snapshot rather than the application decision. Other pre-existing imprecise statements
+remain unchanged. Evidence is in `.superpowers/bounded-repair-diagnostic-17/`, including a
+no-model recheck after strengthening unresolved-overlap protection. This establishes bounded
+editing, not complete semantic repair, automatic source acquisition or installed integration.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -209,8 +225,9 @@ from the mismatch between the response's lookup advice and the frozen task's con
 ## Local and native verification
 
 Previously observed: 72 existing plugin tests passed without skips; the current release suite
-passes 21 tests, including independent functional-oracle negatives, original-plugin selection
-validation and eight review-coverage checks. Historical conformance runner and guard-checker selftests passed.
+passes 30 tests, including independent functional-oracle negatives, original-plugin selection
+validation, eight review-coverage checks and nine bounded-repair checks. Historical conformance
+runner and guard-checker selftests passed.
 Claude accepted the manifests, but its directory validator reported no skill contents; that
 result is not skill validation. Bundled skill/plugin validators remain unrun because their
 Python environment lacks PyYAML. No global dependency was installed to satisfy them.
@@ -242,8 +259,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **610 calls**: Claude has 262 subject/activation
-calls, 66 grades and five review/repair/coverage diagnostic calls (333 total); Codex has 211 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **612 calls**: Claude has 262 subject/activation
+calls, 66 grades and seven review/repair/coverage diagnostic calls (335 total); Codex has 211 subject/activation calls, 64 grades and two
 claim-verification calls (277 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two

@@ -2,7 +2,7 @@
 import copy
 import unittest
 
-from review_units import MAX_CHARS, MAX_UNITS, parse_review, split_units, validate_review
+from review_units import MAX_CHARS, MAX_UNITS, apply_patches, parse_review, split_units, validate_review
 
 
 class ReviewUnitTests(unittest.TestCase):
@@ -74,6 +74,75 @@ class ReviewUnitTests(unittest.TestCase):
                 split_units(draft)
         with self.assertRaises(ValueError):
             parse_review("x" * (MAX_CHARS + 1))
+
+    def correction(self):
+        review = copy.deepcopy(self.review)
+        review["units"][1]["issues"][0]["kind"] = "contradicted"
+        patch = {"unit_id": "U002", "quote": "Second claim.", "replacement": "Corrected claim."}
+        return review, patch
+
+    def test_patch_preserves_every_other_character(self):
+        draft = "  First claim.\r\n\r\nSecond claim.\r\n"
+        review, patch = self.correction()
+        result = apply_patches(draft, review, [patch])
+        self.assertEqual(result["text"], "  First claim.\r\n\r\nCorrected claim.\r\n")
+        self.assertEqual(result["patch_count"], 1)
+        self.assertFalse(result["factual_correctness_verified"])
+
+    def test_unknown_claim_is_retained_not_silently_corrected(self):
+        _, patch = self.correction()
+        with self.assertRaises(ValueError):
+            apply_patches(self.draft, self.review, [patch])
+        result = apply_patches(self.draft, self.review, [])
+        self.assertEqual(result["text"], self.draft)
+        self.assertEqual(result["unresolved_issues"], 1)
+
+    def test_error_patch_cannot_overwrite_an_overlapping_unknown_claim(self):
+        review, patch = self.correction()
+        review["units"][1]["issues"].append(
+            {"quote": "Second", "kind": "not_established", "reason": "Still unresolved."})
+        with self.assertRaises(ValueError):
+            apply_patches(self.draft, review, [patch])
+
+    def test_missing_duplicate_and_unreviewed_patches_rejected(self):
+        review, patch = self.correction()
+        wrong = {**patch, "unit_id": "U001", "quote": "First claim."}
+        for patches in ([], [patch, patch], [wrong], [{**patch, "quote": []}]):
+            with self.subTest(patches=patches), self.assertRaises(ValueError):
+                apply_patches(self.draft, review, patches)
+
+    def test_repeated_quote_requires_a_more_precise_location(self):
+        review, patch = self.correction()
+        with self.assertRaises(ValueError):
+            apply_patches("First claim.\n\nSecond claim. Second claim.", review, [patch])
+
+    def test_overlapping_error_quotes_rejected(self):
+        review, patch = self.correction()
+        review["units"][1]["issues"].append(
+            {"quote": "claim.", "kind": "internal_inconsistency", "reason": "Overlaps."})
+        patches = [patch, {"unit_id": "U002", "quote": "claim.", "replacement": "statement."}]
+        with self.assertRaises(ValueError):
+            apply_patches(self.draft, review, patches)
+
+    def test_replacements_cannot_be_empty_unchanged_or_oversized(self):
+        review, patch = self.correction()
+        for replacement in ("", " ", patch["quote"], "x" * MAX_CHARS):
+            with self.subTest(size=len(replacement)), self.assertRaises(ValueError):
+                apply_patches(self.draft, review, [{**patch, "replacement": replacement}])
+
+    def test_out_of_order_patches_use_original_offsets(self):
+        review, second = self.correction()
+        review["units"][0] = {"id": "U001", "assessment": "needs_review", "issues": [
+            {"quote": "First", "kind": "contradicted", "reason": "Correct this word."}]}
+        first = {"unit_id": "U001", "quote": "First", "replacement": "A much longer initial"}
+        result = apply_patches(self.draft, review, [second, first])
+        self.assertEqual(result["text"], "A much longer initial claim.\n\nCorrected claim.")
+
+    def test_incomplete_review_cannot_authorize_a_patch(self):
+        review, patch = self.correction()
+        review["units"].pop(0)
+        with self.assertRaises(ValueError):
+            apply_patches(self.draft, review, [patch])
 
 
 if __name__ == "__main__":

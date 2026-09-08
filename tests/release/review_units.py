@@ -94,3 +94,69 @@ def validate_review(draft, review):
     return {"unit_count": len(expected), "structural_coverage_valid": True,
             "flagged_units": sum(row["assessment"] == "needs_review" for row in rows),
             "factual_correctness_verified": False}
+
+
+def apply_patches(draft, review, patches):
+    """Replace only uniquely located, reviewed error quotes; preserve all other text.
+
+    Unestablished claims are not automatically false and cannot be patched here.
+    Replacement truth still needs independent verification.
+    """
+    validate_review(draft, review)
+    units = {unit["id"]: unit for unit in split_units(draft)}
+    eligible = {}
+    protected = []
+    unresolved = 0
+    for row in review["units"]:
+        unit = units[row["id"]]
+        for issue in row["issues"]:
+            if issue["kind"] == "not_established":
+                unresolved += 1
+                quote = issue["quote"]
+                if unit["text"].count(quote) == 1:
+                    start = unit["start"] + unit["text"].index(quote)
+                    protected.append((start, start + len(quote)))
+                else:
+                    protected.append((unit["start"], unit["end"]))
+                continue
+            quote = issue["quote"]
+            key = (row["id"], quote)
+            if key in eligible or unit["text"].count(quote) != 1:
+                raise ValueError("ambiguous reviewed error location")
+            start = unit["start"] + unit["text"].index(quote)
+            eligible[key] = (start, start + len(quote))
+    spans = sorted(eligible.values())
+    if any(left[1] > right[0] for left, right in zip(spans, spans[1:])):
+        raise ValueError("overlapping reviewed errors")
+    if any(start < stop and begin < end for start, end in spans for begin, stop in protected):
+        raise ValueError("patch overlaps an unresolved claim")
+    if not isinstance(patches, list) or len(patches) != len(eligible):
+        raise ValueError("incomplete patch coverage")
+    seen = set()
+    edits = []
+    result_size = len(draft)
+    for patch in patches:
+        if not isinstance(patch, dict) or set(patch) != {"unit_id", "quote", "replacement"}:
+            raise ValueError("invalid patch fields")
+        if not all(isinstance(value, str) for value in patch.values()):
+            raise ValueError("patch values must be text")
+        key = (patch["unit_id"], patch["quote"])
+        if key not in eligible or key in seen:
+            raise ValueError("duplicate or unreviewed patch")
+        seen.add(key)
+        replacement = patch["replacement"]
+        if not replacement.strip() or replacement == patch["quote"]:
+            raise ValueError("patch must provide a nonempty changed replacement")
+        start, end = eligible[key]
+        result_size += len(replacement) - (end - start)
+        edits.append((start, end, replacement))
+    if result_size > MAX_CHARS:
+        raise ValueError("corrected draft exceeds size limit")
+    parts = []
+    cursor = 0
+    for start, end, replacement in sorted(edits):
+        parts.extend((draft[cursor:start], replacement))
+        cursor = end
+    parts.append(draft[cursor:])
+    return {"text": "".join(parts), "patch_count": len(edits),
+            "unresolved_issues": unresolved, "factual_correctness_verified": False}
