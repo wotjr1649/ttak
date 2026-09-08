@@ -8,6 +8,8 @@ Claude Code와 Codex CLI에서 과잉 설계 없는 개발, 전용 리뷰, 독�
 [현재 출하 범위](docs/RELEASE.md)에 있습니다. 아래 과거 측정은 이전 정책에 대한 결과이며,
 이번 후보의 품질이나 비용 개선을 입증하지 않습니다.
 
+구현·검증·효과·남은 출하 조건은 [한국어 출하 현황](docs/RELEASE_STATUS.ko.md)에서 확인할 수 있습니다.
+
 English: [README.md](README.md)
 
 ## 무엇인가
