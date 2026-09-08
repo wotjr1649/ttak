@@ -173,8 +173,11 @@ inspection. The repaired answer correctly explains serialization failure and who
 retry, but retains imprecise read/write wording elsewhere. Review 2 was not silently supplemented
 with a manually injected correction, and its repair was not attempted.
 
-All three calls have native model/effort and exact prompt evidence; the repair also has verified
-explanation skill delivery. Evidence is in `.superpowers/explanation-repair-diagnostic-15/`.
+All three calls have native model/effort and input evidence. Reviews match exact prompts; the
+repair matches the native slash-command name and exact expanded argument text, plus verified
+explanation skill delivery. The first whole-prompt hash check did not match that normal command
+expansion; subsequent command-argument verification resolved it without another model call.
+Evidence is in `.superpowers/explanation-repair-diagnostic-15/`.
 This demonstrates one targeted repair, not reliable automatic verification or product integration.
 Next implementation should cover the whole draft with deterministic text units and reject omitted
 review IDs; model selection of important claims left a demonstrated gap. Mechanical coverage will
