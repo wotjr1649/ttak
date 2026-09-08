@@ -70,6 +70,14 @@ transaction simply reads updated rows also needs implementation-specific qualifi
 [PostgreSQL 18 Repeatable Read](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ)
 can abort after a concurrent update and requires retrying the entire transaction.
 
+Snapshot 08 replaces the general consistency sentence with an example-tracing check covering
+starting conditions, actions, resulting state and remedy failure/retry paths. Two Sonnet 5/medium
+expert-explanation trials received the revised body. The earlier reversed read/write sentence did
+not recur, but both responses still make unqualified lock-behavior claims; one again says the
+waiting transaction re-reads the updated count. This is partial improvement, not a passed
+explanation correction. Further same-pattern wording changes are paused pending source-grounded
+factual review and independent grading. No neighbor-case success is claimed for this revision.
+
 One blinded Sonnet 5 grading of the corrected mixed-progress comparison passed all hard criteria
 for all conditions. It identified the original's refusal to explain the supplied plan as a
 material shortfall, and rated TTAK partially on scope control because it added CI/caller checks.
@@ -95,12 +103,12 @@ Offline preparation:
 python -B tests/release/test_release.py
 python -B tests/release/prepare.py --check
 python -B tests/release/prepare.py --freeze .superpowers/release-run-new
-python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-07
-python -B tests/release/collect.py --experiment .superpowers/release-run-07 --trial claude.explain-child.ttak.1
+python -B tests/release/prepare.py --verify-freeze .superpowers/release-run-08
+python -B tests/release/collect.py --experiment .superpowers/release-run-08 --trial claude.explain-child.ttak.1
 ```
 
 These commands do not call a model. The freeze example requires a destination that does not yet
-exist; snapshot 07 is the current existing snapshot used by the next two examples.
+exist; snapshot 08 is the current existing snapshot used by the next two examples.
 `prepare.py` freezes inputs and comparison assignments, not
 results. The 16 scenarios, functional checks and pinned original source bytes live in
 `tests/release/`. Public source texts are stored as `skill-source.md` data, accompanied by their
@@ -132,15 +140,15 @@ Preparation snapshots 01 and 02 predate the collector's explicit activation supp
 retained as unused preparation records. Neither contains subject trials; verification rejects
 their now-stale collector hashes. Snapshot 03 predates native plugin selection and subscription
 environment forwarding; its profiles remain in place and can be referenced by snapshot 04.
-Snapshots 04, 05 and 06 contain the records described above and archived input bytes. Their
+Snapshots 04 through 07 contain the records described above and archived input bytes. Their
 hashes differ from the current corrected collector and oracle; do not overwrite them or silently
-relabel their results. Snapshot 07 freezes the current instruction correction. Executable inputs and the
+relabel their results. Snapshot 08 freezes the current instruction correction. Executable inputs and the
 protocol below are frozen per snapshot; this changing checkpoint is not an experimental input.
 
 The current full comparison budget is 388 subject CLI turns (264 task turns and 124 skill
 activation turns), plus 128 planned grading turns: 516 total, split equally between the hosts.
 This excludes development conversation, setup probes and defect-driven reruns. Saved pilot and
-grading records currently account for 246 Claude CLI turns, including the failed candidate attempt
+grading records currently account for 250 Claude CLI turns, including the failed candidate attempt
 and superseded comparison routing.
 CLI turns are not subscription quota units; native internal calls and cache accounting vary.
 
