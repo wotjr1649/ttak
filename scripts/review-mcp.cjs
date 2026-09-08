@@ -4,6 +4,7 @@
 // One in-memory review per connection; no files, network, credentials or model APIs.
 const { TextDecoder } = require('node:util');
 const { ReviewSession, MAX_CHARS, MAX_UNITS } = require('./review-session.cjs');
+const { applyPatches } = require('./review-repair.cjs');
 const MAX_FRAME_BYTES = 1_048_576;
 const VERSION = '2025-11-25';
 const versions = new Set([VERSION, '2025-06-18', '2025-03-26']);
@@ -26,6 +27,14 @@ const tools = [
       + 'The final report records coverage and findings, not a correctness guarantee.',
     inputSchema: object({ review_id: { type: 'string' }, review }),
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false } },
+  { name: 'review_repair', description: 'Apply bounded replacements to the completed review in memory. '
+      + 'Only its uniquely located error quotes can change. This does not edit a file or verify truth. '
+      + 'Returns corrected text and starts a new full review; old review IDs cannot submit judgments.',
+    inputSchema: object({ review_id: { type: 'string' }, patches: { type: 'array', items: object({
+      unit_id: { type: 'string' }, quote: { type: 'string', minLength: 1, maxLength: MAX_CHARS },
+      replacement: { type: 'string', minLength: 1, maxLength: MAX_CHARS },
+    }) } }),
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false } },
 ];
 
 function record(value) {
@@ -39,7 +48,9 @@ const failure = (id, code, message) => ({ jsonrpc: '2.0', id, error: { code, mes
 const toolResult = payload => ({ content: [{ type: 'text', text: JSON.stringify(payload) }],
   structuredContent: payload });
 const safeErrors = new Set(['invalid_draft', 'too_many_units', 'invalid_review', 'invalid_issue',
-  'report_too_large', 'no_pending_unit', 'incomplete_review', 'review_in_progress', 'unknown_review']);
+  'report_too_large', 'no_pending_unit', 'incomplete_review', 'review_in_progress', 'unknown_review',
+  'ambiguous_error_location', 'overlapping_errors', 'unresolved_claim_overlap', 'incomplete_patches',
+  'invalid_patch', 'unreviewed_patch', 'invalid_replacement', 'corrected_draft_too_large', 'no_repair_needed']);
 
 function createDispatcher() {
   let initialized = false;
@@ -75,7 +86,7 @@ function createDispatcher() {
       initialized = true;
       return respond({ protocolVersion: versions.has(request.params.protocolVersion)
         ? request.params.protocolVersion : VERSION,
-      capabilities: { tools: {} }, serverInfo: { name: 'ttak-review', version: '0.1.0' } });
+      capabilities: { tools: {} }, serverInfo: { name: 'ttak-review', version: '0.2.0' } });
     }
     if (!ready) return failure(id, -32002, 'Initialization required');
     if (request.method === 'tools/list') return respond({ tools });
@@ -83,17 +94,30 @@ function createDispatcher() {
     const params = request.params;
     if (!params || !tools.some(t => t.name === params.name)) return failure(id, -32602, 'Unknown tool');
     const args = params.arguments;
-    if (!fields(args, params.name === 'review_start' ? ['draft'] : ['review_id', 'review'])) {
+    const expected = params.name === 'review_start' ? ['draft'] :
+      ['review_id', params.name === 'review_submit' ? 'review' : 'patches'];
+    if (!fields(args, expected)) {
       return failure(id, -32602, 'Invalid tool arguments');
     }
     try {
       if (params.name === 'review_start') {
         if (active && !active.done) throw new Error('review_in_progress');
         const session = new ReviewSession(args.draft);
-        active = { id: `R${++serial}`, session, done: false };
+        active = { id: `R${++serial}`, session, draft: args.draft, done: false };
       } else {
         if (!active || args.review_id !== active.id) throw new Error('unknown_review');
-        active.session.accept(args.review);
+        if (params.name === 'review_submit') active.session.accept(args.review);
+        else {
+          const report = active.session.finish();
+          const repaired = applyPatches(active.draft, { units: report.units }, args.patches);
+          if (!repaired.patch_count || repaired.text === active.draft) throw new Error('no_repair_needed');
+          // Validate the revised draft before replacing any active state.
+          const session = new ReviewSession(repaired.text);
+          const previous = active.id;
+          active = { id: `R${++serial}`, session, draft: repaired.text, done: false };
+          return respond(toolResult({ previous_review_id: previous, ...repaired,
+            coverage_complete: false, requires_recheck: true, ...progress() }));
+        }
       }
       return respond(toolResult(progress()));
     } catch (error) {

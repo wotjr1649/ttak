@@ -529,6 +529,24 @@ compared after explicit CRLF-to-LF normalization; the JSON result comparison rem
 Evidence is under `.superpowers/repair-replay-44/`. This adds zero model calls and does not verify
 the truth of replacements, execute SQL or qualify the candidate.
 
+The local adapter now exposes `review_repair({review_id, patches})` as its third tool
+(adapter version 0.2.0). It uses only the active completed review, applies the bounded repair
+in memory, validates the resulting draft and starts a new full review with a new ID. Failed
+repairs preserve the prior state; stale IDs, skipped units, mutating notifications and no-op
+repairs are rejected. A repair response has coverage_complete=false, requires_recheck=true
+and factual_correctness_verified=false. All revised paragraphs, including unchanged context,
+must be submitted before the new review reaches coverage completion. This is still not proof
+of factual correctness or independent native-session isolation.
+
+All twenty Node session/adapter/repair tests pass, including a real stdio repair/review exchange
+and rejection paths that leave the previous review usable. The adapter still performs no file
+writes, network access, credential access or model calls. No persistent MCP registration or
+shipped-skill integration was made. The existing native permission scope covered review_start
+and review_submit; the new review_repair permission is pending. A concrete one-call Sonnet 5/medium
+smoke is prepared at `.superpowers/manual-review-repair-check.py`, with hashes for all three
+runtime modules, a 120-second timeout, no retry and no persistent permission change. Its syntax
+was checked without running it. Native diagnostic 45 has not run; no additional usage is counted.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -594,7 +612,7 @@ percentage, money conversion or fixed calls-to-release promise follows from thes
 The September 8 usage briefing bounds the next development/verification segment at 596
 additional CLI calls from the 620-call checkpoint: at most 80 for diagnosis and affected-case
 retesting, followed by one 516-call complete comparison only after the known defects are
-resolved. Diagnostics 24-44 and the owner's manual smoke used fifty-two of the 80 (28, 39 and 44 were offline), leaving at most 28 diagnostic/retest calls and
+resolved. Diagnostics 24-44 and the owner's manual smoke used fifty-two of the 80 (28, 39 and 44 were offline; 45 is pending), leaving at most 28 diagnostic/retest calls and
 516 final-comparison calls (544 total) in this segment. This is an operational ceiling, not
 a promise of qualification within it. Main development conversation and separately identified
 control/setup requests are outside these CLI counts. Stop for a usage reset when the native
