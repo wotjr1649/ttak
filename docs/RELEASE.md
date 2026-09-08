@@ -440,7 +440,7 @@ process check found no remaining adapter process carrying the test marker. Nativ
 permission is required before continuing this integration test. Evidence is under
 `.superpowers/native-review-transport-40/`; shipped skill/hook behavior remains unchanged.
 
-While the diagnostic-40 permission request remains unanswered, an independent local review found
+Before the diagnostic-40 permission request was resolved, an independent local review found
 that truthy but malformed clientInfo/capabilities values could advance initialization. A regression
 test reproduced acceptance of capabilities=true; the adapter now requires object-shaped capabilities
 and clientInfo with string name/version before changing connection state. Invalid initialization
@@ -448,6 +448,34 @@ leaves the connection uninitialized and allows a later valid handshake. All elev
 tests pass, including the real stdio exchange. No native model or denied tool call was repeated.
 The tighter validation changes the adapter hash; the revised proposed follow-up is recorded in
 `.superpowers/native-review-transport-40/proposed-followup-v2.json`, with the same two-tool scope.
+
+The owner then ran the scoped manual permission smoke successfully. The native transcript confirms
+Sonnet 5/medium, the exact original prompt (after transport newline normalization), review_start
+and two ordered review_submit calls, with successful tool results and zero permission denials.
+The final backend report covers both headings and explicitly leaves factual verification false.
+No matching test process remains. The raw result is preserved; a separate `native-audit.json` under
+`.superpowers/manual-review-permission-58ll89ph/` records the verification. This adds one CLI call
+and resolves the tested Claude tool-call permission blocker, not the release-quality gate.
+
+Diagnostic 41 tested semantic review through those same two tools in one native Claude session.
+It supplied the original sixteen-unit faulty draft and short primary-source summaries, rechecked
+against the official PostgreSQL 18, Oracle 21 and SQL Server documentation. The model completed
+all seventeen tool calls at Sonnet 5/medium with no permission denial or tool error. Exact prompt,
+draft, unit order, own-unit quotes and final report were verified against the native transcript.
+However, it flagged only U007 and U013, leaving the known U014 post-wait snapshot error unflagged
+despite the supplied evidence. The two selected controls U008/U016 remained clear. Direct review
+supports the two reported reasons; the missing third finding fails the diagnostic's pre-recorded
+criterion. It is not a factual pass or a general detection-rate measurement.
+
+This one call took 69.18 seconds. It used 36 reported input tokens, 17,527 cache-creation input
+tokens, 317,235 cache-read input tokens and 4,592 output tokens; those fields are not subscription
+quota percentages or a billing estimate. No matching test process remains. Evidence is under
+`.superpowers/sequential-review-41/`, including the pre-call expectations and native audit.
+The source-supplied sequential workflow is not adopted as an accuracy improvement in the shipped
+skills. Unlike diagnostic 32's fresh-session assigned-unit checks, it missed a known error; the
+changed evidence and session conditions prevent attributing that difference solely to session
+isolation. The adapter establishes coverage, not independent judgment. Independent source
+selection, review/repair integration, both-host support and repeated comparisons remain open.
 
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
@@ -498,8 +526,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **667 calls**: Claude has 282 subject/activation
-calls, 66 grades and forty-one review/repair/source diagnostic calls (389 total); Codex has 212 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **669 calls**: Claude has 282 subject/activation
+calls, 66 grades and forty-three review/repair/source diagnostic calls (391 total); Codex has 212 subject/activation calls, 64 grades and two
 claim-verification calls (278 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
@@ -514,8 +542,8 @@ percentage, money conversion or fixed calls-to-release promise follows from thes
 The September 8 usage briefing bounds the next development/verification segment at 596
 additional CLI calls from the 620-call checkpoint: at most 80 for diagnosis and affected-case
 retesting, followed by one 516-call complete comparison only after the known defects are
-resolved. Diagnostics 24-40 used forty-seven of the 80 (28 and 39 were offline), leaving at most 33 diagnostic/retest calls and
-516 final-comparison calls (549 total) in this segment. This is an operational ceiling, not
+resolved. Diagnostics 24-41 and the owner's manual smoke used forty-nine of the 80 (28 and 39 were offline), leaving at most 31 diagnostic/retest calls and
+516 final-comparison calls (547 total) in this segment. This is an operational ceiling, not
 a promise of qualification within it. Main development conversation and separately identified
 control/setup requests are outside these CLI counts. Stop for a usage reset when the native
 subscription limit is reached; do not enable credits, API billing fallback or substitute models.
