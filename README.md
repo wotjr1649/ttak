@@ -24,7 +24,8 @@ An operating discipline and two independently callable skills.
   and callers. It reports justified simplifications without editing unless fixes are requested.
   Invoke with `/ttak:ttak-review` on Claude Code or `$ttak:ttak-review` on Codex, or ask for an
   over-engineering review. Explicit native invocation has been verified in isolated test profiles
-  on both hosts. Automatic selection and release qualification remain incomplete.
+  on both hosts. Claude also selected the correct skill automatically in two small review tasks
+  and two child explanation tasks. Codex automatic selection and release qualification remain incomplete.
 - **Progress guidance.** The operating discipline keeps the current step, completed result and
   blocker visible as work changes, and reconnects interruptions to unfinished work.
 

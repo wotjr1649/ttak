@@ -279,6 +279,41 @@ Snapshot 23 freezes these new collector inputs; its 192 rows are prepared, not e
 snapshots and their archived collector bytes remain historical evidence. The plugin skill body
 remains at snapshot 10. Actual source-backed explanation and both-host integration remain to test.
 
+Diagnostic 24 tested the archived snapshot-12 evidence-first explanation instruction with
+native Skill and WebFetch available, using two unchanged expert tasks and fresh sessions.
+Both sessions received the exact tested skill, all three ON policies and the original task;
+native transcripts and model usage show only Sonnet 5, with main effort medium. Neither
+session called a tool. Repetition 2 again proposes aggregate FOR UPDATE, claims the waiting
+transaction sees an updated count, and incorrectly says this remedy does not need
+serialization-failure retry handling. Making retrieval available did not make the instruction
+effective in these two trials. The revision is rejected; no unchanged rerun or release pass
+is justified. The task-local skill and readiness hash were restored exactly, and the main
+product skill was unchanged. Four calls and their native audit are retained under
+`.superpowers/live-source-explanation-diagnostic-24/`. The next design must make evidence
+checking observable, rather than repeating this unsuccessful wording or relying on tool availability.
+
+Diagnostic 25 replaced the prose evidence instruction with an explicit sequence whose first
+action is a permitted source lookup for unsupported implementation details. Two fresh unchanged
+expert tasks received the tested body and active policies at Sonnet 5/medium. Repetition 1 again
+did not retrieve a source and repeated the invalid locking recipe; it also misclassified SQL
+Server SERIALIZABLE as SI, contrary to its documented range locking. Repetition 2 successfully
+retrieved PostgreSQL transaction documentation, but then said neither transaction wrote a row
+the other read, contradicting the doctors example. It also overstated the timing of failure as
+guaranteed at commit. The revision is rejected and the task-local profile restored exactly;
+the product skill remains unchanged. Four calls and the native retrieval/result audit are in
+`.superpowers/evidence-step-diagnostic-25/`. Stop wording-only expert pilots: an observable
+lookup happened in one of two trials and still did not establish a correct explanation.
+See [SQL Server isolation levels](https://learn.microsoft.com/en-us/sql/t-sql/statements/set-transaction-isolation-level-transact-sql?view=sql-server-ver17).
+
+Diagnostic 26 verifies one previously missing integration surface: Claude automatically called
+the correct Skill tool for both installed skills without an activation prompt. Two unchanged
+child explanation tasks and two small complexity reviews each loaded the exact intended current
+skill body at Sonnet 5/medium. All four implicit routing checks pass in this scope. Codex implicit
+routing and mixed selection remain unverified. This is not comparative quality qualification:
+one review calls a seven-line function six lines, and the child explanations still need factual
+and audience assessment. Four calls and native evidence are retained under
+`.superpowers/automatic-routing-diagnostic-26/`.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
@@ -322,8 +357,8 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **620 calls**: Claude has 262 subject/activation
-calls, 66 grades and fifteen review/repair/source diagnostic calls (343 total); Codex has 211 subject/activation calls, 64 grades and two
+Saved subject, grading and diagnostic records now total **632 calls**: Claude has 274 subject/activation
+calls, 66 grades and fifteen review/repair/source diagnostic calls (355 total); Codex has 211 subject/activation calls, 64 grades and two
 claim-verification calls (277 total).
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
@@ -334,6 +369,15 @@ an inventory, not a decision to rerun all of them: establish valid evidence reus
 the known explanation findings first. Further diagnosis and changed-input retesting are
 additional; one entire additional comparative set would require another 516 calls. No quota
 percentage, money conversion or fixed calls-to-release promise follows from these figures.
+
+The September 8 usage briefing bounds the next development/verification segment at 596
+additional CLI calls from the 620-call checkpoint: at most 80 for diagnosis and affected-case
+retesting, followed by one 516-call complete comparison only after the known defects are
+resolved. Diagnostics 24-26 used twelve of the 80, leaving at most 68 diagnostic/retest calls and
+516 final-comparison calls (584 total) in this segment. This is an operational ceiling, not
+a promise of qualification within it. Main development conversation and separately identified
+control/setup requests are outside these CLI counts. Stop for a usage reset when the native
+subscription limit is reached; do not enable credits, API billing fallback or substitute models.
 
 Historical snapshot-06 Claude medians include activation and task calls, excluding graders:
 
