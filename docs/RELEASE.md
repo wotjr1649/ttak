@@ -568,6 +568,22 @@ This completes the authorized transport/state-machine smoke, not explanation-qua
 independent-session review integration, Codex support or release qualification. No persistent
 permission/configuration changes were made, and no second native call was launched.
 
+Following the owner's approval to proceed through integration and budgeting, the independent
+review orchestrator is implemented in `scripts/review-workflow.cjs`. Six local tests cover complete
+review/repair/recheck, insufficient pass budget, invalidated old reports, duplicate transport session
+IDs, worker failure without retry, unresolved findings and repair limits. The combined Node suite
+passes 28 tests. These tests use deterministic worker responses and do not establish native
+isolation or model quality. The CLI adapter and shipped-skill integration remain unfinished.
+
+[Integration and usage planning](REVIEW_WORKFLOW.md) records offline diagnostic 46. The 14 current-body
+pilot records project 302 paragraph reviews over 32 explanation/mixed responses in a full comparison.
+The scenario totals are 818 calls without repairs and 1,152 with one repair/full recheck per response
+at unchanged paragraph counts. Even conditional reuse of all 260 baseline/original calls leaves
+558 or 892 calls; reuse eligibility is unverified. These are projections, not upper bounds or
+completed trials. The remaining 543-call segment is unchanged; no model calls were added and no
+full comparison was started. Native adapter implementation and a bounded pilot precede any revised
+full-run usage proposal. The accepted quality criteria and all four capabilities remain intact.
+
 Primary references reviewed: [PostgreSQL 18 transaction isolation](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-REPEATABLE-READ),
 [Stripe idempotent requests](https://docs.stripe.com/api/idempotent_requests) and
 [Python CSV](https://docs.python.org/3/library/csv.html). Stripe's retention example is at least
