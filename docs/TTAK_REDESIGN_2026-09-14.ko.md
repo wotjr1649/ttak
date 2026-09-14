@@ -1,6 +1,6 @@
 # TTAK 재설계: 하나의 ON/OFF와 필요한 자료만 읽기
 
-상태: `0.3.0-design.2` 로컬 실행 초안. 이전 `ef59a03`의 비활성 두 스킬 설계를 대체한다. 기존 209 runtime 33개 파일은 그대로 보존하며 설치·활성화·출하는 하지 않았다. Claude Code 2.1.270에서 세션 한정 적재로 native 검증을 수행했다(15회, $2.34, [결과](TTAK_ROUTING_MEASUREMENTS_2026-09-14.json)의 native 절). Codex CLI, marketplace 설치, 대화형 UI는 여전히 미검증이다.
+상태: `0.3.0-design.2` 로컬 실행 초안. 이전 `ef59a03`의 비활성 두 스킬 설계를 대체한다. 기존 209 runtime 33개 파일은 그대로 보존하며 설치·활성화·출하는 하지 않았다. Claude Code 2.1.270에서 세션 한정 적재로 native 검증을 수행했다(15회, $2.34, [결과](TTAK_ROUTING_MEASUREMENTS_2026-09-14.json)의 native 절). Codex CLI 0.154.0과 데스크톱 앱에서도 검증했다. **Codex는 데스크톱 앱에서 플러그인 hook을 신뢰해야 동작하며, CLI에는 신뢰를 부여할 수단이 없고 그 전까지는 조용히 hook 없이 실행된다.** 신뢰 후에는 제어·주입·상태 저장이 모두 동작한다.
 
 ## 제품 판단
 
@@ -29,7 +29,7 @@ Ponytail 기본값은 full이고 환경변수·설정 파일이 우선한다. `/
 
 **`ttak`은 저장 상태 조회, `ttak on`은 ON 저장, `ttak off`는 OFF 저장이다.** 초기값은 OFF. 기존 호스트별 저장 의미를 유지하며 session-only/default 두 상태를 추가하지 않는다.
 
-Claude의 `/ttak:ttak on`, 단축 `/ttak on`, Codex의 `$ttak on`에 해당하는 설정 스킬을 제공한다. raw prompt hook은 완전 일치하는 별칭만 인식한다. Claude Code에서 `ttak`, `ttak on/off`, `/ttak off`, `/ttak:ttak on`은 모두 hook이 받아 처리했다. 반면 **모델의 셸 환경에는 `PLUGIN_DATA`도 `CLAUDE_PLUGIN_DATA`도 전달되지 않아 설정 스킬의 CLI 경로는 항상 unavailable을 보고한다.** 그래서 스킬은 이 경우 hook이 받는 프롬프트 형식을 안내한다. 호스트 변수가 없으면 다른 홈 경로를 추측하지 않는다. 대화형 UI 동작은 여전히 미검증이다.
+Claude의 `/ttak:ttak on`, 단축 `/ttak on`, Codex의 `$ttak on`에 해당하는 설정 스킬을 제공한다. raw prompt hook은 완전 일치하는 별칭만 인식한다. Claude Code에서 `ttak`, `ttak on/off`, `/ttak off`, `/ttak:ttak on`은 모두 hook이 받아 처리했다. 반면 **모델의 셸 환경에는 `PLUGIN_DATA`도 `CLAUDE_PLUGIN_DATA`도 전달되지 않아 설정 스킬의 CLI 경로는 항상 unavailable을 보고한다.** 그래서 스킬은 이 경우 hook이 받는 프롬프트 형식을 안내한다. 호스트 변수가 없으면 다른 홈 경로를 추측하지 않는다. Codex도 신뢰 후에는 같은 hook 경로로 동작한다. 두 호스트 모두 모델 셸에는 plugin data 변수가 없어 스킬 CLI 경로는 동작하지 않는다.
 
 | 상황 | 저장·주입 동작 |
 |---|---|

@@ -266,7 +266,8 @@
       "reference_review": "PASS - a complexity review read references/review.md and kept the compatibility adapter",
       "unrelated_short": "PASS - 7x8 answered 56 with no tool call and no forced procedure",
       "factual_209_area": "PASS (1 case) - snapshot isolation write skew and DEFERRABLE INITIALLY DEFERRED answered correctly against the official docs; one case is not a general accuracy claim",
-      "development": "PASS - fix and test delivered, deprecated alias preserved, and the unrun test reported as unrun rather than claimed"
+      "development": "PASS - fix and test delivered, deprecated alias preserved, and the unrun test reported as unrun rather than claimed",
+      "codex_summary": "works after desktop-app hook trust; see native.codex"
     },
     "not_established": [
       "installed-marketplace provisioning",
@@ -276,34 +277,24 @@
       "whether any other Codex version supports plugin hooks"
     ],
     "codex": {
-      "host": "Codex CLI 0.154.0 on Windows",
-      "install": "local marketplace -> codex plugin add, into the user profile; removed afterwards, profile restored",
-      "runs": 5,
-      "input_tokens": 346205,
-      "output_tokens": 1800,
-      "timed_out": 0,
-      "finding": "Plugin-provided hooks do not run in Codex CLI 0.154.0. User-level ~/.codex/hooks.json hooks do.",
-      "consequences": [
-        "TTAK 0.3.0-design.2 control (ttak / $ttak / /ttak) is not intercepted on Codex: the prompt reaches the model",
-        "SessionStart core injection does not happen on Codex at any setting",
-        "the settings skill is discovered and runs, but its shell has neither PLUGIN_DATA nor CLAUDE_PLUGIN_DATA, exactly as in Claude Code",
-        "features.hooks true refers to the user-level ~/.codex/hooks.json, which the design deliberately does not write to"
-      ],
-      "incidental": "a Codex local marketplace only resolves a plugin whose source path is under the marketplace root",
-      "not_attempted": "--dangerously-bypass-hook-trust was not used; forcing a removed feature is not a product path",
-      "evidence": [
-        "control: the user-level SessionStart/SessionEnd hooks fired on every codex exec turn -- engramux captured each one as a codex session, thread ids match the runs. So codex exec does run hooks.",
-        "an instrumented copy of ttak.cjs in the installed plugin cache logged zero invocations across those same turns, with the plugin installed and enabled",
-        "codex features list: plugin_hooks is stage removed, effective false -- the same stage as apply_patch_freeform, a retired behavior",
-        "a one-shot -c features.plugin_hooks=true override changed nothing, so a feature gate is not what stops it"
-      ],
-      "ruled_out": [
-        "schema: TTAK hooks.json matches the user hooks.json shape and PascalCase event names exactly; the binary carries both hooks/hooks.json and plugin.json#hooks loader strings",
-        "commandWindows: added to every entry, reinstalled, no change",
-        "manifest: declaring \"hooks\": \"./hooks/hooks.json\" changed nothing",
-        "trust: no trust prompt appeared and the flag override did not help; the hook-trust strings live in app-server"
-      ],
-      "not_established_caveat": "only the CLI was tested. The Codex desktop app talks to app-server, where the plugin hook trust and materialization strings live; whether plugin hooks run there is unknown."
+      "host": "Codex CLI 0.154.0 and the Codex desktop app, Windows",
+      "install": "local marketplace -> codex plugin add, into the user profile",
+      "runs": 12,
+      "finding": "Plugin hooks work in Codex, but only after the plugin's hooks are trusted. Trust is granted in the desktop app (Hook screen, per plugin and per event); the CLI offers no way to grant it and, until it is granted, runs silently without the hooks.",
+      "corrects": "An earlier entry in this file claimed plugin hooks were unsupported in Codex. That was wrong. The plugin_hooks feature flag being stage removed does not gate this.",
+      "control": "The two installs are content-identical -- the hooks key present, commandWindows absent. The earlier one never fired across instrumented turns; this one fires. The only change between them is the user granting trust in the desktop app.",
+      "verified_after_trust": {
+        "control_plain": "PASS - ttak, ttak on and ttak off are taken by the UserPromptSubmit hook; the turn completes with 0 input and 0 output tokens",
+        "state_write": "PASS - written to ~/.codex/plugins/data/ttak-ttak-design-local/state.json as {\"enabled\":true|false}, so the hook does receive the plugin data path",
+        "injection_on": "PASS - the model quoted the core first line, # TTAK",
+        "injection_off": "PASS - asked whether a # TTAK heading is present, the model answered NO"
+      },
+      "still_broken": "The model shell has neither PLUGIN_DATA nor CLAUDE_PLUGIN_DATA -- confirmed by a direct env probe in Codex, matching Claude Code. The settings skill CLI route fails on both hosts.",
+      "ux_note": "In codex exec --json a hook-blocked prompt returns a turn with no message and no tokens, so the control succeeds with no visible confirmation. The desktop app shows the hook reason.",
+      "not_established": [
+        "whether trust can be granted without the desktop app",
+        "other Codex versions"
+      ]
     }
   }
 }
