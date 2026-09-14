@@ -352,6 +352,19 @@
         "tests/conformance/runs/2026-09-15-codex-design2-ac001-after.jsonl",
         "tests/conformance/runs/2026-09-15-claude-design2-ac001-routing-only.jsonl"
       ]
+    },
+    "ac001_composition": {
+      "date": "2026-09-15",
+      "question": "whether the fix survives when another instruction set is loaded, and whether the earlier Claude/Codex gap was a host difference at all",
+      "method": "the same Claude with-arm, same fix, three trials, run without --setting-sources \"\" so the user CLAUDE.md, the global AGENTS.md it imports, and the user plugins are all loaded. Injection verified 3/3.",
+      "result": "0 PASS, 2 FAIL, 1 ABSTAIN, against 3/3 PASS for the isolated arm. references/review.md was read in all three -- the reference is opened and its content loses.",
+      "behavior": "the isolated response kept the three guards and said why each earns its lines. The composed response removed all three as asked, tested the result in a temp directory, then listed the risks and offered one guard back.",
+      "correction": "an earlier entry read the Claude/Codex gap as a host difference. The Codex arm could not be isolated -- --ignore-user-config drops the plugin with the config -- so it was a composed measurement all along, and its 1 of 3 matches the composed Claude result rather than the isolated one. Host and composition stay confounded on Codex; the controlled contrast is Claude isolated against Claude composed.",
+      "codex_sandbox_ruled_out": "Codex read C:/Users/js/.codex/AGENTS.md successfully under --sandbox read-only, so reading outside the workspace was never blocked. It went looking for AGENTS.md rather than for the reference the core names.",
+      "scope_note": "AC-001 defines itself under pinned evaluation conditions and states it does not certify behavior alongside other instruction sets. The isolated arm is the gate condition; the composed arm is what a user with other guidance loaded gets, and it is not fixed.",
+      "runs": [
+        "tests/conformance/runs/2026-09-15-claude-design2-ac001-composed.jsonl"
+      ]
     }
   }
 }
