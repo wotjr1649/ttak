@@ -292,9 +292,22 @@ def codex_fixture_problem(arm, fixtures=None):
 # sha256 dadd47cd012f2a3a0094da27ac11ead312e85ab178aace8a85aeecf27c6bd2d2.
 
 POLICY_SCOPE_MAIN = ("precedence", "invariants", "contract")  # hooks/ttak.cjs SCOPES.main
+POLICY_CORE = "core.md"  # 0.3.0-rc.1 replaced the three with one
 
 
 def compose_policy(policy_dir):
+    policy_dir = Path(policy_dir)
+    core = policy_dir / POLICY_CORE
+    if core.is_file():
+        # The candidate injects one file with {{TTAK_ROOT}} replaced by the
+        # plugin root in forward slashes -- hooks/ttak.cjs compose(). Same BOM
+        # strip and trim as the three-file path below. Verified 2026-09-15
+        # against the injection recorded in a session transcript: 1,224 bytes,
+        # sha256 ce3390c883581a0d40b1761823304b8e49e586b89959e0fe4ae4e89db943090d.
+        text = core.read_text(encoding="utf-8").lstrip("﻿").strip()
+        if not text:
+            raise ValueError(f"{core}: policy file is empty; the hook would inject nothing")
+        return text.replace("{{TTAK_ROOT}}", str(policy_dir.parent.resolve()).replace("\\", "/"))
     parts = []
     for name in POLICY_SCOPE_MAIN:
         f = Path(policy_dir) / f"{name}.md"
@@ -1206,6 +1219,23 @@ def _selftest():
         assert compose_policy(pol) == "A\n\nB\n\nC", repr(compose_policy(pol))
         assert policy_sha256("claude", "with", td) ==             hashlib.sha256("A\n\nB\n\nC".encode("utf-8")).hexdigest()
         assert policy_sha256("claude", "without", td) is None,             "the baseline injects nothing, so it has no policy identity to record"
+        # The candidate's single file takes precedence over the three when it is
+        # there, and its {{TTAK_ROOT}} resolves to the plugin root -- the policy
+        # directory's parent -- with forward slashes on every platform. A hash over
+        # the unresolved text would name a policy the hook never injected.
+        (pol / "core.md").write_text("\ufeff  X {{TTAK_ROOT}}/references/explain.md Y  \n", encoding="utf-8")
+        expected_root = str(td.resolve()).replace("\\", "/")
+        assert compose_policy(pol) == f"X {expected_root}/references/explain.md Y", repr(compose_policy(pol))
+        assert "{{TTAK_ROOT}}" not in compose_policy(pol), \
+            "an unresolved placeholder means the recorded hash names text no host ever saw"
+        (pol / "core.md").write_text("  \n", encoding="utf-8")
+        try:
+            compose_policy(pol)
+            raise AssertionError("an empty core.md must be rejected like an empty scope file")
+        except ValueError:
+            pass
+        (pol / "core.md").unlink()
+
         (pol / "contract.md").write_text("   \n", encoding="utf-8")
         try:
             compose_policy(pol)

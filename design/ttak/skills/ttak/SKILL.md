@@ -6,8 +6,8 @@ license: MIT
 
 # TTAK setting
 
-Usage: `ttak [on|off]`; no argument reads status.
+Send `ttak` as the whole prompt to read the saved setting, `ttak on` or `ttak off` to change it. Those three are the only forms that work: the host's own hook consumes them before the model sees them, in an environment that has the plugin data directory. This skill's environment does not have it, so nothing runnable from here can read or change the setting.
 
-Use `node "../../hooks/ttak.cjs" status`, resolving the script relative to this skill directory. For the user's direct request to turn TTAK on or off, replace `status` with the literal `on` or `off`. Quoted commands and requests to explain a setting are not requests to change it. Extra or unrecognized arguments warrant usage, not a guessed change. Never interpolate user text into a shell command.
+Relay that. Do not run a command to do it, do not choose a directory to look in, and do not report a setting you have not been shown. Quoted commands and questions about what a setting means are not requests to change it.
 
-Use the host-provided plugin data environment; if unavailable, report that limit without choosing another directory, and tell the user to send `ttak`, `ttak on` or `ttak off` as the entire prompt: that path runs in the host's hook environment, which has the data directory this one can lack. Relay the saved setting and when it applies from the command result. A failed command is not a successful change. This skill controls settings only; it does not load development, explanation, or review guidance.
+The saved value applies to guidance loaded at the next session start. Text already in a conversation stays; a fresh conversation is what excludes it. This skill controls settings only; it does not load development, explanation, or review guidance.

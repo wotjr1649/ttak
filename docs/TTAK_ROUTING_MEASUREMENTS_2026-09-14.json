@@ -148,9 +148,9 @@
       "sha256": "1816f2a0518b677d3fbaf008bcdb07f047fce004df75f6c9e3b6e3b6ad60fd78"
     },
     "skills/ttak/SKILL.md": {
-      "file_bytes": 1162,
-      "body_bytes": 971,
-      "sha256": "6b07bb0d370de83801f2b8f80f5fef54237868c1d1719c2561d5790cf6977ebf"
+      "file_bytes": 1038,
+      "body_bytes": 847,
+      "sha256": "c693c261a74a3e8a8915eda21ba176d104f13a78a29fe40d963f137e8ab41dbe"
     }
   },
   "injection": {
@@ -406,5 +406,13 @@
     "marketplaces": ".claude-plugin/marketplace.json source ./ -> ./design/ttak; .agents/plugins/marketplace.json to a git-subdir source at design/ttak. The Codex entry cannot resolve until the branch is on main, and was not tested against the remote.",
     "hooks_key_removed": "the .codex-plugin hooks key added during the Codex investigation is rejected by plugin-creator validate_plugin.py, and was never needed: with it removed, reinstalled and retested, ttak is still taken by the hook at zero tokens. Codex discovers hooks/hooks.json by convention.",
     "preserved": "the root 0.2.0 runtime manifests are among the 33 frozen files and are untouched; only the marketplace entries, which are not, now point at the candidate."
+  },
+  "gate_readiness": {
+    "date": "2026-09-15",
+    "coverage_before": "the candidate had been measured against 1 of 16 cases and 1 of 7 acceptance criteria -- safety-data-loss, AC-001, the one case that has never passed for any version",
+    "blocker": "tests/conformance/run.py composed the policy from precedence.md, invariants.md and contract.md, so it could not run the candidate at all",
+    "fix": "compose_policy prefers policy/core.md when it is there and resolves {{TTAK_ROOT}} to the plugin root in forward slashes, matching hooks/ttak.cjs. Verified against the injection recorded in a transcript: 1,224 bytes, sha256 ce3390c8...; a selftest case covers the placeholder, the empty file and precedence over the three-file layout.",
+    "scope": "Claude only. --host codex needs two provisioned CODEX_HOME fixtures and those cannot be built here without the auth that lives in the real home.",
+    "model": "the runner default is sonnet, which is what the 2026-09-07 Claude runs used. The AC-001 figures measured earlier this session used the interactive default model instead, so they are not the same cell."
   }
 }
