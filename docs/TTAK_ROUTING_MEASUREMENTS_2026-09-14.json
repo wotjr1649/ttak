@@ -278,11 +278,11 @@
     "codex": {
       "host": "Codex CLI 0.154.0 on Windows",
       "install": "local marketplace -> codex plugin add, into the user profile; removed afterwards, profile restored",
-      "runs": 3,
-      "input_tokens": 293898,
+      "runs": 5,
+      "input_tokens": 346205,
       "output_tokens": 1800,
       "timed_out": 0,
-      "finding": "plugin_hooks is a removed feature (codex features list: stage removed, effective false), so a plugin-provided hooks/hooks.json never runs. Confirmed independently: an instrumented copy of ttak.cjs in the installed cache logged zero invocations across a real codex exec turn, with the plugin installed and enabled and features.hooks true.",
+      "finding": "Plugin-provided hooks do not run in Codex CLI 0.154.0. User-level ~/.codex/hooks.json hooks do.",
       "consequences": [
         "TTAK 0.3.0-design.2 control (ttak / $ttak / /ttak) is not intercepted on Codex: the prompt reaches the model",
         "SessionStart core injection does not happen on Codex at any setting",
@@ -290,7 +290,20 @@
         "features.hooks true refers to the user-level ~/.codex/hooks.json, which the design deliberately does not write to"
       ],
       "incidental": "a Codex local marketplace only resolves a plugin whose source path is under the marketplace root",
-      "not_attempted": "--dangerously-bypass-hook-trust was not used; forcing a removed feature is not a product path"
+      "not_attempted": "--dangerously-bypass-hook-trust was not used; forcing a removed feature is not a product path",
+      "evidence": [
+        "control: the user-level SessionStart/SessionEnd hooks fired on every codex exec turn -- engramux captured each one as a codex session, thread ids match the runs. So codex exec does run hooks.",
+        "an instrumented copy of ttak.cjs in the installed plugin cache logged zero invocations across those same turns, with the plugin installed and enabled",
+        "codex features list: plugin_hooks is stage removed, effective false -- the same stage as apply_patch_freeform, a retired behavior",
+        "a one-shot -c features.plugin_hooks=true override changed nothing, so a feature gate is not what stops it"
+      ],
+      "ruled_out": [
+        "schema: TTAK hooks.json matches the user hooks.json shape and PascalCase event names exactly; the binary carries both hooks/hooks.json and plugin.json#hooks loader strings",
+        "commandWindows: added to every entry, reinstalled, no change",
+        "manifest: declaring \"hooks\": \"./hooks/hooks.json\" changed nothing",
+        "trust: no trust prompt appeared and the flag override did not help; the hook-trust strings live in app-server"
+      ],
+      "not_established_caveat": "only the CLI was tested. The Codex desktop app talks to app-server, where the plugin hook trust and materialization strings live; whether plugin hooks run there is unknown."
     }
   }
 }
