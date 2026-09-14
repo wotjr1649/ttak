@@ -349,3 +349,5 @@ The latest known factual defect, observed checks and remaining work are recorded
 [release work log](docs/RELEASE_RESUME_2026-09-14.ko.md). The native checks use Claude Code
 2.1.266 and Codex CLI 0.154.0 on Windows; they do not establish interactive UI or automatic
 skill-selection behavior on every host version.
+The gates still open are the inherited `LCL-BEH-001` behaviour gate (not re-run), TTAK's own
+conformance gate, which does not pass on either host, and both hosts' interactive surface.
