@@ -16,7 +16,9 @@ function fixture() {
 }
 function run(root, args = [], event, extra = {}) {
   const env = {};
-  for (const key of ['SystemRoot', 'WINDIR', 'PATH', 'PATHEXT', 'COMSPEC']) if (process.env[key]) env[key] = process.env[key];
+  // NODE_V8_COVERAGE only when a measuring run sets it: the children are otherwise
+  // given a minimal environment on purpose, and it reaches them only if named here.
+  for (const key of ['SystemRoot', 'WINDIR', 'PATH', 'PATHEXT', 'COMSPEC', 'NODE_V8_COVERAGE']) if (process.env[key]) env[key] = process.env[key];
   if (root) env.PLUGIN_DATA = root;
   Object.assign(env, extra);
   const result = spawnSync(process.execPath, [SCRIPT, ...args], {
@@ -147,4 +149,15 @@ test('a failed rename leaves no temporary file, no false success and the saved s
   }
   assert.deepEqual(fs.readdirSync(root), ['state.json']);
   assert.equal(fs.readFileSync(target, 'utf8'), content);
+});
+
+test('a host data root whose parents do not exist yet is created on demand under that root only', () => {
+  // Codex creates no part of <CODEX_HOME>/plugins/data/, which is why writeState
+  // creates the whole path; nothing else in this suite reaches that branch.
+  const base = fixture(), deep = path.join(base, 'plugins', 'data', 'ttak');
+  assert.equal(run(deep, ['on']).value.ok, true);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(deep, 'state.json'))), { enabled: true });
+  assert.deepEqual(fs.readdirSync(deep), ['state.json']);
+  assert.deepEqual(fs.readdirSync(base), ['plugins']);
+  assert.ok(run(deep, [], start('startup')).value.hookSpecificOutput);
 });

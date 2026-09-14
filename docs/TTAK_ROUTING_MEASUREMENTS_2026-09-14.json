@@ -108,9 +108,9 @@
       "sha256": "1223372918bc57d5597822ed569f7630390a2f3f78ffca114189003e762aa1a9"
     },
     "ATTRIBUTIONS.md": {
-      "file_bytes": 8918,
-      "body_bytes": 8917,
-      "sha256": "410ccbd4ecd2486431105beb4b31bb7c2520e5d8cf5b7b7731b6aebca256a3e1"
+      "file_bytes": 8071,
+      "body_bytes": 8070,
+      "sha256": "57ddafeae90b18f630c3a2ba647275445face15787720e55ab6164513d87827c"
     },
     "hooks/hooks.json": {
       "file_bytes": 357,
@@ -118,9 +118,9 @@
       "sha256": "9fafcb66d90628489d98da9c44663df4d198cb5c25992cf099eb074e61e04d4c"
     },
     "hooks/state.cjs": {
-      "file_bytes": 5031,
-      "body_bytes": 5030,
-      "sha256": "71f26564a3a115f7960b9ff7c7f265e459e49839acccdb9fc6fd39e9facda302"
+      "file_bytes": 5501,
+      "body_bytes": 5500,
+      "sha256": "d7ef38d981e5c1bbed2b80822b101acd1d986e81c3f498cc111f03f5bc46c9a0"
     },
     "hooks/ttak.cjs": {
       "file_bytes": 3566,
@@ -163,20 +163,35 @@
   "preserved_runtime_files": 33,
   "validation": {
     "local_node_tests": {
-      "passed": 10,
+      "passed": 12,
       "failed": 0,
       "skipped": 0
     },
     "skill_creator": "PASS",
     "plugin_structure": "PASS",
     "native": "UNRUN",
-    "runtime_files_unchanged": 33
+    "runtime_files_unchanged": 33,
+    "coverage": {
+      "method": "NODE_V8_COVERAGE from every process, innermost range per process, OR-merged",
+      "suite": "tests/redesign-routing.test.cjs",
+      "artifact": ".superpowers/redesign-213/coverage.json",
+      "design/ttak/hooks/ttak.cjs": 96.2,
+      "design/ttak/hooks/state.cjs": 92.9,
+      "note": "share of file bytes executed by at least one process; comments included, not line coverage"
+    }
   },
   "plugin_eval": {
     "plugin": {
       "score": 58,
       "grade": "D",
-      "report_sha256": "0fbc23f56f35b4e9c10725563fdaf592dbad71f6dc126571fbe09e75e18a9ff9",
+      "report_sha256": "4af9fcaa8374392e5314719b2afdbab5779aea954633b446ef754edbae9be1e1",
+      "deferred_cost_tokens": 5260,
+      "deferred_band": "excessive",
+      "previous": {
+        "score": 58,
+        "deferred_cost_tokens": 5353,
+        "report_sha256": "0fbc23f56f35b4e9c10725563fdaf592dbad71f6dc126571fbe09e75e18a9ff9"
+      },
       "deductions": [
         {
           "id": "deferred_cost_tokens-budget-high",
@@ -199,7 +214,7 @@
     "skill": {
       "score": 100,
       "grade": "A",
-      "report_sha256": "7481834c26b8894b53d754a437e8dfb968c6ce155c985a505aba68eb628d3cb5",
+      "report_sha256": "8d8c7ff4ba67915e2d4f15c1f40ce750929aecdb6dbfcccc69c79172230fdccb",
       "deductions": [
         {
           "id": "coverage-artifacts-unavailable",
@@ -207,5 +222,12 @@
         }
       ]
     }
+  },
+  "attribution_overlap": {
+    "measured": "2026-09-15",
+    "artifact": ".superpowers/redesign-213/overlap.json",
+    "metric": "longest shared word run, file-wide, shipped text vs each pinned source",
+    "max_words": 4,
+    "max_run": "use when the user"
   }
 }
