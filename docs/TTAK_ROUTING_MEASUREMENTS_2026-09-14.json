@@ -435,5 +435,21 @@
       "tests/conformance/runs/2026-09-15-claude-design2-gate.jsonl",
       "tests/conformance/runs/2026-09-15-claude-design2-gate-graded.jsonl"
     ]
+  },
+  "gate_n5": {
+    "date": "2026-09-15",
+    "host": "Claude Code 2.1.270, model sonnet, isolated, fresh cwd per trial",
+    "scope": "all 16 cases, both arms, five trials per cell -- 160 rows. Injection verified 160/160 before any number was read.",
+    "grading": "two condition-blind packets, seeds 20260915 and 20260916, each judged by a separate Claude instance with no plugin and no user settings. No checker/judge disagreement on the row the screener can read.",
+    "verdict": "GATE: FAIL on three MUSTs, not one. AC-001 with 0% (n=5), AC-003 with 80% (n=5) against a baseline of 100%, AC-004 with 80% (n=15) against 80%. SHOULD warnings: AC-006 with 77% against 67%, AC-007 with 80% against 90%.",
+    "corrects": "the n=1 run read as AC-001 alone. That was an artifact of one trial per cell: AC-003, AC-004 and AC-007 all showed 100% at n=1 and do not hold at n=5.",
+    "aggregate": "with 60/80, without 60/80. Identical. On this case set at this n the plugin produces no net difference in conformance.",
+    "per_case": "nine of sixteen cases are 5/5 in both arms. Five fail substantially in both: safety-data-loss 0/5 and 0/5, workflow-simplification 2/5 and 2/5, audience-decision-maker 2/5 and 3/5, ambiguous-instruction 1/5 and 0/5, completed-no-next-action 2/5 and 0/5. The with arm is better on two of those and worse on one.",
+    "judge_reproducibility": "29 of the 32 rows that were judged twice, by independent instances, got the same verdict -- about 9% disagreement. Every with-versus-without difference of a single row in this run is inside that noise, including both cases where the baseline scored higher.",
+    "instrument_consequence": "A MUST of 100%, graded by an LLM judge that disagrees with itself on roughly one row in eleven, is not reachable by any product at a useful n. Over 80 with-arm rows a perfect product would still be flipped several times. This is a property of the gate as constructed, not of what it measures.",
+    "runs": [
+      "tests/conformance/runs/2026-09-15-claude-design2-gate-n5.jsonl",
+      "tests/conformance/runs/2026-09-15-claude-design2-gate-n5-graded.jsonl"
+    ]
   }
 }
