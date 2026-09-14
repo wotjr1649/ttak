@@ -104,7 +104,13 @@ function writeState(enabled) {
 
     const tmp = path.join(leaf, `.state.${process.pid}.${require('node:crypto').randomUUID()}.tmp`);
     fs.writeFileSync(tmp, JSON.stringify({ enabled }) + '\n', { encoding: 'utf8', flag: 'wx' });
-    fs.renameSync(tmp, p);
+    // Only the rename makes the write visible; until it succeeds the temp file
+    // is ours alone ('wx' failed if the name was taken) and nothing else will
+    // ever collect it. A read-only state.json is enough to fail the rename on
+    // Windows, so without this every retry would leave another orphan in the
+    // host's data root. Failure still reports no successful change.
+    try { fs.renameSync(tmp, p); }
+    catch (e) { try { fs.rmSync(tmp, { force: true }); } catch {} throw e; }
     const back = readState();
     return { ok: back.status === (enabled ? 'on' : 'off') };
   } catch { return { ok: false }; }

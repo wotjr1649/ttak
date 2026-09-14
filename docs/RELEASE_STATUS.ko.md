@@ -2,7 +2,7 @@
 
 현재 설계는 [ON/OFF·자동 적용 재설계](TTAK_REDESIGN_2026-09-14.ko.md)와 [로컬 검증·적대적 검토](TTAK_ROUTING_REVIEW_2026-09-14.ko.md)를 따른다. 아래 design.1 평가 수치와 이전 후보 기록은 당시 증거이며 현재 설계의 출하 합격을 뜻하지 않는다.
 
-사용자의 최신 요청으로 원본 세 제품의 전 기능 통합을 제외하고, 짧은 방향성 core와 필요 시 사용하는 두 스킬로 [재설계](TTAK_REDESIGN_2026-09-14.ko.md)했다. [웹 조사·Plugin-Eval 평가](TTAK_REDESIGN_RESEARCH_2026-09-14.ko.md)와 비활성 지침 초안을 작성했다. 기존 runtime은 교체하지 않았으며 아래 사실 오류·미출하 판정은 유지한다.
+사용자의 최신 요청으로 원본 세 제품의 전 기능 통합을 제외하고 [재설계](TTAK_REDESIGN_2026-09-14.ko.md)했다. 짧은 방향성 core와 독립된 두 스킬이던 design.1(`ef59a03`)은 설정 스킬 `ttak` 하나와 ON core, 조건부 explain/review 자료로 구성된 `0.3.0-design.2`로 대체됐다. [웹 조사·Plugin-Eval 평가](TTAK_REDESIGN_RESEARCH_2026-09-14.ko.md)와 비활성 지침 초안을 작성했다. 기존 runtime은 교체하지 않았으며 아래 사실 오류·미출하 판정은 유지한다.
 
 ## 현재: 결함 해결과 출하 검증 재개 — 2026-09-14
 

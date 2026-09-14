@@ -128,3 +128,23 @@ test('package discovers only the settings skill; explanation and review are not 
     assert.equal(JSON.parse(fs.readFileSync(path.join(PLUGIN, manifest))).mcpServers, undefined);
   }
 });
+
+test('a failed rename leaves no temporary file, no false success and the saved state intact', () => {
+  const root = fixture(), target = path.join(root, 'state.json'), content = JSON.stringify({ enabled: false }) + '\n';
+  fs.writeFileSync(target, content);
+  const { writeState, readState } = require(path.join(PLUGIN, 'hooks/state.cjs'));
+  const realRename = fs.renameSync, realRoot = process.env.PLUGIN_DATA;
+  // Observed on Windows with a read-only state.json; injected here so the
+  // cleanup is checked the same way on every platform.
+  fs.renameSync = () => { const e = new Error('EPERM'); e.code = 'EPERM'; throw e; };
+  process.env.PLUGIN_DATA = root;
+  try {
+    assert.equal(writeState(true).ok, false);
+    assert.equal(readState().status, 'off');
+  } finally {
+    fs.renameSync = realRename;
+    if (realRoot === undefined) delete process.env.PLUGIN_DATA; else process.env.PLUGIN_DATA = realRoot;
+  }
+  assert.deepEqual(fs.readdirSync(root), ['state.json']);
+  assert.equal(fs.readFileSync(target, 'utf8'), content);
+});
