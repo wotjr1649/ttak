@@ -98,14 +98,14 @@
   ],
   "draft": {
     ".claude-plugin/plugin.json": {
-      "file_bytes": 346,
-      "body_bytes": 345,
-      "sha256": "0f904b32a293f26fee9a54fd499aaf6e5d68cf8ec54a7902ea6b6217bfc3136e"
+      "file_bytes": 323,
+      "body_bytes": 322,
+      "sha256": "8f58b17748ae1fe1c61262d332ceb263da2837dd9d625420cacf7328c3b0b0a5"
     },
     ".codex-plugin/plugin.json": {
-      "file_bytes": 1057,
-      "body_bytes": 1056,
-      "sha256": "13a8184b13180efc842e4baf8415f320f137b70f254d067eab6acbcc72563604"
+      "file_bytes": 1090,
+      "body_bytes": 1089,
+      "sha256": "8c57da3baf5dc9e57614a6548418e4d6d306d022b657745fe2a9607f295e4036"
     },
     "ATTRIBUTIONS.md": {
       "file_bytes": 8071,
@@ -392,5 +392,12 @@
         "tests/conformance/runs/2026-09-15-claude-design2-ac001-n10-graded.jsonl"
       ]
     }
+  },
+  "promotion": {
+    "date": "2026-09-15",
+    "version": "0.3.0-design.2 -> 0.3.0-rc.1",
+    "marketplaces": ".claude-plugin/marketplace.json source ./ -> ./design/ttak; .agents/plugins/marketplace.json to a git-subdir source at design/ttak. The Codex entry cannot resolve until the branch is on main, and was not tested against the remote.",
+    "hooks_key_removed": "the .codex-plugin hooks key added during the Codex investigation is rejected by plugin-creator validate_plugin.py, and was never needed: with it removed, reinstalled and retested, ttak is still taken by the hook at zero tokens. Codex discovers hooks/hooks.json by convention.",
+    "preserved": "the root 0.2.0 runtime manifests are among the 33 frozen files and are untouched; only the marketplace entries, which are not, now point at the candidate."
   }
 }

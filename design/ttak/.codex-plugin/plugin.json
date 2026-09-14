@@ -1,7 +1,7 @@
 {
   "name": "ttak",
-  "version": "0.3.0-design.2",
-  "description": "Focused simplification and reader-aware explanations. Inactive design prototype; not release-qualified.",
+  "version": "0.3.0-rc.1",
+  "description": "Focused simplification and reader-aware explanations. Unqualified release candidate.",
   "author": {
     "name": "Kim Jae Seok"
   },
@@ -9,11 +9,10 @@
   "repository": "https://github.com/wotjr1649/ttak",
   "license": "MIT",
   "skills": "./skills/",
-  "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "TTAK",
     "shortDescription": "Only what is needed, clear for the reader.",
-    "longDescription": "Opt-in TTAK guidance with one settings skill and task-specific references. Local hook tests only; native qualification pending.",
+    "longDescription": "Opt-in TTAK guidance with one settings skill and task-specific references. Control and injection are verified on both hosts; the data-loss gate does not pass.",
     "developerName": "Kim Jae Seok",
     "category": "Productivity",
     "websiteURL": "https://github.com/wotjr1649/ttak",

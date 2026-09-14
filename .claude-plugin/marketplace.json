@@ -5,7 +5,7 @@
   "plugins": [
     {
       "name": "ttak",
-      "source": "./",
+      "source": "./design/ttak",
       "description": "Lean development, focused review, audience-adaptive explanation and visible progress.",
       "category": "productivity"
     }
