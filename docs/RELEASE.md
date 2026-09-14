@@ -1,5 +1,11 @@
 # First release candidate
 
+**The candidate is `design/ttak`, version `0.3.0-rc.1`** (2026-09-15). Both marketplace manifests
+serve it. The `0.2.0` runtime at the repository root is preserved as the record of what it replaced,
+not as the shipping candidate. The candidate's control, injection and reference selection are
+measured on both hosts; its `[AC-001]` data-loss gate is 4 of 10 with it on against 0 of 10 without,
+and 100% is what that gate requires, so it does not pass. Shipping stays No-Go.
+
 Current shipping scope (2026-09-14): the user's latest request removes the
 192-subject comparison and repeated baseline superiority from mandatory release
 qualification. Correct differences in wording, length and organization are accepted.

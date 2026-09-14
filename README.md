@@ -12,22 +12,26 @@ policy; they do not validate this candidate or establish general improvements in
 
 ## What it is
 
-An operating discipline and two independently callable skills.
+One short operating discipline, two task-specific references, and a settings skill.
 
-- **The operating discipline.** Three short policy files — where this guidance ranks against
-  everything else, engineering invariants, and a response contract — injected by host lifecycle hooks
-  at session start and subagent start, but only when you have turned it on.
-- **The explainer.** One model-invocable skill that adapts an explanation to a stated or inferred
-  reader, defaulting to a capable adult who may be unfamiliar with the topic. It works whether or not
-  the discipline is on.
-- **The reviewer.** A focused review for unnecessary complexity, grounded in current requirements
-  and callers. It reports justified simplifications without editing unless fixes are requested.
-  Invoke with `/ttak:ttak-review` on Claude Code or `$ttak:ttak-review` on Codex, or ask for an
-  over-engineering review. Explicit native invocation has been verified in isolated test profiles
-  on both hosts. Claude also selected the correct skill automatically in two small review tasks
-  and two child explanation tasks. Codex automatic selection and release qualification remain incomplete.
-- **Progress guidance.** The operating discipline keeps the current step, completed result and
-  blocker visible as work changes, and reconnects interruptions to unfinished work.
+- **The discipline.** A single policy file — track the actual goal and the evidence, trim work that
+  adds no present value while preserving required behavior and safeguards, fit the depth and language
+  to the reader, keep progress and completion honest — injected by a host lifecycle hook at session
+  start, and only when you have turned it on.
+- **The references.** Reader-aware explanation and focused complexity review are reference files the
+  discipline names rather than skills you invoke. The model reads whichever the task calls for, and
+  neither for an ordinary short answer.
+- **The settings skill.** `ttak` reports the saved setting; `ttak on` and `ttak off` change it.
+  Nothing else in the plugin touches settings, and the skill cannot reach the setting itself — see
+  [Turning it on](#turning-it-on).
+- **Progress guidance.** The discipline keeps useful state changes visible across longer work and
+  reconnects an interruption to the unfinished goal, from records it can actually reach.
+
+Explanation and review are no longer separately invocable skills; the predecessor's versions are
+still in this repository and are not what the marketplaces serve. **Subagents receive nothing.**
+Session-start context does not reach them — measured 2026-09-15, a subagent asked for the first line
+of any TTAK guidance in its context answered `NONE` — and this plugin does not inject at subagent
+start.
 
 ## What it is not
 
@@ -66,10 +70,9 @@ codex plugin marketplace add wotjr1649/ttak
 codex plugin add ttak@ttak
 ```
 
-Codex **will not run a plugin's hooks until you enable them, and installing is not enough.** TTAK
-declares eight events: `SessionStart`, `UserPromptSubmit`, `SubagentStart`, `PreToolUse`,
-`PostToolUse`, `SubagentStop`, `Stop` and `SessionEnd`. There are eleven command handlers in total;
-review and enable every handler.
+Codex **will not run a plugin's hooks until you enable them, and installing is not enough.** The
+candidate declares two events, `SessionStart` and `UserPromptSubmit`, with one command handler each.
+Enable both.
 The CLI's `/hooks` lists them per event with an installed and an active count; the ChatGPT desktop
 app's hook settings list the plugin by name with one toggle per event. The run behind this paragraph
 used the desktop app and covered the original three events. The current candidate adds evidence
@@ -98,6 +101,16 @@ per-project enablement: the plugin applies to the whole user profile until you r
 | `ttak off` | Save the setting as off for this host |
 | `ttak` | Report the saved setting |
 
+The prompt must be exactly one of those three. On Claude Code `/ttak off` and `/ttak:ttak on`
+reach the same hook, measured on `2.1.270`. The matcher also accepts `$ttak`, which has not been run
+on Codex. A quotation, a trailing comment or a second command
+on the same line is not a control prompt and is left alone.
+
+**The settings skill cannot change the setting.** Neither host puts the plugin data directory in the
+environment the model's shell gets, so `node hooks/ttak.cjs on` run from the skill reports the
+setting as unavailable on both. The skill says so and points at the prompt forms above, which run in
+the hook's own environment. Measured on both hosts, 2026-09-15.
+
 The setting is saved per host and the two hosts are never synchronised. It takes effect at the next
 session start, on all four of the sources the hook's matcher covers: a new session, a resumed one,
 `/clear` and `/compact`. All four were observed injecting the full text, 3/3 each
@@ -115,15 +128,15 @@ not a question you asked the model — it is a plugin command, and if you meant 
 gone. Add any other word (`ttak status`, `what is ttak`, `ttak.`) and it is an ordinary prompt that
 reaches the model normally.
 
-There is no slash-command form, and `/ttak` is not a synonym for it. What the host does with the
-sigil depends on the host, and on Claude Code also on what follows it. Through `claude -p` on
-`2.1.261`, both `/ttak` and `/ttak on` answer `Unknown command: /ttak`, 3/3. In the interactive TUI
-`/ttak on` answers the same way, 5/5 — but a bare `/ttak` submitted on its own runs this plugin's own
-`/ttak:ttak-explain` and loads the explainer instead, 4/4. The sigil and the plugin's skill namespace
-share the prefix `/ttak`, and nothing inside the plugin changes that. On Codex CLI `0.153.4` —
-measured through `codex exec`; its interactive session is not verified — the same text arrives as an
-ordinary prompt and goes to the model. In none of these does the plugin see the prompt, and the bare
-word stays the only trigger.
+The slash form depends on the host, the version and which plugin is loaded, and the candidate changed
+it. Through `claude -p` on `2.1.261` with the predecessor, both `/ttak` and `/ttak on` answered
+`Unknown command: /ttak`, 3/3; in the interactive TUI `/ttak on` answered the same way, 5/5, while a
+bare `/ttak` ran that plugin's own `/ttak:ttak-explain` and loaded the explainer instead, 4/4 — the
+sigil and that plugin's skill namespace shared the prefix. On `2.1.270` with the candidate, `/ttak
+off` and `/ttak:ttak on` both reach the hook and are consumed by it, measured 2026-09-15 through
+`claude -p`; the interactive TUI has not been re-measured. On Codex CLI `0.153.4` — measured through
+`codex exec`; its interactive session is not verified — the same text arrives as an ordinary prompt
+and goes to the model. The bare word is the form that has worked throughout.
 
 ### What you see when a prompt is consumed depends on the host
 
@@ -144,23 +157,19 @@ Observed on live hosts, three trials each
 
 In both cases the model never received the prompt.
 
-## The explainer
+## The references
 
-Invoke it directly:
+There is nothing to invoke. Ask for the explanation or the review in plain language and the
+discipline points the model at the matching file; an ordinary short answer reads neither.
 
-- Claude Code: `/ttak:ttak-explain`
-- Codex CLI: `$ttak:ttak-explain`
+**Measured on Claude Code 2.1.270, one trial each, in a profile with nothing else loaded.** A
+factual one-liner read no reference and used no tools. An audience-tailored request read the
+explanation reference once. A complexity review read the review reference, kept a compatibility
+adapter that twelve external consumers depend on, and stated that it had not inspected any code.
 
-On Claude Code the bare `/ttak-explain` also resolves, but that slot can be taken by any
-model-invocable skill with the same bare name, so the namespaced form is the one to use. Both hosts
-may also invoke it on their own when a request matches its description.
-
-**Two of the three are verified; the bare form is not.** `/ttak:ttak-explain what a mutex is` on
-Claude Code and `$ttak:ttak-explain what a mutex is` on Codex both resolve and produce the
-explanation. The bare `/ttak-explain` remains unverified, and not for want of trying: typed twice on
-Claude Code, the host recorded the namespaced form both times, so there is no submission of the bare
-form to judge. **Use the namespaced form.** If one does not work, ask for the explanation in plain
-language instead — the host-invoked route needs no syntax.
+That selection is also what moved the data-loss case in [What is measured](#what-is-measured), and
+only in a profile with nothing else loaded. With the user's own instruction files present the model
+opened the same reference and returned the script without its safeguards anyway.
 
 ## What is measured
 
@@ -226,7 +235,13 @@ none of these instruction sets is a guard.
 
 ### Size of the injected text
 
-Measured from the shipped `policy/*.md` files:
+**The candidate injects one file.** At session start it is `policy/core.md` with its two reference
+paths resolved: 1,224 bytes in the profile measured here, about 306 tokens at four characters per
+token. The exact size moves with the length of the install path. At subagent start it injects
+nothing. Nothing is injected at all until you turn it on.
+
+**The predecessor** is still in this repository and is what `scripts/measure-injection.cjs` measures,
+so its table stays as recorded:
 
 | Scope | Bytes | Approx. tokens (~4 chars/token) |
 |---|---|---|

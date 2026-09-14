@@ -1297,8 +1297,11 @@ test('both READMEs publish the inherited measurements, including the negative on
       `${name}: the per-session cost figure must carry the rate it was computed at`);
     assert.ok(flat.includes(pin.openGate),
       `${name}: the un-rerun behaviour gate belongs in the open-gate list`);
-    assert.ok(r.includes('/ttak:ttak-explain') && r.includes('$ttak:ttak-explain'),
-      `${name}: both host invocation strings are required`);
+    // The candidate has no separately invocable skill, so what a reader needs is
+    // the control form each host takes, not a skill namespace. Same purpose, current
+    // strings: both READMEs must carry one form per host.
+    assert.ok(r.includes('/ttak:ttak on') && r.includes('$ttak'),
+      `${name}: both host control forms are required`);
     assert.ok(flat.includes(pin.notAGuard),
       `${name}: the not-a-guard bullet is missing: "${pin.notAGuard}"`);
   }
