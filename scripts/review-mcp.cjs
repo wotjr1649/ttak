@@ -127,8 +127,8 @@ function createDispatcher() {
   };
 }
 
-async function serve(input, output) {
-  const dispatch = createDispatcher();
+async function serve(input, output, dispatch = createDispatcher()) {
+  if (typeof dispatch !== 'function') throw new Error('invalid_dispatcher');
   const decoder = new TextDecoder('utf-8', { fatal: true });
   let pending = Buffer.alloc(0);
   const write = value => new Promise((resolve, reject) => {

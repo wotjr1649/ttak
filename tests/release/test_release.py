@@ -8,7 +8,6 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest import mock
-from types import SimpleNamespace
 
 from prepare import freeze, plan, source_records, verify_freeze
 from collect import activation_prompts, activation_skills, command, native_environment, parse, run_trial, selected_plugins
@@ -42,10 +41,11 @@ class ReleaseTests(unittest.TestCase):
             (profile / "readiness.json").write_text(json.dumps(readiness), encoding="utf-8")
             response = {"result": "first response", "session_id": "00000000-0000-0000-0000-000000000001",
                         "usage": {}, "modelUsage": {"claude-sonnet-5": {}, "claude-haiku-4-5-20251001": {}}}
-            completed = SimpleNamespace(returncode=0, stdout=json.dumps(response))
+            completed = {"status": "exited", "exitCode": 0, "cleanupVerified": True,
+                         "activeProcesses": 0, "elapsedMs": 1, "stdout": json.dumps(response)}
             trial = "claude.progress-interruption.baseline.1"
             with mock.patch.dict(os.environ, {}, clear=True), \
-                    mock.patch("collect.subprocess.run", return_value=completed) as process:
+                    mock.patch("release_runtime.invoke_bounded", return_value=completed) as process:
                 with self.assertRaisesRegex(ValueError, "model usage"):
                     run_trial(experiment, trial, profile, 1, True)
                 self.assertEqual(process.call_count, 1)
@@ -167,7 +167,8 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(parse("claude", json.dumps({"result": "done", "modelUsage": {
             "claude-sonnet-5": {}}, "usage": {"input_tokens": 3, "unrelated": "omit"}})),
             {"answer": "done", "session": None, "usage": {"input_tokens": 3},
-             "observed_models": ["claude-sonnet-5"]})
+             "observed_models": ["claude-sonnet-5"], "assistant_message_count": None,
+             "native_turn_count": None, "hook_correction_verified": False})
         stream = '\n'.join(json.dumps(e) for e in [
             {"type": "item.completed", "item": {"type": "agent_message", "text": "done"}},
             {"type": "turn.completed", "usage": {"output_tokens": 2}}])

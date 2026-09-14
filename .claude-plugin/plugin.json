@@ -1,11 +1,21 @@
 {
   "name": "ttak",
   "displayName": "TTAK — Track · Trim · Adapt · Keep",
-  "version": "0.2.0-rc.1",
+  "version": "0.2.0-rc.13+codex.20260914064205",
+  "mcpServers": "./.claude-plugin/mcp.json",
   "description": "Lean development, focused review, audience-adaptive explanation and visible progress. Turn the operating discipline on with \"ttak on\".",
-  "author": { "name": "Kim Jae Seok", "url": "https://github.com/wotjr1649" },
+  "author": {
+    "name": "Kim Jae Seok",
+    "url": "https://github.com/wotjr1649"
+  },
   "homepage": "https://github.com/wotjr1649/ttak",
   "repository": "https://github.com/wotjr1649/ttak",
   "license": "MIT",
-  "keywords": ["yagni", "explain", "audience", "discipline", "productivity"]
+  "keywords": [
+    "yagni",
+    "explain",
+    "audience",
+    "discipline",
+    "productivity"
+  ]
 }

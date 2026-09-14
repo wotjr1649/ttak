@@ -1,8 +1,362 @@
 # First release candidate
 
-Status: implementation and validation in progress. **Not qualified for release.**
+Latest follow-up: [Native result API guidance 117](NATIVE_WIRE_117.ko.md). Luna completed the
+normal control with one result submission per verifier, exact final text and an accepting Stop.
+Haiku split one mechanism into five fact checks and timed out before the final check. Its empty
+report reflected the supervisor's intentional timeout-output withholding; native records recovered
+five actual agents and usage. The batch is FAIL; four rows are UNRUN and both profiles are restored.
+Node 509 / Python 78 / conformance passed. Observed usage: 467,519 tokens; cumulative top-level
+starts: 864. The Go goal stays active; the original 192 / 516 comparison remains UNRUN.
+
+Latest follow-up: [Native host separation 116](NATIVE_HOST_116.ko.md). Haiku completed its
+normal-plugin control with four fresh verifiers and an accepting Stop. Luna children guessed result
+tool names and the MCP response path, submitted identical results twice, and reached timeout before
+the final native receipt and parent answer. The batch is FAIL; four rows are UNRUN and both profiles
+are restored. Node 508 / Python 78 / conformance passed. Observed usage: 488,971 tokens; cumulative
+top-level starts: 860. The Go goal is active and the original 192 / 516 comparison remains UNRUN.
+
+Latest follow-up: [Native result retention 115](NATIVE_RETENTION_115.ko.md). Luna completed one
+normal-plugin beginner control with two fresh native verifiers, exact retained fact objects, exact
+final text and an accepting Stop. Haiku then exposed its draft before verification and selected the
+Codex transport, so the batch is FAIL. Four rows remain UNRUN and both profiles are restored.
+Node 503 / Python 78 / conformance passed. Observed usage: 370,163 tokens; cumulative top-level
+starts: 856. The Go goal remains active, and the original 192 / 516 comparison remains UNRUN.
+
+Latest follow-up: [Atomic native delivery 114](NATIVE_ATOMIC_114.ko.md). One actual Luna fact
+agent received the exact native packet and returned a bound result. The parent changed its challenge
+when submitting the final check, so the control failed and timed out. Five rows are UNRUN; both
+profiles are restored. Node 500 / Python 78 / conformance passed. Observed usage: 266,750 tokens;
+cumulative top-level starts: 852. The internal spawn count is corrected to one actual call, not two
+code occurrences. The Go goal stays active; the original 192 / 516 comparison remains UNRUN.
+
+Latest follow-up: [Native current binding 113](NATIVE_BINDING_113.ko.md). Normal Codex input
+rewriting and plan binding worked, but the model printed a valid dispatch instead of spawning and
+then submitted an invalid dispatch. Three MCP calls were blocked; no native agent was attempted.
+The completion control is FAIL, five rows are UNRUN, and both profiles are restored. The candidate
+passed 496 Node tests, 78 Python tests and conformance. Usage: 122,782 tokens; cumulative top-level
+starts: 849. The Go goal remains active and the original 192 / 516 comparison remains UNRUN.
+
+Latest follow-up: [Native programmatic dispatch 112](NATIVE_DISPATCH_112.ko.md). The candidate
+passed 491 Node tests, 78 Python tests and conformance, but Codex mistyped two characters of its
+attempt ID before any verifier could start. All three spawn attempts were blocked and the Job
+timed out. Five rows remain UNRUN; both profiles were restored. Cumulative top-level starts: 846.
+Observed usage is 194,211 tokens, with possible unreported in-flight usage at timeout. Native packet
+delivery remains unproved; the Go goal is active and the original 192 / 516 comparison is UNRUN.
+
+Latest follow-up: [Native child lifecycle 111](NATIVE_CHILD_LIFECYCLE_111.ko.md). Codex actually
+received the child bootstrap, retained the parent attempt and bound child turn, and the collector
+waited for root completion. The child's exact packet lookup failed in its separate MCP connection;
+the parent withheld the explanation. The simple completion control is FAIL and the Claude row is
+UNRUN. The final candidate passed 487 Node tests, 78 Python tests and conformance. Cumulative
+top-level starts are 843; this batch used one internal agent and 197,891 tokens. Both profiles were
+restored. The Go goal remains active, and the original 192 / 516 comparison remains UNRUN.
+
+Latest follow-up: [Native packet retrieval 110](NATIVE_RETRIEVAL_110.ko.md). Claude's default plugin
+MCP auto-loading completed one beginner control with three actual fact agents, one final agent,
+exact final-text binding and an accepting native Stop. Codex failed to bootstrap its child, replaced
+root state on the child prompt, and exposed a collector bug that treated child completion as root
+completion. Both profiles were restored. Four top-level starts bring the cumulative count to 840;
+five internal agents and 435,863 tokens are recorded separately. The candidate passed 483 Node
+tests, 78 Python tests and conformance. The overall Go goal stays active; the original 192-subject /
+516-request comparison is UNRUN. Iteration 111 addresses the observed Codex defects.
+
+Transport scope clarification from preparation 110: Claude runs 107–109 used installed skills and
+hooks with an explicitly connected bundled MCP configuration. They did not establish the default
+plugin MCP auto-loading path, whose tool names are plugin-scoped. The adapter and tests now cover
+that namespace; one Haiku native auto-loading control now passes. The initial 110 preparation consumed no
+native or management starts and is preserved separately from its replacement freeze.
+
+Latest follow-up: [Sequential verification 109](NATIVE_SEQUENCE_109.ko.md). The first native Agent
+request changed the bound long packet and was denied. No verifier started, and the parent then
+delivered an unverified explanation. This is FAIL despite the host's success exit. The candidate
+passed 477 Node tests, 78 Python tests and conformance. Three top-level starts bring the cumulative
+count to 836; the remaining Codex row is UNRUN. Both profiles were restored. Iteration 110 replaces
+long model copying with direct MCP packet retrieval. The Go goal remains active and the original
+192-subject / 516-request comparison remains UNRUN.
+
+Previous follow-up: [Normal-plugin independent completion 108](NATIVE_COMPLETION_108.ko.md).
+Installation and activation passed, but the first Haiku completion failed: parallel launch requests,
+later launches escaping an unavailable-state check, lost stipulated conditions and malformed verifier
+results. The batch closed after three top-level native starts, with five planned rows UNRUN.
+Four internal agents actually ran; seven Agent calls were attempted. Cumulative top-level starts:
+833. Both profiles were restored. The frozen candidate passed 470 Node tests, 78 Python tests and
+conformance, but its native completion flow did not pass. Iteration 109 addresses the observed
+failure. The Go goal stays active, and the original 192-subject / 516-request comparison is UNRUN.
+
+Previous follow-up: [Attempt-bound withholding 107](NATIVE_ATTEMPT_107.ko.md). Both normally installed
+hosts withheld the required-measurement case with exact final-text binding. Claude resume retained
+the unverified notice but incorrectly registered a status-only request as a new explanation, forcing
+an unnecessary correction. The batch closed after five native starts; Codex resume is UNRUN.
+Cumulative native starts: 830. Profile selections and saved ON state were restored. The goal stays
+active and No-Go: independently verified complete explanations and the original full comparison remain
+unfinished. This candidate passed 456 Node tests, 78 Python tests and conformance. These observations
+do not make withholding a completed-explanation quality pass.
+
+Previous follow-up: [Native withholding findings 106](NATIVE_WITHHOLDING_FINDINGS_106.ko.md).
+Both hosts passed normal plugin activation. Haiku failed required-evidence withholding on the
+original and revised skill candidates: Stop continuation turned an initial withholding notice into
+a completed explanation. Four native starts were used, bringing the cumulative total to **825**;
+later trial rows remain UNRUN. Test-profile selections and the candidate's saved state were restored.
+The latest local candidate preserves failed-check notices across resume and recovers malformed
+regular evidence only at a new prompt, retaining file/lock guards. Its full suite passes:
+**446 Node tests, 78 Python tests and conformance selftest**. It has not been installed or run natively.
+**No-Go remains:** semantic completion enforcement and actual retained-state delivery are unproved.
+
+Previous follow-up: [Native withholding plan 105](NATIVE_WITHHOLDING_PLAN_105.ko.md). After the user
+removed the accidentally generated Python directory, the unchanged candidate passed the full local
+suite: **443 Node tests, 78 Python tests and conformance selftest**, with no skipped Node tests or
+new model calls. The directory was not recreated. A 22-file exact candidate bundle and a 12-start
+native withholding plan are prepared; the plan needs 11 starts beyond the previously authorized
+remaining one. Normal plugin installation/activation and that new allocation are not executed.
+**No-Go remains:** semantic omissions and actual native withholding are still unproved.
+
+The preceding [Remediation 104](VERIFICATION_REMEDIATION_104.ko.md) freezes the historical
+failure controls and stops processing on detected unresolved errors or unavailable checks. Rejected
+evidence now persists within its turn. Native withholding remains unproved; all four historical H/Q
+failures still escape the limited Stop semantic check. **No-Go remains.** New native starts: **0**.
+Related final checks: **59 Node tests and 78 Python tests pass**, conformance selftest succeeds.
+An attempted full Node run was **436 pass / 2 fail**: the Windows Python alias unexpectedly installed
+a runtime in the task root. Tests now require an explicit interpreter path on Windows. Cleanup
+was blocked by the recursive-delete guard; 105 records the manual cleanup and completed local regression.
+See 104 for the incident,
+the unchanged OFF behavior, remaining semantic gaps and ordered next steps.
+
+The following results describe the preceding 103 candidate:
+
+Latest verdict: **No-Go; structured output, meta-event auditing and claim-link generation repaired; semantic failures remain**.
+[Contract verification 103](VERIFICATION_CONTRACT_103.ko.md) replaces duplicated answer/quote and
+independent question/obligation arrays with fixed linked blocks, binds comparisons and per-claim
+assessments locally, and audits the exact Claude StructuredOutput event chain. Native interruptions
+led to pinned Claude child input, direct independent Codex verifier sessions, typed schemas and
+stricter submission validation. Final related regression: **22 files / 252 pass / 0 fail / 0 skipped**.
+All 18 collected Claude parent records replay successfully; the original invalid coverage stays rejected.
+
+The user's iterative-repair request was carried out in a separate bounded ledger: **82 new starts
+(Codex 31, Claude 51), 55 question-stage reservations**, all process Jobs cleaned. One start remains
+under the 83-start cap. Recovered usage is **1,343,477 tokens**, with explicit incomplete accounting
+for interrupted native work. Cumulative starts: **821 (Codex 328, Claude 493)**. An earlier Luna normal
+control and its first fixed unseen final answer passed H/Q review. Haiku completed the final eight-stage
+diagnostic and corrected one SSI error, but retained other errors and introduced a snapshot-point error.
+Known-case final errors also remain. Repetition of the final contract, normal rc.13 plugin quality and
+the 192-subject / 516-request comparison are unrun. Product rc.13 remains No-Go.
+
+Previous verdict: **No-Go; authorized quality campaign stopped on its first parent-observation failure**.
+[Native execution 102](NATIVE_EXPLANATION_102.ko.md) ran one Haiku draft CLI. The process exited
+successfully, but the collector rejected an additional native structured-output meta input.
+Read-only recovery also reproduced an invalid claim/question coverage mapping. Under the approved
+first-failure rule, no children or rewrite ran: seven later stages in row one and all eleven later
+rows remain UNRUN, representing 83 unused starts. Observed usage is 33,071 tokens; process cleanup
+is verified. Cumulative accounting: **739 starts (Codex 297, Claude 442)**. Final-answer quality,
+normal rc.13 plugin quality and the 192-subject / 516-request comparison remain unrun. Existing
+code and failure records are preserved; no retries or remaining-budget reassignment occurred.
+
+Previous verdict: **No-Go; real-question input and complete-explanation workflow implemented locally; quality unrun**.
+[Verification 101](VERIFICATION_EXPLANATION_101.ko.md) adds pinned packet input, draft/independent
+questions/full rewrite, and a campaign that stops after the first execution, delivery or quality failure.
+Related regression: **19 files / 187 pass / 0 fail / 0 skipped**, distinct from full product regression.
+No new model calls: cumulative **738 (Codex 297, Claude 441)**. The prepared 12-row screen requires
+at most **84 top-level CLI starts and 60 fresh child contexts**; its new execution scope is not yet
+authorized. Every row remains UNRUN. Product rc.13 remains No-Go; current test profiles are Codex
+rc.1 and Claude without a plugin. Normal rc.13 plugin quality, all four functions and the full
+192-subject / 516-request comparison remain separate release requirements.
+
+Previous verdict: **No-Go; rc.13 integrated; mandatory correction works in Haiku but final precision fails**.
+[Integrated validation 87](NATIVE_VALIDATION_87.ko.md) applied the five reviewed files and passed
+Node 221 / Python 78 / conformance checks. Both hosts passed installed OFF/ON controls. The first
+Haiku explanation received exactly one required evidence reconciliation and completed a revised
+answer, but root review found retained material errors: H1–H3/Q2 pass, Q1 fail. The frozen screen
+stopped after five requests with seven unrun. Task profiles were restored. Accounting is
+**727 requests (Claude 434, Codex 293)**; the **516-request** full comparison remains unexecuted.
+Luna quality, normal-answer harm, repeatability and model improvement remain unestablished.
+No further native calls with this candidate are proposed; no replacement design is adopted.
+The original product boundary and quality criteria remain. Remote CI and registry validation
+are unrun; this local candidate is not published or release-qualified.
+
+Previous verdict: **No-Go; native JSON-text response rejection identified; rc.13 fix proposed**.
+[Native diagnosis 86](NATIVE_DIAGNOSIS_86.ko.md) completed two Haiku requests and confirmed that
+the actual hook received a string response, rejected it as `unverified_tool_result`, and retained
+an initialized empty turn. The corresponding native stored tool value parses exactly to the
+recomputed result. A separate rc.13 review copy handles this text through the same exact-payload
+checks; six replay combinations and 25 related Node tests pass. It has not been integrated,
+installed, or tested with a native model. The product tree remains rc.12. Accounting is
+**722 requests (Claude 431, Codex 291)**. Task profile restoration is verified; the **516-request**
+full comparison remains unexecuted. No model improvement or release qualification follows.
+
+Previous verdict: **0.2.0-rc.12 fails native mandatory evidence reconciliation; No-Go**.
+[Native validation 85](NATIVE_VALIDATION_85.ko.md) passed four installed OFF/ON controls, then
+stopped when the first Haiku explanation still could not record its evidence. An older cost-claim
+detector requested one revision; that is not the required evidence continuation. Root review found
+H1–H3/Q2 passes and Q1 failure in the final SSI explanation. The exact storage-failure stage remains
+unresolved. A separate diagnostic copy with bounded, content-free stage logging is prepared but
+not installed or run. Product code is unchanged. Accounting is **720 requests (Claude 429,
+Codex 291)**: five new requests, seven unrun in the stopped 85 ledger. The **516-request** full
+comparison remains unexecuted. Task profiles were restored; the next proposal is a two-request
+Haiku diagnosis, not another quality batch or a release qualification.
+
+Previous verdict: **0.2.0-rc.12 remains No-Go; its native correction is unverified**.
+[Native validation 84](NATIVE_VALIDATION_84.ko.md) passed all four installed OFF/ON controls on rc.11,
+then stopped at the first Haiku explanation because mandatory correction never started.
+Claude supplies an MCP content array where the hook expected the full result object. The local
+rc.12 successor normalizes both containers and retains exact recomputed-payload verification.
+Replay of the collected tool result and Node 219 / Python 78 / conformance checks pass; rc.12
+has not been installed or tested with a native model. Accounting is **715 requests (Claude 426,
+Codex 289)**: five new requests, seven unrun in the stopped 84 ledger. The **516-request** full
+comparison remains unexecuted. Task profiles were restored. Model improvement remains unproven.
+
+Previous verdict: **0.2.0-rc.11 remains No-Go; native quality has not been measured**.
+[Release preparation 83](RELEASE_PREPARATION_83.ko.md) adds one evidence-based final continuation,
+tests the local runtime and package, and exercises installation/update/removal on both hosts.
+Claude OFF/ON succeeded with zero tokens. The Codex OFF request stopped when an older plugin
+remained active: quoted CLI key paths created literal-quote aliases. A corrected table override
+was verified through read-only native metadata; no failed request was retried. All eight quality
+rows are unrun. Accounting is **710 requests (Claude 423, Codex 287)**, including three new
+control attempts; the 12-request ledger is stopped with nine unrun. The **516-request** full
+comparison remains unexecuted. These observations do not establish model improvement.
+
+Previous verdict: **0.2.0-rc.10 fails native Haiku precision; not release-qualified**.
+[Native validation 80](NATIVE_VALIDATION_80.ko.md) delivered the fixed candidate, policy,
+skill, exact MCP computation and two implementation references. Both independent graders
+failed Q1. Root retained H1–H3/Q2 passes and stopped the remaining three planned calls.
+Luna and repeated two-host quality remain unverified. Cumulative diagnostics:
+**707 (Claude 421, Codex 286)**; this separate four-call validation used one call and left
+three unused; the full comparison allocation remains **516 unused**.
+
+Previous local preparation: **0.2.0-rc.10, not release-qualified**. See
+[precision investigation 79](PRECISION_79.ko.md). rc.9 failed native Haiku precision:
+the submitted partial draft did not trigger implementation-reference delivery, and the final
+answer added unreviewed mitigation claims. rc.10 supplies references independently of draft
+keywords and checks further ordering/cost claims. Node 203 and Python 77 checks pass;
+native rc.10 quality remains unverified. Cumulative diagnostics: **706 (Claude 420, Codex 286)**;
+the new six-call allowance is exhausted; comparison allocation: **516 unused**.
+
+Previous local candidate: **0.2.0-rc.8, not release-qualified**. See
+[actual Stop validation 76–78](STOP_VALIDATION_76_78.ko.md).
+Both native hosts completed a correction after actual Stop feedback in mechanism-only tests.
+The ordinary rc.7 Haiku task passed H1–H3 and Q2 but failed Q1 precision; no full comparison began.
+rc.8 fixes inactive-state intervention, and the collector now handles Haiku settings, bundled MCP,
+final-answer selection and Windows process containment. Node 197 and Python 77 checks pass;
+rc.8 has no native quality observation. Cumulative diagnostics: **705 (Claude 419, Codex 286)**.
+The separate new six-call allowance has **five used and one unallocated**; comparison allocation:
+**516 unused**. Upper-model qualification and publication remain unperformed.
+The following checkpoints preserve the previous candidate's decision and historical counts.
+
+Status: **No-Go for this candidate and development round. The original release objective is not achieved.**
+The [release decision](RELEASE_DECISION.ko.md) preserves the unmet criteria and all evidence.
+Further trials or integration of the same approach are halted; 2 diagnostic calls and the separate
+516-call comparison allocation remain unused. The checkpoints below are supporting history.
 
 ## Current checkpoint
+
+[Independent reassessment 70](REASSESSMENT_70.ko.md) used three sub-agents for verdict,
+architecture and evaluation review, with root verification against local evidence and official
+hook documentation. Current free-prose regeneration is not approved for integration or more
+wording-only diagnostics. The original release requirements remain intact; any new output-control
+design must establish actual user-visible delivery and product fit before spending the two
+remaining diagnostics. No native model calls or product changes were made.
+
+Approved frozen batch 69 stopped after its first Haiku call. Correct native input, scenario,
+computed response and cleanup were verified, but the final answer denied the actual cross-read/write
+dependencies and overgeneralized the mitigation. H2/Q1 and scope/accuracy failed. The stop decision
+is bound to the result; the second Haiku and Luna calls were not run. Calls total 698 (Claude 413,
+Codex 285), leaving 2 diagnostics and 516 unused comparison calls. The candidate remains unqualified;
+the stopped batch must not be resumed. See [batch 69](SCENARIO_REPEAT_69.ko.md).
+
+Approved diagnostic 68 tested the revised mitigation-ordering output in one Luna call. Native
+model/prompt, intended MCP call, recomputed text/structured results and process cleanup matched.
+Manual review found all three hard and two quality criteria met for this expert case, without
+the ambiguous isolation-level claim from 66. This single tuned-case observation does not prove
+causality, repeatability, baseline/original improvement or installed-product quality. Calls total
+697 at checkpoint 68 (Claude 412, Codex 285), leaving 3 diagnostics and 516 unused comparison calls. See
+[revision 67 and diagnostic 68](MITIGATION_BOUNDARY_67.ko.md).
+
+Approved Luna diagnostic 66 completed one CLI call and one intended MCP call through two native
+discovery/dispatch wrappers. Actual model, prompt, computed text/structured payload and process
+cleanup were verified. The final explanation conflates serial coordination with serializable
+execution when describing the later transaction's reads; expert-level mitigation precision
+remained unresolved in that answer, so its quality was not qualified. No retry followed. Calls at 66 totaled 696 (Claude 412,
+Codex 284), leaving 4 diagnostics and 516 unused comparison calls. See [diagnostic 66](LUNA_SCENARIO_66.ko.md).
+
+User-run diagnostic 64 completed one native Haiku scenario/tool call. The structured response
+exactly matches recomputation; the original audit falsely rejected the JSON-encoded response
+by searching it as plain text. Offline reinspection corrected that finding and rejected three
+negative controls. The final answer still failed the predeclared verbatim requirement, so the
+diagnostic remains failed. Separately, manual review found this answer met the original task's
+three hard and two quality criteria. This is one observation, not release or comparative proof.
+Calls at checkpoint 64 totaled 695 (Claude 412, Codex 283), leaving 5 diagnostics and 516 unused comparison calls.
+Original evidence is preserved; see [diagnostic 64](FINITE_SCENARIO_NATIVE_PLAN.ko.md).
+
+Diagnostic 63 supplied computed scenario facts to Haiku and failed: the final answer overstated
+interleaving coverage and confused a false guard with an abort. Calls at that point were 694 (Claude 411,
+Codex 283), leaving 6 diagnostics and 516 unused comparison calls. A deterministic renderer and
+read-only stdio tool are implemented; 20 related tests passed. Native tool use is not yet tested
+or integrated. [The next diagnostic plan](FINITE_SCENARIO_NATIVE_PLAN.ko.md) bounds the proposed
+temporary MCP connection to one Haiku CLI call; diagnostic 64 subsequently executed it.
+
+[Read-only audit 61](REUSE_AUDIT_61.ko.md) confirmed observed compatibility of six historical
+Luna records for one review case, with explicit newline and inactive-skill distinctions; no
+automatic release credit was granted. [Finite scenario module 62](FINITE_SCENARIO.md) now
+computes guarded-write dependencies and bounded concurrent/serial outcomes; seven tests passed.
+At checkpoint 62 it was not integrated or tested with native model generation. That checkpoint added no model calls.
+
+[Development diagnostic 60](DEVELOPMENT_DIAGNOSTIC_60.ko.md) completed eight installed-host
+subjects: one existing development case, baseline/TTAK, two repetitions on Haiku and Luna.
+All eight functional checks passed. Haiku tied twice; Luna favored baseline once and TTAK once,
+so repeated practical improvement was not demonstrated. Original comparison and blind grading
+remain unrun. Calls at checkpoint 60 were 693 (Claude 410, Codex 283), leaving 7 diagnostics and 516
+comparison calls. Explanation quality and complete release qualification remain unresolved.
+
+Diagnostic 59 supplied reviewed general PostgreSQL documentation before Haiku generated the
+expert explanation. It still contradicted its own cross-read/write example and claimed that
+Repeatable Read row locking needs no retry, contrary to the supplied source. No unchanged retry
+or product integration followed. At diagnostic 59 calls were 685 (Claude 406, Codex 279), leaving 15
+diagnostics and 516 comparison calls. Explanation quality remains unresolved.
+
+Offline preparation 58 adds a separate low-model freeze/verifier and preserves 192 planned
+comparisons with their actual product inputs. Six corruption and scope tests passed, and
+`.superpowers/low-model-preparation-58` was created and verified. It explicitly remains
+unqualified, with known explanation defects and native collection integration still open.
+That preparation added no model calls and left 16 diagnostic and 516 comparison calls before diagnostic 59.
+
+Diagnostics 56–57 tested a two-unit context excerpt and the original expert task on baseline
+Haiku. The excerpt reviewer still accepted the explicit cross-read contradiction. Baseline
+generation distinguished the reads correctly but introduced an invalid locking-query example;
+neither result qualifies the product or establishes a causal effect of the guidance.
+At diagnostic 57 calls were 684 (Claude 405, Codex 279), leaving 16 diagnostics and 516 comparison calls.
+
+Diagnostic 55 added [source-addressed review and repair](REVIEW_ANCHORS.md). The first Haiku
+evidence report passed exact-quote validation, but its context report omitted eight mandatory
+units and was rejected; no repair ran. Semantic errors remain. At that checkpoint calls were 682 (Claude 403,
+Codex 279), leaving 18 diagnostics and the separate 516-call comparison.
+
+Diagnostic 54 added explicit Haiku support to the independent native review adapter; all 66
+related Node tests passed. Its first evidence report combined non-contiguous text into invalid
+quotes and was rejected without a context or repair call. Local review also found semantic
+judgment errors, so correcting quote addressing alone would not qualify this route.
+See [the low-model diagnostic record](LOW_MODEL_EXPLANATION_DIAGNOSTICS.ko.md).
+At diagnostic 54 calls were 680 (Claude 401, Codex 279), leaving 20 diagnostics plus 516 comparison calls.
+
+[Haiku explanation diagnostics 52–53](LOW_MODEL_EXPLANATION_DIAGNOSTICS.ko.md) found a
+cross-row-read contradiction in the current body and in one explicit-event-table candidate.
+The candidate was rejected after its first call and the exact prior skill restored; no Luna
+retry or installed-profile edit occurred. These prompt-supplied diagnostics are not native
+plugin qualification. At that checkpoint calls were 679 (Claude 400, Codex 279), with 21 diagnostics and
+the separate 516-call comparison remaining. Final explanation quality is still unresolved.
+
+[The owner-approved Haiku/Luna study](LOW_MODEL_RELEASE.ko.md) now defines the active model
+conditions and adds repeated practical improvement over baseline to the existing quality gates.
+Historical Sonnet protocol and frozen studies below remain records, not Haiku evidence.
+Diagnostic 51 verified one Haiku native model/prompt delivery and observed thinking; the exact
+8192-token thinking cap is requested, not independently exposed in the session transcript.
+At diagnostic 51 cumulative calls were 677 (Claude 398, Codex 279), leaving 23 diagnostics plus the separate
+516-call comparison. Product quality remains unqualified; Opus/Sol are a subsequent plan only.
+
+[Diagnostic 50 reassessment](RELEASE_PATH_REASSESSMENT.ko.md) preserves the four capabilities
+and frozen final-output criteria while separating them from diagnostic architecture choices.
+Offline control-flow checks retain the four unresolved claims from diagnostic 49 and show no
+repair input even with a synthetic context finding for the missed U014 claim. This is not a
+native context result or a factual-quality pass. No sufficiently grounded new implementation
+candidate was selected at that checkpoint; review integration was deferred.
+That assessment added zero model calls and left 24 diagnostic calls before diagnostic 51.
 
 Candidate version: `0.2.0-rc.1`. All four intended capabilities are implemented in the
 candidate: development guidance, focused review, audience explanation and progress guidance.
@@ -598,6 +952,23 @@ This adds no model calls and is not license clearance or an extension of the ear
 
 ## Local and native verification
 
+[Diagnostic 49](ROLE_SCREEN_49.ko.md) froze the role-screen inputs and added a shared,
+result-bound call ledger. The first Claude evidence-role call returned all 16 units but
+omitted the mandatory U014 post-wait claim. The root agent reviewed all 14 returned claims
+and reasons and recorded a stop decision bound to the unchanged result hash. This added
+one Claude call; the other 17 planned jobs, including context/repair and Codex, were not
+launched. Native delivery/model/effort/cleanup passed, while the quality gate did not.
+All 63 related Node tests passed. The shipped product and original frozen criteria are unchanged.
+
+Diagnostic 48 adds a [bounded Windows native review transport](NATIVE_REVIEW_TRANSPORT.md).
+One synthetic Unicode-label evidence-role call per host passed actual model/effort/session,
+exact-prompt, structured-output and process-cleanup audits: Claude 2.1.266 at Sonnet 5/medium,
+Codex 0.153.4 at Luna/high. This adds two diagnostic model calls, not a repeated MCP smoke
+or a quality comparison. The five real Windows process tests and seven native-format/audit
+tests bring the related Node suite to 57 passing tests with no skips. Native context/repair/
+recheck and installed-product qualification remain open. Evidence is retained under
+`.superpowers/native-transport-48/`; the earlier diagnostic-47 input manifest is unchanged.
+
 Previously observed: 72 existing plugin tests passed without skips; the current release suite
 passes 37 tests, including independent functional-oracle negatives, original-plugin selection,
 three model/environment checks, ten review-coverage/assignment checks and eleven bounded-repair checks. Historical conformance
@@ -633,9 +1004,12 @@ The full initial budget is 388 subject CLI turns (264 task and 124 activation), 
 comparative grading calls: **516 total, 258 per host**. CLI calls are not subscription quota
 units. Development conversation, setup and defect-driven reruns are separate.
 
-Saved subject, grading and diagnostic records now total **673 calls**: Claude has 284 subject/activation
-calls, 66 grades and forty-five review/repair/source diagnostic calls (395 total); Codex has 212 subject/activation calls, 64 grades and two
-claim-verification calls (278 total).
+Saved subject, grading and diagnostic records now total **676 calls**: Claude has 284 subject/activation
+calls, 66 grades and forty-seven review/repair/source/transport diagnostic calls (397 total); Codex has
+212 subject/activation calls, 64 grades, two claim-verification calls and one transport call (279 total).
+The prior 673-call inventory's counting scope and audit limitations are preserved; diagnostic 48
+added one observed model call per host and diagnostic 49 added one Claude call. Version-only
+preflights and the initial failed diagnostic-49 preparation are separate, zero-model checks.
 This includes four calls each from the policy-OFF, rejected snapshot-12 and source-supplied
 diagnostics, along with other failed and superseded trials. Control calls are separate: the two
 earlier Codex calls (status consumed model tokens, enabling consumed none) and the two zero-token
@@ -649,8 +1023,11 @@ percentage, money conversion or fixed calls-to-release promise follows from thes
 The September 8 usage briefing bounds the next development/verification segment at 596
 additional CLI calls from the 620-call checkpoint: at most 80 for diagnosis and affected-case
 retesting, followed by one 516-call complete comparison only after the known defects are
-resolved. Diagnostics 24-45 and the owner's manual smoke used fifty-three of the 80 (28, 39 and 44 were offline), leaving at most 27 diagnostic/retest calls and
-516 final-comparison calls (543 total) in this segment. This is an operational ceiling, not
+resolved. Diagnostics through 49 and the owner's manual smoke used fifty-six of the 80
+(28, 39, 44, 46 and 47 were offline), leaving at most 24 diagnostic/retest calls and
+516 final-comparison calls (540 total) in this segment. The role screen stopped after one
+of its maximum 18 calls; its other 17 jobs remain unexecuted, not automatically reassigned.
+This is an operational ceiling, not
 a promise of qualification within it. Main development conversation and separately identified
 control/setup requests are outside these CLI counts. Stop for a usage reset when the native
 subscription limit is reached; do not enable credits, API billing fallback or substitute models.

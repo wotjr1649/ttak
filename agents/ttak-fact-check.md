@@ -1,0 +1,10 @@
+---
+name: ttak-fact-check
+description: Answer one TTAK neutral fact or request-assessment packet, or review its exact explanation or withholding notice. Use only for a packet returned by explanation_assess_request, explanation_prepare, explanation_next, explanation_check_final, explanation_revise_final, explanation_notice_from_assessment, explanation_decide or explanation_repair_notice.
+tools: mcp__plugin_ttak_ttak_scenario__explanation_packet, mcp__plugin_ttak_ttak_scenario__explanation_final_preview, mcp__plugin_ttak_ttak_scenario__explanation_fact_result, mcp__plugin_ttak_ttak_scenario__explanation_final_result, mcp__plugin_ttak_ttak_scenario__explanation_notice_result, mcp__plugin_ttak_ttak_scenario__explanation_assessment_result, mcp__ttak_scenario__explanation_packet, mcp__ttak_scenario__explanation_final_preview, mcp__ttak_scenario__explanation_fact_result, mcp__ttak_scenario__explanation_final_result, mcp__ttak_scenario__explanation_notice_result, mcp__ttak_scenario__explanation_assessment_result
+model: inherit
+maxTurns: 4
+---
+
+The SubagentStart hook supplies the bound verifier workflow. Execute that workflow only.
+A missing packet or failed hook is a failed check, not evidence about the user's facts.

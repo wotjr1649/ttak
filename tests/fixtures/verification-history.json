@@ -1,0 +1,1394 @@
+{
+  "schema_version": 1,
+  "description": "Public synthetic historical failure controls. Structural acceptance is not semantic success. Historical records are immutable; these cases are not blind holdouts.",
+  "legacy102": {
+    "questions": [
+      {
+        "condition_ids": [
+          "C1"
+        ],
+        "covers": [
+          "O1",
+          "O2",
+          "O4"
+        ],
+        "id": "Q1",
+        "kind": "relationship",
+        "source_ids": [
+          "S1",
+          "S2"
+        ],
+        "target_ids": [
+          "T1",
+          "T2"
+        ]
+      },
+      {
+        "condition_ids": [
+          "C1"
+        ],
+        "covers": [
+          "O4"
+        ],
+        "id": "Q2",
+        "kind": "mechanism",
+        "source_ids": [
+          "S1",
+          "S2"
+        ],
+        "target_ids": [
+          "SI"
+        ]
+      },
+      {
+        "condition_ids": [
+          "C1"
+        ],
+        "covers": [
+          "O3",
+          "O4"
+        ],
+        "id": "Q3",
+        "kind": "implementation",
+        "source_ids": [
+          "S2",
+          "S3"
+        ],
+        "target_ids": [
+          "SSI"
+        ]
+      },
+      {
+        "condition_ids": [
+          "C1"
+        ],
+        "covers": [
+          "O5"
+        ],
+        "id": "Q4",
+        "kind": "cost",
+        "source_ids": [
+          "S2",
+          "S3"
+        ],
+        "target_ids": [
+          "SSI"
+        ]
+      },
+      {
+        "condition_ids": [
+          "C1"
+        ],
+        "covers": [
+          "O3",
+          "O5"
+        ],
+        "id": "Q5",
+        "kind": "mitigation",
+        "source_ids": [
+          "S1",
+          "S2",
+          "S4"
+        ],
+        "target_ids": [
+          "T1",
+          "T2"
+        ]
+      },
+      {
+        "condition_ids": [
+          "C1"
+        ],
+        "covers": [
+          "O3",
+          "O4"
+        ],
+        "id": "Q6",
+        "kind": "implementation",
+        "source_ids": [
+          "S4"
+        ],
+        "target_ids": [
+          "Locks"
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "O1",
+        "text": "Explain the original snapshots and concrete interleaving."
+      },
+      {
+        "id": "O2",
+        "text": "Explain the write targets and cross-row invariant outcome."
+      },
+      {
+        "id": "O3",
+        "text": "Provide a valid mitigation with its conditions."
+      },
+      {
+        "id": "O4",
+        "text": "Scope all claims about conflict detection, implementations and locking precisely."
+      },
+      {
+        "id": "O5",
+        "text": "State mitigation concurrency or retry costs without unsupported cost exclusions."
+      }
+    ],
+    "result": {
+      "answer": "Two doctors maintain on-call coverage with a simple rule: each will go off call only if the other doctor is on call. We can model this as a database with two boolean cells—A for Doctor A's status, B for Doctor B's status—both initially true. The invariant requires at least one to remain true: 'never let both go off call simultaneously.'\n\nTransaction T1 (Doctor A's shift check): reads B. If B is true (other doctor on call), T1 commits A := false (A goes off call). Transaction T2 (Doctor B's shift check): reads A. If A is true, T2 commits B := false (B goes off call).\n\n**Why snapshot isolation fails:**\n\nUnder snapshot isolation—used by PostgreSQL Repeatable Read—both transactions establish their read snapshots at nearly the same moment, before either commit. T1 observes B=true and T2 observes A=true, both within their initial snapshot. Even though they write to different cells (A and B), the concurrent snapshot allows both to proceed based on stale read observations.\n\nThe finite scenario model traces this precisely: in a concurrent-start interleaving, T1 snapshots the state as {A=true, B=true}, reads B, finds it true, and commits A=false to {A=false, B=true}. Meanwhile, T2 snapshots the same initial state {A=true, B=true}, reads A, finds it true, and then commits B=false. The final state becomes {A=false, B=false}—both doctors off call—violating the invariant.\n\nIn serial execution (one doctor's check completes before the other begins), the invariant holds: if T1 runs first and succeeds, T2 later reads B=false and its guard fails, so B never goes false. The problem emerges only from the concurrency that snapshot isolation permits.\n\n**Why this differs from row-level conflicts:**\n\nT1 and T2 write to different rows. Snapshot isolation does not require transactions writing disjoint sets of rows to conflict. Each transaction reads a consistent snapshot frozen before it commits. The invariant—'at least one doctor on call'—is a cross-row business constraint that no single row's lock can protect. Snapshot isolation's promise is within-transaction consistency and avoiding dirty reads, not cross-row invariant preservation.\n\n**Valid mitigation: Serializable isolation with SSI:**\n\nPostgreSQL 18 Serializable mode adds Snapshot Isolation Serialization (SSI) monitoring. SSI detects dangerous structures—pairs of read-write conflicts that form risky dependency patterns—and aborts one transaction before commit to prevent the anomaly. Applied to the doctors scenario: when both T1 and T2 reach their respective conflict points, SSI recognizes the cycle and aborts one (T2, say). T2 raises a serialization failure; the application retries T2. On retry, T2 reads B=false (A has already gone off call), so T2's guard fails and it does not proceed. The invariant is preserved.\n\nSSI does not require physical serial execution. The dangerous structure detection operates during read and write processing, not only at commit. Predicate locks used for SSI monitoring do not block other transactions; they track potential conflicts. The cost is monitoring overhead during transaction execution and the need for the application to retry aborted transactions entirely from the start.\n\n**Alternative mitigation: Explicit row locking:**\n\nIn PostgreSQL 18, explicit FOR UPDATE locks on the on-call rows can also serialize the doctors' checks. T1 would lock B FOR UPDATE (blocking T2 until T1 commits), establish its snapshot within that lock hold, check B's current value, and commit. T2 would then acquire the lock, re-establish its snapshot, check A (now false), and its guard would fail. The invariant is preserved.\n\nThe trade-off here is blocking: T2 waits for T1 to release the lock. Inconsistent lock acquisition order across transactions can cause deadlocks. In Repeatable Read or Serializable, if a row has changed since the transaction's snapshot, locking can fail with an error. Locking therefore trades potential reduction in aborts (compared to SSI) for potential increased waiting and deadlock risk.\n\n**Precision on conflict detection and implementation:**\n\nSnapshot isolation in PostgreSQL Repeatable Read uses consistent snapshots per transaction but does not monitor cross-transaction read-write dependencies. Write-write conflicts on the same row are detected (first-committer-wins), but distinct write targets and cross-row dependencies are not. SSI, by contrast, adds monitoring of read-write antidependencies. A serialization anomaly requires a dependency cycle; SSI does not search exhaustively for all cycles but instead looks for dangerous structures—two adjacent rw conflicts—and may abort a transaction even if no actual cycle would have occurred in the committed execution. This means some aborts are conservative but necessary for correctness. The SSI implementation integrates conflict checks during reads, writes, and commit processing, not solely as a commit-time decision.\n\n**Costs and trade-offs without unsupported exclusions:**\n\nSSI incurs monitoring overhead for every read and write, proportional to the number of concurrent transactions and conflicts. Aborted transactions must be retried by the application; retry work is repeated. No network round trips are saved; the full transaction logic must execute again. In low-contention scenarios, SSI overhead may exceed conflict frequency, making SSI slower than Repeatable Read for workloads with few actual anomalies. Explicit locking reduces SSI overhead and the frequency of aborts (only deadlocks and lock-acquisition errors are possible under correct application code), but blocking wait time depends on transaction duration and lock hold patterns. Deadlock risk grows with complex lock acquisition orders. Neither mitigation is universally cheaper; the choice depends on contention patterns, transaction duration, and acceptable latency characteristics.",
+      "claims": [
+        {
+          "id": "CL1",
+          "obligation_ids": [
+            "O1",
+            "O2"
+          ],
+          "question_ids": [
+            "Q1",
+            "Q5"
+          ],
+          "quote": "Transaction T1 (Doctor A's shift check): reads B. If B is true (other doctor on call), T1 commits A := false (A goes off call). Transaction T2 (Doctor B's shift check): reads A. If A is true, T2 commits B := false (B goes off call)."
+        },
+        {
+          "id": "CL2",
+          "obligation_ids": [
+            "O1",
+            "O4"
+          ],
+          "question_ids": [
+            "Q1",
+            "Q2"
+          ],
+          "quote": "Under snapshot isolation—used by PostgreSQL Repeatable Read—both transactions establish their read snapshots at nearly the same moment, before either commit. T1 observes B=true and T2 observes A=true, both within their initial snapshot."
+        },
+        {
+          "id": "CL3",
+          "obligation_ids": [
+            "O2"
+          ],
+          "question_ids": [
+            "Q1"
+          ],
+          "quote": "The final state becomes {A=false, B=false}—both doctors off call—violating the invariant."
+        },
+        {
+          "id": "CL4",
+          "obligation_ids": [
+            "O1",
+            "O4"
+          ],
+          "question_ids": [
+            "Q1",
+            "Q2"
+          ],
+          "quote": "The problem emerges only from the concurrency that snapshot isolation permits."
+        },
+        {
+          "id": "CL5",
+          "obligation_ids": [
+            "O2",
+            "O4"
+          ],
+          "question_ids": [
+            "Q2"
+          ],
+          "quote": "T1 and T2 write to different rows. Snapshot isolation does not require transactions writing disjoint sets of rows to conflict."
+        },
+        {
+          "id": "CL6",
+          "obligation_ids": [
+            "O4"
+          ],
+          "question_ids": [
+            "Q2"
+          ],
+          "quote": "Snapshot isolation's promise is within-transaction consistency and avoiding dirty reads, not cross-row invariant preservation."
+        },
+        {
+          "id": "CL7",
+          "obligation_ids": [
+            "O3",
+            "O4"
+          ],
+          "question_ids": [
+            "Q3"
+          ],
+          "quote": "PostgreSQL 18 Serializable mode adds Snapshot Isolation Serialization (SSI) monitoring. SSI detects dangerous structures—pairs of read-write conflicts that form risky dependency patterns—and aborts one transaction before commit to prevent the anomaly."
+        },
+        {
+          "id": "CL8",
+          "obligation_ids": [
+            "O3"
+          ],
+          "question_ids": [
+            "Q3"
+          ],
+          "quote": "When both T1 and T2 reach their respective conflict points, SSI recognizes the cycle and aborts one (T2, say). T2 raises a serialization failure; the application retries T2."
+        },
+        {
+          "id": "CL9",
+          "obligation_ids": [
+            "O4"
+          ],
+          "question_ids": [
+            "Q3"
+          ],
+          "quote": "SSI does not require physical serial execution. The dangerous structure detection operates during read and write processing, not only at commit."
+        },
+        {
+          "id": "CL10",
+          "obligation_ids": [
+            "O4"
+          ],
+          "question_ids": [
+            "Q3"
+          ],
+          "quote": "Predicate locks used for SSI monitoring do not block other transactions; they track potential conflicts."
+        },
+        {
+          "id": "CL11",
+          "obligation_ids": [
+            "O5"
+          ],
+          "question_ids": [
+            "Q4"
+          ],
+          "quote": "The cost is monitoring overhead during transaction execution and the need for the application to retry aborted transactions entirely from the start."
+        },
+        {
+          "id": "CL12",
+          "obligation_ids": [
+            "O3",
+            "O4"
+          ],
+          "question_ids": [
+            "Q5",
+            "Q6"
+          ],
+          "quote": "In PostgreSQL 18, explicit FOR UPDATE locks on the on-call rows can also serialize the doctors' checks. T1 would lock B FOR UPDATE (blocking T2 until T1 commits)."
+        },
+        {
+          "id": "CL13",
+          "obligation_ids": [
+            "O4"
+          ],
+          "question_ids": [
+            "Q6"
+          ],
+          "quote": "Inconsistent lock acquisition order across transactions can cause deadlocks."
+        },
+        {
+          "id": "CL14",
+          "obligation_ids": [
+            "O4"
+          ],
+          "question_ids": [
+            "Q6"
+          ],
+          "quote": "In Repeatable Read or Serializable, if a row has changed since the transaction's snapshot, locking can fail with an error."
+        },
+        {
+          "id": "CL15",
+          "obligation_ids": [
+            "O5"
+          ],
+          "question_ids": [
+            "Q5"
+          ],
+          "quote": "Locking therefore trades potential reduction in aborts (compared to SSI) for potential increased waiting and deadlock risk."
+        },
+        {
+          "id": "CL16",
+          "obligation_ids": [
+            "O4"
+          ],
+          "question_ids": [
+            "Q2"
+          ],
+          "quote": "Snapshot isolation in PostgreSQL Repeatable Read uses consistent snapshots per transaction but does not monitor cross-transaction read-write dependencies."
+        },
+        {
+          "id": "CL17",
+          "obligation_ids": [
+            "O4"
+          ],
+          "question_ids": [
+            "Q3"
+          ],
+          "quote": "A serialization anomaly requires a dependency cycle; SSI does not search exhaustively for all cycles but instead looks for dangerous structures—two adjacent rw conflicts."
+        },
+        {
+          "id": "CL18",
+          "obligation_ids": [
+            "O4"
+          ],
+          "question_ids": [
+            "Q3"
+          ],
+          "quote": "SSI may abort a transaction even if no actual cycle would have occurred in the committed execution."
+        },
+        {
+          "id": "CL19",
+          "obligation_ids": [
+            "O4"
+          ],
+          "question_ids": [
+            "Q3"
+          ],
+          "quote": "The SSI implementation integrates conflict checks during reads, writes, and commit processing, not solely as a commit-time decision."
+        },
+        {
+          "id": "CL20",
+          "obligation_ids": [
+            "O5"
+          ],
+          "question_ids": [
+            "Q4"
+          ],
+          "quote": "SSI incurs monitoring overhead for every read and write, proportional to the number of concurrent transactions and conflicts."
+        },
+        {
+          "id": "CL21",
+          "obligation_ids": [
+            "O5"
+          ],
+          "question_ids": [
+            "Q4"
+          ],
+          "quote": "Aborted transactions must be retried by the application; retry work is repeated."
+        },
+        {
+          "id": "CL22",
+          "obligation_ids": [
+            "O5"
+          ],
+          "question_ids": [
+            "Q4"
+          ],
+          "quote": "In low-contention scenarios, SSI overhead may exceed conflict frequency, making SSI slower than Repeatable Read for workloads with few actual anomalies."
+        },
+        {
+          "id": "CL23",
+          "obligation_ids": [
+            "O5"
+          ],
+          "question_ids": [
+            "Q5"
+          ],
+          "quote": "Explicit locking reduces SSI overhead and the frequency of aborts (only deadlocks and lock-acquisition errors are possible under correct application code), but blocking wait time depends on transaction duration and lock hold patterns."
+        },
+        {
+          "id": "CL24",
+          "obligation_ids": [
+            "O5"
+          ],
+          "question_ids": [
+            "Q5"
+          ],
+          "quote": "Neither mitigation is universally cheaper; the choice depends on contention patterns, transaction duration, and acceptable latency characteristics."
+        }
+      ],
+      "uncovered_obligations": [],
+      "unmapped_claims": []
+    },
+    "expected_errors": [
+      {
+        "id": "CL5",
+        "code": "claim_coverage"
+      },
+      {
+        "id": "CL8",
+        "code": "claim_quote"
+      },
+      {
+        "id": "CL12",
+        "code": "claim_quote"
+      },
+      {
+        "id": "CL17",
+        "code": "claim_quote"
+      },
+      {
+        "id": "CL18",
+        "code": "claim_quote"
+      }
+    ],
+    "provenance": [
+      {
+        "path": ".superpowers/verification-quality-102/draft-observed.json",
+        "sha256": "fb8bfe7d1dfad538a8064980df50d6409d43a65a623f069356dd10509743b114"
+      },
+      {
+        "path": ".superpowers/verification-explanation-101/campaign/row-01/explanation/plan.json",
+        "sha256": "ece790de89d59eda65efb479f28008eb8d0f69cdd5c1c37c5b882c125e82fe0e"
+      }
+    ]
+  },
+  "known103": {
+    "spec": {
+      "bundle": {
+        "conditions": [
+          {
+            "id": "C1",
+            "text": "The finite scenario uses concurrent-start snapshots and separately lists serial whole-transaction schedules. Real implementation claims, if made, refer to PostgreSQL 18. Do not equate model execution with a real database observation."
+          }
+        ],
+        "sources": [
+          {
+            "id": "S1",
+            "sha256": "96f876b55660a78e301fab53fd7cb849b5cb1a2fadc11f4f1b3ae93a6bc08816",
+            "text": "{\"scenario\":{\"initial\":{\"A\":true,\"B\":true},\"invariant\":{\"cells\":[\"A\",\"B\"],\"at_least\":1},\"transactions\":[{\"id\":\"T1\",\"guard\":{\"cells\":[\"B\"],\"at_least\":1},\"writes\":{\"A\":false}},{\"id\":\"T2\",\"guard\":{\"cells\":[\"A\"],\"at_least\":1},\"writes\":{\"B\":false}}]},\"scope\":\"Finite boolean model; guards read their listed cells; writes are atomic; concurrent snapshots all precede commits; first-committer-wins on overlapping writes.\",\"potential_read_write_edges\":[{\"reader\":\"T1\",\"writer\":\"T2\",\"cells\":[\"B\"]},{\"reader\":\"T2\",\"writer\":\"T1\",\"cells\":[\"A\"]}],\"potential_write_write_edges\":[],\"concurrent_start_schedules\":[{\"order\":[\"T1\",\"T2\"],\"steps\":[{\"transaction\":\"T1\",\"observed\":{\"B\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":true},\"invariant_holds\":true},{\"transaction\":\"T2\",\"observed\":{\"A\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":false},\"invariant_holds\":false}],\"final_state\":{\"A\":false,\"B\":false},\"invariant_preserved\":false},{\"order\":[\"T2\",\"T1\"],\"steps\":[{\"transaction\":\"T2\",\"observed\":{\"A\":true},\"outcome\":\"committed\",\"state\":{\"A\":true,\"B\":false},\"invariant_holds\":true},{\"transaction\":\"T1\",\"observed\":{\"B\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":false},\"invariant_holds\":false}],\"final_state\":{\"A\":false,\"B\":false},\"invariant_preserved\":false}],\"serial_schedules\":[{\"order\":[\"T1\",\"T2\"],\"steps\":[{\"transaction\":\"T1\",\"observed\":{\"B\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":true},\"invariant_holds\":true},{\"transaction\":\"T2\",\"observed\":{\"A\":false},\"outcome\":\"guard_false\",\"state\":{\"A\":false,\"B\":true},\"invariant_holds\":true}],\"final_state\":{\"A\":false,\"B\":true},\"invariant_preserved\":true},{\"order\":[\"T2\",\"T1\"],\"steps\":[{\"transaction\":\"T2\",\"observed\":{\"A\":true},\"outcome\":\"committed\",\"state\":{\"A\":true,\"B\":false},\"invariant_holds\":true},{\"transaction\":\"T1\",\"observed\":{\"B\":false},\"outcome\":\"guard_false\",\"state\":{\"A\":true,\"B\":false},\"invariant_holds\":true}],\"final_state\":{\"A\":true,\"B\":false},\"invariant_preserved\":true}],\"real_database_verified\":false,\"all_possible_interleavings_checked\":false}",
+            "version": "finite-boolean-model-v1"
+          },
+          {
+            "id": "S2",
+            "sha256": "4c8e0f00c6f977dddcdc5ccee19a7de7641b085cf3d750176c6dd39c6041d479",
+            "text": "PostgreSQL Repeatable Read uses snapshot isolation. Successive statements use a snapshot established by the first non-transaction-control statement. A transaction trying to update or lock a row changed by another transaction since that snapshot can fail; distinct write targets do not by themselves protect a cross-row business invariant. Serializable ensures committed results are equivalent to some serial execution, without requiring physical serial execution. It adds monitoring overhead beyond Repeatable Read and can abort transactions with serialization failures. Applications must retry the whole transaction. Predicate locks used for SSI monitoring do not block other transactions. Monitoring overhead and work repeated after aborts are separate costs.",
+            "version": "PostgreSQL-18"
+          },
+          {
+            "id": "S3",
+            "sha256": "d0b72f242c04ce8a52f1555bd8322908d9b794c6ffbf601be71e2d9beed9d788",
+            "text": "SSI monitors read-write antidependencies while running snapshot isolation. A serialization anomaly requires a dependency cycle. The SSI implementation looks for dangerous structures consisting of two adjacent rw conflicts and applies commit-order conditions. This is not an exact search for complete cycles: a dangerous structure can occur without a cycle, so some transactions may be aborted although their execution would not have produced an anomaly. Conflict checking occurs during reads, writes and commit processing; describing it exclusively as cycle detection at commit loses implementation conditions.",
+            "version": "PostgreSQL-18-SSI"
+          },
+          {
+            "id": "S4",
+            "sha256": "3f03ca5a48493d244cec8daae1f2e663cdd164bb5110b136badcdffe32038bfe",
+            "text": "Row locks block conflicting writers and lockers, not ordinary queries. FOR SHARE locks on a row can coexist with other FOR SHARE and FOR KEY SHARE locks. FOR UPDATE conflicts with other listed row-lock modes; locks last until transaction end or rollback. Explicit locking therefore requires a specified lock mode, acquisition order and read/check protocol. Locking relevant rows can cause waiting; inconsistent acquisition order or lock upgrades can cause deadlocks. In Repeatable Read or Serializable, attempting to lock a row changed since the snapshot can raise an error.",
+            "version": "PostgreSQL-18-locking"
+          }
+        ],
+        "targets": [
+          {
+            "id": "T1",
+            "text": "Transaction T1 in the supplied finite scenario"
+          },
+          {
+            "id": "T2",
+            "text": "Transaction T2 in the supplied finite scenario"
+          },
+          {
+            "id": "SI",
+            "text": "Snapshot isolation and PostgreSQL 18 Repeatable Read"
+          },
+          {
+            "id": "SSI",
+            "text": "PostgreSQL 18 Serializable Snapshot Isolation"
+          },
+          {
+            "id": "Locks",
+            "text": "PostgreSQL 18 explicit row locking"
+          }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "H1",
+          "text": "Explains both transactions seeing the original snapshot"
+        },
+        {
+          "id": "H2",
+          "text": "Explains the cross-row invariant violation despite distinct write targets"
+        },
+        {
+          "id": "H3",
+          "text": "Offers a valid mitigation without claiming row-level atomicity alone solves it"
+        },
+        {
+          "id": "Q1",
+          "text": "Uses precise terminology and a concrete interleaving"
+        },
+        {
+          "id": "Q2",
+          "text": "Includes the mitigation's concurrency or retry cost"
+        }
+      ],
+      "host": "codex",
+      "language": "en",
+      "obligations": [
+        {
+          "id": "O1",
+          "text": "Explain the original snapshots and concrete interleaving."
+        },
+        {
+          "id": "O2",
+          "text": "Explain the write targets and cross-row invariant outcome."
+        },
+        {
+          "id": "O3",
+          "text": "Provide a valid mitigation with its conditions."
+        },
+        {
+          "id": "O4",
+          "text": "Scope all claims about conflict detection, implementations and locking precisely."
+        },
+        {
+          "id": "O5",
+          "text": "State mitigation concurrency or retry costs without unsupported cost exclusions."
+        }
+      ],
+      "questions": [
+        {
+          "condition_ids": [
+            "C1"
+          ],
+          "covers": [
+            "O1",
+            "O2",
+            "O4"
+          ],
+          "id": "Q1",
+          "kind": "relationship",
+          "source_ids": [
+            "S1",
+            "S2"
+          ],
+          "target_ids": [
+            "T1",
+            "T2"
+          ]
+        },
+        {
+          "condition_ids": [
+            "C1"
+          ],
+          "covers": [
+            "O4"
+          ],
+          "id": "Q2",
+          "kind": "mechanism",
+          "source_ids": [
+            "S1",
+            "S2"
+          ],
+          "target_ids": [
+            "SI"
+          ]
+        },
+        {
+          "condition_ids": [
+            "C1"
+          ],
+          "covers": [
+            "O3",
+            "O4"
+          ],
+          "id": "Q3",
+          "kind": "implementation",
+          "source_ids": [
+            "S2",
+            "S3"
+          ],
+          "target_ids": [
+            "SSI"
+          ]
+        },
+        {
+          "condition_ids": [
+            "C1"
+          ],
+          "covers": [
+            "O5"
+          ],
+          "id": "Q4",
+          "kind": "cost",
+          "source_ids": [
+            "S2",
+            "S3"
+          ],
+          "target_ids": [
+            "SSI"
+          ]
+        },
+        {
+          "condition_ids": [
+            "C1"
+          ],
+          "covers": [
+            "O3",
+            "O5"
+          ],
+          "id": "Q5",
+          "kind": "mitigation",
+          "source_ids": [
+            "S1",
+            "S2",
+            "S4"
+          ],
+          "target_ids": [
+            "T1",
+            "T2"
+          ]
+        },
+        {
+          "condition_ids": [
+            "C1"
+          ],
+          "covers": [
+            "O3",
+            "O4"
+          ],
+          "id": "Q6",
+          "kind": "implementation",
+          "source_ids": [
+            "S4"
+          ],
+          "target_ids": [
+            "Locks"
+          ]
+        }
+      ],
+      "reader": "A senior database engineer",
+      "run_id": "Contract103-known-codex-2",
+      "schema_version": 1,
+      "task": "Explain snapshot isolation write skew to a database engineer. Use the example of two doctors who each go off call only if another doctor remains. Explain why two transactions updating different rows can violate that invariant, and give a mitigation with its trade-off.",
+      "turn_id": "Turn1"
+    },
+    "draft": {
+      "answer": "### The two-doctor scenario\n\nLet `A` and `B` represent whether Doctor 1 and Doctor 2 are on call. Initially, both are on call: `A = true` and `B = true`. The invariant is that at least one of them remains on call. Transaction T1 checks that `B` is true and then sets `A` to false; T2 checks that `A` is true and then sets `B` to false. Thus, each doctor goes off call only after observing the other doctor on call.\n\n### Concurrent execution and the invariant violation\n\nIn the supplied concurrent-start schedule ordered T1 then T2, T1 observes `B = true`, commits `A = false`, and leaves the invariant true at that point. T2 uses its earlier snapshot, observes `A = true`, and commits `B = false`. The final state is `A = false, B = false`, so the invariant is false. The reverse concurrent-start order is symmetric: T2 commits `B = false`, T1 still observes `A = true`, and T1 commits `A = false`.\n\nThe finite model lists no potential write-write edges because the transactions write different cells. It does list cross-row read-write edges: T1 reads `B` while T2 writes `B`, and T2 reads `A` while T1 writes `A`. In this model, the writes are atomic, concurrent snapshots precede commits, and first-committer-wins applies only to overlapping writes; neither transaction has an overlapping write target here. The separately listed serial schedules preserve the invariant because, after the first transaction commits, the second transaction observes its guard as false.\n\n### Why snapshot isolation permits the skew\n\nIn PostgreSQL 18, Repeatable Read uses snapshot isolation: successive statements use the snapshot established by the first non-transaction-control statement. A transaction trying to update or lock a row changed by another transaction since that snapshot can fail, but distinct write targets do not by themselves protect a cross-row business invariant. The supplied finite execution is a model result, not a real database observation; the PostgreSQL behavior described here is an implementation claim about PostgreSQL 18.\n\n### Mitigation: Serializable execution with whole-transaction retry\n\nRun both transactions at PostgreSQL 18 Serializable isolation and handle serialization failures by retrying the whole transaction. Serializable ensures that committed results are equivalent to some serial execution, even though physical execution need not be serial. This prevents the committed result represented by the concurrent model from being accepted as a valid committed outcome.\n\nPostgreSQL's Serializable Snapshot Isolation monitors read-write antidependencies while snapshot isolation runs. It looks for dangerous structures involving two adjacent read-write conflicts and commit-order conditions. This is not an exact search for complete dependency cycles: a dangerous structure can occur without a cycle, so a transaction may be aborted even when its execution would not have produced an anomaly. Conflict checking occurs during reads, writes, and commit processing.\n\nThe trade-off is monitoring overhead beyond Repeatable Read, plus possible serialization failures and the work of retrying the entire transaction after an abort.",
+      "claims": [
+        {
+          "id": "b1",
+          "obligation_ids": [
+            "O1",
+            "O2"
+          ],
+          "question_ids": [
+            "Q1"
+          ],
+          "quote": "### The two-doctor scenario\n\nLet `A` and `B` represent whether Doctor 1 and Doctor 2 are on call. Initially, both are on call: `A = true` and `B = true`. The invariant is that at least one of them remains on call. Transaction T1 checks that `B` is true and then sets `A` to false; T2 checks that `A` is true and then sets `B` to false. Thus, each doctor goes off call only after observing the other doctor on call."
+        },
+        {
+          "id": "b2",
+          "obligation_ids": [
+            "O1",
+            "O2",
+            "O4"
+          ],
+          "question_ids": [
+            "Q1"
+          ],
+          "quote": "### Concurrent execution and the invariant violation\n\nIn the supplied concurrent-start schedule ordered T1 then T2, T1 observes `B = true`, commits `A = false`, and leaves the invariant true at that point. T2 uses its earlier snapshot, observes `A = true`, and commits `B = false`. The final state is `A = false, B = false`, so the invariant is false. The reverse concurrent-start order is symmetric: T2 commits `B = false`, T1 still observes `A = true`, and T1 commits `A = false`.\n\nThe finite model lists no potential write-write edges because the transactions write different cells. It does list cross-row read-write edges: T1 reads `B` while T2 writes `B`, and T2 reads `A` while T1 writes `A`. In this model, the writes are atomic, concurrent snapshots precede commits, and first-committer-wins applies only to overlapping writes; neither transaction has an overlapping write target here. The separately listed serial schedules preserve the invariant because, after the first transaction commits, the second transaction observes its guard as false."
+        },
+        {
+          "id": "b3",
+          "obligation_ids": [
+            "O4"
+          ],
+          "question_ids": [
+            "Q2"
+          ],
+          "quote": "### Why snapshot isolation permits the skew\n\nIn PostgreSQL 18, Repeatable Read uses snapshot isolation: successive statements use the snapshot established by the first non-transaction-control statement. A transaction trying to update or lock a row changed by another transaction since that snapshot can fail, but distinct write targets do not by themselves protect a cross-row business invariant. The supplied finite execution is a model result, not a real database observation; the PostgreSQL behavior described here is an implementation claim about PostgreSQL 18."
+        },
+        {
+          "id": "b4",
+          "obligation_ids": [
+            "O3",
+            "O4",
+            "O5"
+          ],
+          "question_ids": [
+            "Q3",
+            "Q4"
+          ],
+          "quote": "### Mitigation: Serializable execution with whole-transaction retry\n\nRun both transactions at PostgreSQL 18 Serializable isolation and handle serialization failures by retrying the whole transaction. Serializable ensures that committed results are equivalent to some serial execution, even though physical execution need not be serial. This prevents the committed result represented by the concurrent model from being accepted as a valid committed outcome.\n\nPostgreSQL's Serializable Snapshot Isolation monitors read-write antidependencies while snapshot isolation runs. It looks for dangerous structures involving two adjacent read-write conflicts and commit-order conditions. This is not an exact search for complete dependency cycles: a dangerous structure can occur without a cycle, so a transaction may be aborted even when its execution would not have produced an anomaly. Conflict checking occurs during reads, writes, and commit processing.\n\nThe trade-off is monitoring overhead beyond Repeatable Read, plus possible serialization failures and the work of retrying the entire transaction after an abort."
+        }
+      ],
+      "uncovered_obligations": [],
+      "unmapped_claims": []
+    },
+    "results": [
+      {
+        "answer": "Within the finite model, T1 and T2 have reciprocal read-write dependencies: T1 reads B while T2 writes B, and T2 reads A while T1 writes A. With concurrent-start snapshots, either commit order lets both guards observe true, so both commit and produce (A=false, B=false), violating the at-least-one invariant. Under either listed serial order, the second transaction sees the first transaction’s write, its guard is false, and the invariant is preserved. These are model outcomes, not a real-database verification. For PostgreSQL 18, Repeatable Read uses snapshot isolation, and distinct write targets do not by themselves protect this cross-row invariant. Serializable instead ensures committed results are equivalent to some serial execution, but may abort transactions, requiring whole-transaction retries, with monitoring and repeated-work costs.",
+        "citations": [
+          {
+            "end": 2019,
+            "quote": "{\"scenario\":{\"initial\":{\"A\":true,\"B\":true},\"invariant\":{\"cells\":[\"A\",\"B\"],\"at_least\":1},\"transactions\":[{\"id\":\"T1\",\"guard\":{\"cells\":[\"B\"],\"at_least\":1},\"writes\":{\"A\":false}},{\"id\":\"T2\",\"guard\":{\"cells\":[\"A\"],\"at_least\":1},\"writes\":{\"B\":false}}]},\"scope\":\"Finite boolean model; guards read their listed cells; writes are atomic; concurrent snapshots all precede commits; first-committer-wins on overlapping writes.\",\"potential_read_write_edges\":[{\"reader\":\"T1\",\"writer\":\"T2\",\"cells\":[\"B\"]},{\"reader\":\"T2\",\"writer\":\"T1\",\"cells\":[\"A\"]}],\"potential_write_write_edges\":[],\"concurrent_start_schedules\":[{\"order\":[\"T1\",\"T2\"],\"steps\":[{\"transaction\":\"T1\",\"observed\":{\"B\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":true},\"invariant_holds\":true},{\"transaction\":\"T2\",\"observed\":{\"A\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":false},\"invariant_holds\":false}],\"final_state\":{\"A\":false,\"B\":false},\"invariant_preserved\":false},{\"order\":[\"T2\",\"T1\"],\"steps\":[{\"transaction\":\"T2\",\"observed\":{\"A\":true},\"outcome\":\"committed\",\"state\":{\"A\":true,\"B\":false},\"invariant_holds\":true},{\"transaction\":\"T1\",\"observed\":{\"B\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":false},\"invariant_holds\":false}],\"final_state\":{\"A\":false,\"B\":false},\"invariant_preserved\":false}],\"serial_schedules\":[{\"order\":[\"T1\",\"T2\"],\"steps\":[{\"transaction\":\"T1\",\"observed\":{\"B\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":true},\"invariant_holds\":true},{\"transaction\":\"T2\",\"observed\":{\"A\":false},\"outcome\":\"guard_false\",\"state\":{\"A\":false,\"B\":true},\"invariant_holds\":true}],\"final_state\":{\"A\":false,\"B\":true},\"invariant_preserved\":true},{\"order\":[\"T2\",\"T1\"],\"steps\":[{\"transaction\":\"T2\",\"observed\":{\"A\":true},\"outcome\":\"committed\",\"state\":{\"A\":true,\"B\":false},\"invariant_holds\":true},{\"transaction\":\"T1\",\"observed\":{\"B\":false},\"outcome\":\"guard_false\",\"state\":{\"A\":true,\"B\":false},\"invariant_holds\":true}],\"final_state\":{\"A\":true,\"B\":false},\"invariant_preserved\":true}],\"real_database_verified\":false,\"all_possible_interleavings_checked\":false}",
+            "source_id": "S1",
+            "start": 0
+          },
+          {
+            "end": 338,
+            "quote": "PostgreSQL Repeatable Read uses snapshot isolation. Successive statements use a snapshot established by the first non-transaction-control statement. A transaction trying to update or lock a row changed by another transaction since that snapshot can fail; distinct write targets do not by themselves protect a cross-row business invariant.",
+            "source_id": "S2",
+            "start": 0
+          },
+          {
+            "end": 761,
+            "quote": " Serializable ensures committed results are equivalent to some serial execution, without requiring physical serial execution. It adds monitoring overhead beyond Repeatable Read and can abort transactions with serialization failures. Applications must retry the whole transaction. Predicate locks used for SSI monitoring do not block other transactions. Monitoring overhead and work repeated after aborts are separate costs.",
+            "source_id": "S2",
+            "start": 338
+          }
+        ],
+        "conditions": [],
+        "packet_sha256": "2109015f032ac7bdbf18cab0a589f76fb6826d417ba842609c85a9338ac232c7",
+        "question_id": "Q1",
+        "status": "answered",
+        "uncertainties": []
+      },
+      {
+        "answer": "Under the finite model, Snapshot Isolation/PostgreSQL 18 Repeatable Read gives both concurrent transactions the same pre-commit snapshot. Each observes its guard as true, writes a different cell, and can commit, producing {A:false, B:false} and violating the cross-cell invariant. Serial schedules preserve the invariant. PostgreSQL 18 Repeatable Read can fail when updating or locking a row changed since the snapshot, but distinct write targets do not by themselves protect this cross-row invariant. The model result is not a real-database verification.",
+        "citations": [
+          {
+            "end": 2019,
+            "quote": "{\"scenario\":{\"initial\":{\"A\":true,\"B\":true},\"invariant\":{\"cells\":[\"A\",\"B\"],\"at_least\":1},\"transactions\":[{\"id\":\"T1\",\"guard\":{\"cells\":[\"B\"],\"at_least\":1},\"writes\":{\"A\":false}},{\"id\":\"T2\",\"guard\":{\"cells\":[\"A\"],\"at_least\":1},\"writes\":{\"B\":false}}]},\"scope\":\"Finite boolean model; guards read their listed cells; writes are atomic; concurrent snapshots all precede commits; first-committer-wins on overlapping writes.\",\"potential_read_write_edges\":[{\"reader\":\"T1\",\"writer\":\"T2\",\"cells\":[\"B\"]},{\"reader\":\"T2\",\"writer\":\"T1\",\"cells\":[\"A\"]}],\"potential_write_write_edges\":[],\"concurrent_start_schedules\":[{\"order\":[\"T1\",\"T2\"],\"steps\":[{\"transaction\":\"T1\",\"observed\":{\"B\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":true},\"invariant_holds\":true},{\"transaction\":\"T2\",\"observed\":{\"A\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":false},\"invariant_holds\":false}],\"final_state\":{\"A\":false,\"B\":false},\"invariant_preserved\":false},{\"order\":[\"T2\",\"T1\"],\"steps\":[{\"transaction\":\"T2\",\"observed\":{\"A\":true},\"outcome\":\"committed\",\"state\":{\"A\":true,\"B\":false},\"invariant_holds\":true},{\"transaction\":\"T1\",\"observed\":{\"B\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":false},\"invariant_holds\":false}],\"final_state\":{\"A\":false,\"B\":false},\"invariant_preserved\":false}],\"serial_schedules\":[{\"order\":[\"T1\",\"T2\"],\"steps\":[{\"transaction\":\"T1\",\"observed\":{\"B\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":true},\"invariant_holds\":true},{\"transaction\":\"T2\",\"observed\":{\"A\":false},\"outcome\":\"guard_false\",\"state\":{\"A\":false,\"B\":true},\"invariant_holds\":true}],\"final_state\":{\"A\":false,\"B\":true},\"invariant_preserved\":true},{\"order\":[\"T2\",\"T1\"],\"steps\":[{\"transaction\":\"T2\",\"observed\":{\"A\":true},\"outcome\":\"committed\",\"state\":{\"A\":true,\"B\":false},\"invariant_holds\":true},{\"transaction\":\"T1\",\"observed\":{\"B\":false},\"outcome\":\"guard_false\",\"state\":{\"A\":true,\"B\":false},\"invariant_holds\":true}],\"final_state\":{\"A\":true,\"B\":false},\"invariant_preserved\":true}],\"real_database_verified\":false,\"all_possible_interleavings_checked\":false}",
+            "source_id": "S1",
+            "start": 0
+          },
+          {
+            "end": 338,
+            "quote": "PostgreSQL Repeatable Read uses snapshot isolation. Successive statements use a snapshot established by the first non-transaction-control statement. A transaction trying to update or lock a row changed by another transaction since that snapshot can fail; distinct write targets do not by themselves protect a cross-row business invariant.",
+            "source_id": "S2",
+            "start": 0
+          }
+        ],
+        "conditions": [],
+        "packet_sha256": "1b6a894556fcf0e05e77a832d89c838e2094715969bb61fa51e08c7878d41172",
+        "question_id": "Q2",
+        "status": "answered",
+        "uncertainties": []
+      },
+      {
+        "answer": "Under the finite model, listed concurrent-start snapshots and serial whole-transaction schedules establish only those scenario outcomes; they do not constitute a real PostgreSQL observation or prove a general execution-mechanism guarantee. For PostgreSQL 18, Repeatable Read uses snapshot isolation, with one snapshot established by the first non-transaction-control statement. An update or lock can fail when the target row changed after that snapshot, while distinct write targets alone do not protect a cross-row invariant. Serializable guarantees that committed results are equivalent to some serial execution, but not that execution is physically serial. Its limitations are additional monitoring overhead, possible serialization failures, and the requirement to retry the whole transaction; predicate locks used for SSI monitoring do not block other transactions, and monitoring overhead is distinct from work repeated after aborts. SSI monitors read-write antidependencies and checks for dangerous structures with commit-order conditions, not exact complete-cycle detection. Consequently, it can abort some transactions even when their execution would not have produced an anomaly, and conflict checking occurs during reads, writes, and commit processing—not exclusively at commit.",
+        "citations": [
+          {
+            "end": 761,
+            "quote": "PostgreSQL Repeatable Read uses snapshot isolation. Successive statements use a snapshot established by the first non-transaction-control statement. A transaction trying to update or lock a row changed by another transaction since that snapshot can fail; distinct write targets do not by themselves protect a cross-row business invariant. Serializable ensures committed results are equivalent to some serial execution, without requiring physical serial execution. It adds monitoring overhead beyond Repeatable Read and can abort transactions with serialization failures. Applications must retry the whole transaction. Predicate locks used for SSI monitoring do not block other transactions. Monitoring overhead and work repeated after aborts are separate costs.",
+            "source_id": "S2",
+            "start": 0
+          },
+          {
+            "end": 610,
+            "quote": "SSI monitors read-write antidependencies while running snapshot isolation. A serialization anomaly requires a dependency cycle. The SSI implementation looks for dangerous structures consisting of two adjacent rw conflicts and applies commit-order conditions. This is not an exact search for complete cycles: a dangerous structure can occur without a cycle, so some transactions may be aborted although their execution would not have produced an anomaly. Conflict checking occurs during reads, writes and commit processing; describing it exclusively as cycle detection at commit loses implementation conditions.",
+            "source_id": "S3",
+            "start": 0
+          }
+        ],
+        "conditions": [],
+        "packet_sha256": "962564bc5325d5aaee23903d2908a5f55f57e3ed18a25d85e7dfb414383a4ae7",
+        "question_id": "Q3",
+        "status": "answered",
+        "uncertainties": []
+      },
+      {
+        "answer": "For PostgreSQL 18 SSI, the main costs are monitoring overhead beyond Repeatable Read and possible serialization-failure aborts. Conflict checking occurs during reads, writes, and commit processing, and SSI may abort transactions when it detects a dangerous structure—even when no complete dependency cycle, and therefore no anomaly, would have occurred. Aborted transactions require retrying the whole transaction, so the repeated work is an additional cost. SSI predicate locks used for monitoring do not block other transactions. These are implementation costs and conditions; equivalence of committed results to some serial execution does not imply physically serial execution.",
+        "citations": [
+          {
+            "end": 761,
+            "quote": " Serializable ensures committed results are equivalent to some serial execution, without requiring physical serial execution. It adds monitoring overhead beyond Repeatable Read and can abort transactions with serialization failures. Applications must retry the whole transaction. Predicate locks used for SSI monitoring do not block other transactions. Monitoring overhead and work repeated after aborts are separate costs.",
+            "source_id": "S2",
+            "start": 338
+          },
+          {
+            "end": 610,
+            "quote": "SSI monitors read-write antidependencies while running snapshot isolation. A serialization anomaly requires a dependency cycle. The SSI implementation looks for dangerous structures consisting of two adjacent rw conflicts and applies commit-order conditions. This is not an exact search for complete cycles: a dangerous structure can occur without a cycle, so some transactions may be aborted although their execution would not have produced an anomaly. Conflict checking occurs during reads, writes and commit processing; describing it exclusively as cycle detection at commit loses implementation conditions.",
+            "source_id": "S3",
+            "start": 0
+          }
+        ],
+        "conditions": [],
+        "packet_sha256": "c92ebcf83c6324b2383c143bd3b7bd33227ec37b7e2fa3b0a155dc2014074a0e",
+        "question_id": "Q4",
+        "status": "answered",
+        "uncertainties": []
+      },
+      {
+        "answer": "The invariant requires mitigation: in the finite model, both concurrent-start schedules commit and end with A=false and B=false, while the listed serial schedules preserve the invariant. This is a model result, not a real-database observation; real-database verification and all possible interleavings were not established.\n\nFor PostgreSQL 18, use Serializable transactions. Serializable makes committed results equivalent to some serial execution, but transactions may abort with serialization failures, so the application must retry the entire transaction. Preconditions are that the transaction runs at Serializable and that whole-transaction retry is implemented. Trade-offs are monitoring overhead beyond Repeatable Read and repeated work after aborts; SSI predicate locks do not block other transactions. Repeatable Read alone is insufficient here because distinct write targets do not by themselves protect a cross-row invariant.\n\nAn alternative is explicit locking of the relevant rows before the read/check/write protocol. This requires a specified lock mode and consistent acquisition order. It can cause waiting, and inconsistent acquisition order or lock upgrades can cause deadlocks; in Repeatable Read or Serializable, locking a row changed since the snapshot can raise an error.",
+        "citations": [
+          {
+            "end": 2019,
+            "quote": "{\"scenario\":{\"initial\":{\"A\":true,\"B\":true},\"invariant\":{\"cells\":[\"A\",\"B\"],\"at_least\":1},\"transactions\":[{\"id\":\"T1\",\"guard\":{\"cells\":[\"B\"],\"at_least\":1},\"writes\":{\"A\":false}},{\"id\":\"T2\",\"guard\":{\"cells\":[\"A\"],\"at_least\":1},\"writes\":{\"B\":false}}]},\"scope\":\"Finite boolean model; guards read their listed cells; writes are atomic; concurrent snapshots all precede commits; first-committer-wins on overlapping writes.\",\"potential_read_write_edges\":[{\"reader\":\"T1\",\"writer\":\"T2\",\"cells\":[\"B\"]},{\"reader\":\"T2\",\"writer\":\"T1\",\"cells\":[\"A\"]}],\"potential_write_write_edges\":[],\"concurrent_start_schedules\":[{\"order\":[\"T1\",\"T2\"],\"steps\":[{\"transaction\":\"T1\",\"observed\":{\"B\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":true},\"invariant_holds\":true},{\"transaction\":\"T2\",\"observed\":{\"A\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":false},\"invariant_holds\":false}],\"final_state\":{\"A\":false,\"B\":false},\"invariant_preserved\":false},{\"order\":[\"T2\",\"T1\"],\"steps\":[{\"transaction\":\"T2\",\"observed\":{\"A\":true},\"outcome\":\"committed\",\"state\":{\"A\":true,\"B\":false},\"invariant_holds\":true},{\"transaction\":\"T1\",\"observed\":{\"B\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":false},\"invariant_holds\":false}],\"final_state\":{\"A\":false,\"B\":false},\"invariant_preserved\":false}],\"serial_schedules\":[{\"order\":[\"T1\",\"T2\"],\"steps\":[{\"transaction\":\"T1\",\"observed\":{\"B\":true},\"outcome\":\"committed\",\"state\":{\"A\":false,\"B\":true},\"invariant_holds\":true},{\"transaction\":\"T2\",\"observed\":{\"A\":false},\"outcome\":\"guard_false\",\"state\":{\"A\":false,\"B\":true},\"invariant_holds\":true}],\"final_state\":{\"A\":false,\"B\":true},\"invariant_preserved\":true},{\"order\":[\"T2\",\"T1\"],\"steps\":[{\"transaction\":\"T2\",\"observed\":{\"A\":true},\"outcome\":\"committed\",\"state\":{\"A\":true,\"B\":false},\"invariant_holds\":true},{\"transaction\":\"T1\",\"observed\":{\"B\":false},\"outcome\":\"guard_false\",\"state\":{\"A\":true,\"B\":false},\"invariant_holds\":true}],\"final_state\":{\"A\":true,\"B\":false},\"invariant_preserved\":true}],\"real_database_verified\":false,\"all_possible_interleavings_checked\":false}",
+            "source_id": "S1",
+            "start": 0
+          },
+          {
+            "end": 761,
+            "quote": "PostgreSQL Repeatable Read uses snapshot isolation. Successive statements use a snapshot established by the first non-transaction-control statement. A transaction trying to update or lock a row changed by another transaction since that snapshot can fail; distinct write targets do not by themselves protect a cross-row business invariant. Serializable ensures committed results are equivalent to some serial execution, without requiring physical serial execution. It adds monitoring overhead beyond Repeatable Read and can abort transactions with serialization failures. Applications must retry the whole transaction. Predicate locks used for SSI monitoring do not block other transactions. Monitoring overhead and work repeated after aborts are separate costs.",
+            "source_id": "S2",
+            "start": 0
+          },
+          {
+            "end": 574,
+            "quote": "Row locks block conflicting writers and lockers, not ordinary queries. FOR SHARE locks on a row can coexist with other FOR SHARE and FOR KEY SHARE locks. FOR UPDATE conflicts with other listed row-lock modes; locks last until transaction end or rollback. Explicit locking therefore requires a specified lock mode, acquisition order and read/check protocol. Locking relevant rows can cause waiting; inconsistent acquisition order or lock upgrades can cause deadlocks. In Repeatable Read or Serializable, attempting to lock a row changed since the snapshot can raise an error.",
+            "source_id": "S4",
+            "start": 0
+          }
+        ],
+        "conditions": [],
+        "packet_sha256": "8edd8999348eca18875b7e9dd342c3628c79d718c88b6a4763ff43ecaeca3333",
+        "question_id": "Q5",
+        "status": "answered",
+        "uncertainties": []
+      },
+      {
+        "answer": "Within the PostgreSQL 18 implementation scope, explicit row locks block conflicting writers and lockers, but not ordinary queries. FOR SHARE can coexist with FOR SHARE and FOR KEY SHARE; FOR UPDATE conflicts with the listed row-lock modes, and row locks persist until transaction end or rollback. Correct use therefore requires an explicitly chosen lock mode, acquisition order, and read/check protocol. Lock acquisition may wait, inconsistent acquisition order or lock upgrades may deadlock, and in Repeatable Read or Serializable, locking a row changed since the snapshot may raise an error. These are implementation-specific guarantees and limitations; the finite concurrent-snapshot scenario and separately listed serial schedules do not by themselves establish that a real database execution will produce the model outcome.",
+        "citations": [
+          {
+            "end": 574,
+            "quote": "Row locks block conflicting writers and lockers, not ordinary queries. FOR SHARE locks on a row can coexist with other FOR SHARE and FOR KEY SHARE locks. FOR UPDATE conflicts with other listed row-lock modes; locks last until transaction end or rollback. Explicit locking therefore requires a specified lock mode, acquisition order and read/check protocol. Locking relevant rows can cause waiting; inconsistent acquisition order or lock upgrades can cause deadlocks. In Repeatable Read or Serializable, attempting to lock a row changed since the snapshot can raise an error.",
+            "source_id": "S4",
+            "start": 0
+          }
+        ],
+        "conditions": [],
+        "packet_sha256": "503d117c1351dd2501f7e3af3c28603d2c604b35e38dd2da9db9fe737fb535ab",
+        "question_id": "Q6",
+        "status": "answered",
+        "uncertainties": []
+      }
+    ],
+    "wire": {
+      "assessments": [
+        {
+          "reason": "The finite scenario explicitly initializes both cells true, gives T1 a guard on B and a write setting A false, and gives T2 a guard on A and a write setting B false. Thus each transaction performs its write only after observing the other cell true.",
+          "review_id": "R0001",
+          "verdict": "supported"
+        },
+        {
+          "reason": "The supplied model records both concurrent-start orders: the first transaction commits after observing the other cell true, the second uses its earlier snapshot and also commits, yielding A=false and B=false. It also records the reciprocal read-write edges, no write-write edges, atomic writes, snapshots preceding commits, and invariant-preserving serial schedules where the second guard is false.",
+          "review_id": "R0002",
+          "verdict": "supported"
+        },
+        {
+          "reason": "The source states that PostgreSQL 18 Repeatable Read uses snapshot isolation with the snapshot established by the first non-transaction-control statement, that an update or lock can fail when its row changed after that snapshot, and that distinct write targets do not by themselves protect a cross-row invariant. The finite execution is separately identified as a model result rather than a real database observation.",
+          "review_id": "R0003",
+          "verdict": "supported"
+        },
+        {
+          "reason": "The explanation accurately states Serializable equivalence to some serial execution without physical serialization, whole-transaction retry after serialization failure, SSI monitoring of read-write antidependencies, dangerous structures with commit-order conditions, possible aborts without a complete cycle or resulting anomaly, and conflict checking during reads, writes, and commit processing. The cited trade-offs are also stated in the sources.",
+          "review_id": "R0004",
+          "verdict": "supported"
+        },
+        {
+          "reason": "The cost discussion matches the sources: monitoring overhead exceeds Repeatable Read, serialization failures can abort transactions, the whole transaction must be retried, and the retry work is a separate cost. The explanation also correctly describes dangerous-structure false positives and the stages at which conflict checking occurs.",
+          "review_id": "R0005",
+          "verdict": "supported"
+        }
+      ],
+      "blocks": [
+        {
+          "id": "b1",
+          "link_ids": [
+            "L0001",
+            "L0002"
+          ],
+          "text": "### The two-doctor scenario\n\nIn the finite boolean model, `A` and `B` indicate whether Doctor 1 and Doctor 2 are on call. Initially, `A = true` and `B = true`, and the invariant is that at least one cell remains true. T1 checks that `B` is true and then sets `A` to false. T2 checks that `A` is true and then sets `B` to false. Each transaction therefore goes off call only after observing the other cell true."
+        },
+        {
+          "id": "b2",
+          "link_ids": [
+            "L0001",
+            "L0002",
+            "L0003"
+          ],
+          "text": "### Concurrent execution and the invariant violation\n\nIn the supplied concurrent-start schedule ordered T1 then T2, T1 observes `B = true`, commits `A = false`, and leaves the invariant true at that point. T2 uses its earlier snapshot, observes `A = true`, and commits `B = false`, producing the final state `A = false, B = false`. The reverse order is symmetric: T2 commits `B = false`, T1 still observes `A = true`, and T1 commits `A = false`.\n\nThe model has no potential write-write edges because the transactions write different cells. It has cross-row read-write edges because T1 reads `B` while T2 writes `B`, and T2 reads `A` while T1 writes `A`. Its writes are atomic, concurrent snapshots precede commits, and first-committer-wins applies only to overlapping writes. In the separately listed serial schedules, the second transaction observes a false guard and does not commit its write, so the invariant is preserved. These are finite model outcomes, not a real-database verification."
+        },
+        {
+          "id": "b3",
+          "link_ids": [
+            "L0004"
+          ],
+          "text": "### Why snapshot isolation permits the skew\n\nIn PostgreSQL 18, Repeatable Read uses snapshot isolation. Successive statements use the snapshot established by the first non-transaction-control statement. An update or lock can fail when its target row was changed by another transaction after that snapshot, but distinct write targets do not by themselves protect a cross-row business invariant. The finite execution above should therefore be treated as a model result; the PostgreSQL statements are implementation claims about PostgreSQL 18."
+        },
+        {
+          "id": "b4",
+          "link_ids": [
+            "L0005",
+            "L0006",
+            "L0007",
+            "L0008",
+            "L0009"
+          ],
+          "text": "### Mitigation: Serializable execution with whole-transaction retry\n\nRun both transactions at PostgreSQL 18 Serializable isolation and retry the entire transaction after a serialization failure. Serializable ensures that committed results are equivalent to some serial execution, although physical execution need not be serial. For this two-transaction model, the false/false result is excluded as a valid committed Serializable result because both listed serial executions preserve the invariant.\n\nPostgreSQL's Serializable Snapshot Isolation monitors read-write antidependencies while snapshot isolation runs. It looks for dangerous structures involving two adjacent read-write conflicts and commit-order conditions rather than performing an exact search for complete dependency cycles. A dangerous structure can occur without a cycle, so a transaction may be aborted even when its execution would not have produced an anomaly. Conflict checking occurs during reads, writes, and commit processing.\n\nThe trade-offs are monitoring overhead beyond Repeatable Read, possible serialization-failure aborts, and the work repeated when the whole transaction is retried. Predicate locks used for SSI monitoring do not block other transactions; monitoring overhead and retry work are separate costs."
+        }
+      ],
+      "claim_map_sha256": "3967a60838abf3be7cbade30392861b643d18fec8ea47a94bdd41cda00ba4683",
+      "comparisons": [
+        {
+          "check_id": "K0001",
+          "reason": "Every assertion is supported: the finite model lists the reciprocal read-write dependencies, both concurrent orders commit with the false/false final state, the serial orders preserve the invariant, and the outcome is not real-database verification. The PostgreSQL statements about Repeatable Read, distinct write targets, Serializable equivalence, aborts, retries, monitoring, and repeated work match the supplied sources.",
+          "status": "supported"
+        },
+        {
+          "check_id": "K0002",
+          "reason": "The model source records concurrent snapshots observing the initial true values, distinct writes, commits in both orders, and the false/false outcome, while its serial schedules preserve the invariant. The PostgreSQL Repeatable Read qualifications about snapshot establishment, possible row-update or row-lock failure, and lack of protection from distinct write targets are also supported.",
+          "status": "supported"
+        },
+        {
+          "check_id": "K0003",
+          "reason": "The check correctly limits the finite schedules to model outcomes and distinguishes them from real PostgreSQL verification. Its Repeatable Read, Serializable, retry, monitoring-overhead, predicate-lock, and repeated-work statements match the sources. Its SSI explanation also correctly includes dangerous structures, commit-order conditions, non-cycle aborts, and conflict checking during reads, writes, and commit processing.",
+          "status": "supported"
+        },
+        {
+          "check_id": "K0004",
+          "reason": "The stated costs and conditions are all supported: monitoring overhead beyond Repeatable Read, possible serialization failures, whole-transaction retry, separate retry work, nonblocking SSI predicate locks, dangerous structures that may occur without complete cycles, and conflict checking across reads, writes, and commit processing. The distinction between serial-equivalent results and physically serial execution is also accurate.",
+          "status": "supported"
+        },
+        {
+          "check_id": "K0005",
+          "reason": "The finite concurrent and serial outcomes and the absence of real-database verification are accurately reported. Serializable with whole-transaction retry is a supported mitigation with the stated preconditions and costs. The statement that Repeatable Read alone does not protect this cross-row invariant follows from the supplied distinct-write-target limitation. The alternative row-locking assertions also match the supplied lock-mode, ordering, waiting, deadlock, and snapshot-change conditions.",
+          "status": "supported"
+        },
+        {
+          "check_id": "K0006",
+          "reason": "The row-lock behavior is stated accurately: conflicting writers and lockers are blocked but ordinary queries are not, the listed FOR SHARE and FOR UPDATE compatibility relationships apply, locks last through transaction end or rollback, and correct use requires a lock mode, acquisition order, and read/check protocol. The waiting, deadlock, snapshot-change error, and finite-model limitation are all supported.",
+          "status": "supported"
+        }
+      ],
+      "uncovered_obligations": [],
+      "unmapped_claims": []
+    },
+    "provenance": [
+      {
+        "path": ".superpowers/verification-contract-103/attempts/contract103-known-codex-2/explanation/plan.json",
+        "sha256": "102377e37aee948ff6a8fe07bfae604d4c3038621784c7ecd4292ae6f9327fb5"
+      },
+      {
+        "path": ".superpowers/verification-contract-103/attempts/contract103-known-codex-2/explanation/outcome.json",
+        "sha256": "ca10bd428289365e8b7be90518962f3272a282fdbbf4d8af317b10c4faa1b098"
+      },
+      {
+        "path": ".superpowers/verification-contract-103/attempts/contract103-known-codex-2/explanation/observation-8.json",
+        "sha256": "3d7e43d85e91bfb46bb19af91d42bbe1a03533f760fcafd8d96142412cce434a"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "known-claude-6",
+      "answer": "Consider two doctors on call: each can leave only if the other remains. This is a cross-row invariant—at least one of the two must always be available. In the finite boolean model, cell A represents Doctor 1's on-call status and cell B represents Doctor 2's. The invariant requires at least one of A or B to be true at all times.\n\nUnder snapshot isolation with PostgreSQL 18's Repeatable Read, each transaction establishes a snapshot at its start. All reads within that transaction see the state as of that snapshot. Transaction T1 reads cell B (Doctor 2's status) and observes B=true. Transaction T2 reads cell A (Doctor 1's status) and observes A=true. Because each transaction reads from its own snapshot, both can simultaneously observe the other as on call, even though no such state existed or was committed in their chronological order.\n\nIn the concurrent-start execution, both transactions snapshot the initial state (A=true, B=true). T1 then commits its write, setting A:=false. T2 observes the pre-snapshot state A=true, commits its write setting B:=false. The final state is A=false, B=false. Both doctors have gone off call, violating the invariant that at least one must remain available.\n\nThe core problem is that distinct write targets do not by themselves protect a cross-row business invariant. T1 writes only A; T2 writes only B. There is no row-level conflict between them in the storage engine's sense. Snapshot isolation's guarantee—that reads are consistent within a transaction and writes commit atomically—holds perfectly. The invariant violation arises from the interleaving of read dependencies: T1 depended on B being true, and T2 depended on A being true, but both dependencies were satisfied from snapshots taken before either write propagated.\n\nPostgreSQL 18's Serializable isolation level adds Serializable Snapshot Isolation (SSI) on top of snapshot isolation. SSI monitors read-write antidependencies during execution and detects certain dangerous structures—specifically, two adjacent read-write conflicts in the dependency graph. This detection is not an exhaustive cycle search: SSI can abort a transaction even if that transaction's execution would not have produced an anomaly, trading some false aborts for lower monitoring overhead.\n\nUsing Serializable incurs measurable costs. SSI introduces monitoring overhead beyond Repeatable Read during read, write, and commit processing. When SSI detects a potential anomaly, it aborts one or more transactions with a serialization failure. The application must catch this error, retry the entire transaction, and resubmit it. The retry loop and repeated work are costs distinct from the monitoring overhead itself.\n\nExplicit row locking offers an alternative mitigation. A transaction can acquire FOR UPDATE locks on the rows whose combination defines the invariant—both doctor records—before committing any writes. The lock acquisition must follow a consistent order to avoid deadlock: for instance, always lock Doctor 1's row first, then Doctor 2's row. Once T1 holds a FOR UPDATE lock on both rows, it can safely read and verify the invariant, knowing no other transaction can modify those rows until it commits. Locks persist until transaction end, ensuring atomic protection of the invariant check and write.\n\nThe trade-off between Serializable and explicit locking is between automation and concurrency cost. Serializable requires no code changes to the transaction logic; SSI monitors automatically and aborts when necessary. Explicit locking requires the application to identify the critical rows, acquire them in a specified order, and structure the lock acquisition protocol—more implementation burden. However, for this scenario, explicit locking avoids the abort-and-retry cycle entirely if the lock protocol is correctly ordered; both transactions can proceed, with one waiting for locks held by the other, and neither experiences a serialization failure. SSI may abort more speculatively but adds per-statement monitoring overhead regardless of abort rate.",
+      "review": {
+        "criteria": [
+          {
+            "evidence": "The answer says both doctors are seen on call even though no such state existed or was committed, contradicting the explicit initial committed A=true/B=true state.",
+            "id": "H1",
+            "status": "FAIL"
+          },
+          {
+            "evidence": "Distinct writes produce both false and violate the at-least-one invariant.",
+            "id": "H2",
+            "status": "PASS"
+          },
+          {
+            "evidence": "Serializable with whole-transaction retry is a valid primary mitigation in this scenario.",
+            "id": "H3",
+            "status": "PASS"
+          },
+          {
+            "evidence": "The answer retains the false initial-state claim and categorically says correct lock ordering prevents serialization failures and all retries, contrary to the supplied changed-snapshot locking limitation. It also asserts an unsupported monitoring-cost comparison with exact cycle search.",
+            "id": "Q1",
+            "status": "FAIL"
+          },
+          {
+            "evidence": "Monitoring and repeated work after aborts are both stated for Serializable; inaccurate exclusions for locking remain a Q1 failure.",
+            "id": "Q2",
+            "status": "PASS"
+          }
+        ],
+        "normal_regression": {
+          "evidence": "This row is the known write-skew task, not a normal control.",
+          "status": "UNREVIEWED"
+        },
+        "outcome_sha256": "584bc7fbef39cf8569a4129f40a2b04752ac338e9540a203e2cdd0811fad8463",
+        "question_omission": {
+          "evidence": "The source and question set include the facts needed to correct the snapshot and locking errors.",
+          "status": "PASS"
+        },
+        "reviewer": "root",
+        "rewrite_new_error": {
+          "evidence": "The material errors already appeared in the draft. They remain uncorrected rather than being counted as newly introduced errors.",
+          "status": "PASS"
+        },
+        "verifier_error": {
+          "evidence": "The cost check generalizes monitoring to every Serializable transaction without supporting that universal scope. The parent comparisons also fail to apply the explicit changed-snapshot locking warning to the draft.",
+          "status": "FAIL"
+        }
+      },
+      "provenance": [
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-known-claude-6/explanation/outcome.json",
+          "sha256": "c6f69939149030ae1b31cb5de05bda18e05052da396b3408b04e3404330d463d"
+        },
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-known-claude-6/review.json",
+          "sha256": "8c13df15e613b8b1df22bbbe95e62d5f1ab1391ef48eb4fbf40f42bba4dd241c"
+        }
+      ],
+      "holdout": false
+    },
+    {
+      "id": "known-codex-2",
+      "answer": "### The two-doctor scenario\n\nIn the finite boolean model, `A` and `B` indicate whether Doctor 1 and Doctor 2 are on call. Initially, `A = true` and `B = true`, and the invariant is that at least one cell remains true. T1 checks that `B` is true and then sets `A` to false. T2 checks that `A` is true and then sets `B` to false. Each transaction therefore goes off call only after observing the other cell true.\n\n### Concurrent execution and the invariant violation\n\nIn the supplied concurrent-start schedule ordered T1 then T2, T1 observes `B = true`, commits `A = false`, and leaves the invariant true at that point. T2 uses its earlier snapshot, observes `A = true`, and commits `B = false`, producing the final state `A = false, B = false`. The reverse order is symmetric: T2 commits `B = false`, T1 still observes `A = true`, and T1 commits `A = false`.\n\nThe model has no potential write-write edges because the transactions write different cells. It has cross-row read-write edges because T1 reads `B` while T2 writes `B`, and T2 reads `A` while T1 writes `A`. Its writes are atomic, concurrent snapshots precede commits, and first-committer-wins applies only to overlapping writes. In the separately listed serial schedules, the second transaction observes a false guard and does not commit its write, so the invariant is preserved. These are finite model outcomes, not a real-database verification.\n\n### Why snapshot isolation permits the skew\n\nIn PostgreSQL 18, Repeatable Read uses snapshot isolation. Successive statements use the snapshot established by the first non-transaction-control statement. An update or lock can fail when its target row was changed by another transaction after that snapshot, but distinct write targets do not by themselves protect a cross-row business invariant. The finite execution above should therefore be treated as a model result; the PostgreSQL statements are implementation claims about PostgreSQL 18.\n\n### Mitigation: Serializable execution with whole-transaction retry\n\nRun both transactions at PostgreSQL 18 Serializable isolation and retry the entire transaction after a serialization failure. Serializable ensures that committed results are equivalent to some serial execution, although physical execution need not be serial. For this two-transaction model, the false/false result is excluded as a valid committed Serializable result because both listed serial executions preserve the invariant.\n\nPostgreSQL's Serializable Snapshot Isolation monitors read-write antidependencies while snapshot isolation runs. It looks for dangerous structures involving two adjacent read-write conflicts and commit-order conditions rather than performing an exact search for complete dependency cycles. A dangerous structure can occur without a cycle, so a transaction may be aborted even when its execution would not have produced an anomaly. Conflict checking occurs during reads, writes, and commit processing.\n\nThe trade-offs are monitoring overhead beyond Repeatable Read, possible serialization-failure aborts, and the work repeated when the whole transaction is retried. Predicate locks used for SSI monitoring do not block other transactions; monitoring overhead and retry work are separate costs.",
+      "review": {
+        "criteria": [
+          {
+            "evidence": "The reverse concurrent order says T1 observes A=true; the source defines T1 as reading B. The forward order and initial state are correct.",
+            "id": "H1",
+            "status": "FAIL"
+          },
+          {
+            "evidence": "Distinct write cells, reciprocal read-write edges and final A=false/B=false are correctly explained.",
+            "id": "H2",
+            "status": "PASS"
+          },
+          {
+            "evidence": "Both transactions use PostgreSQL 18 Serializable with whole-transaction retry; serial equivalence and conditions are scoped.",
+            "id": "H3",
+            "status": "PASS"
+          },
+          {
+            "evidence": "The reverse-order read-variable error remains. The PostgreSQL snapshot, SSI dangerous-structure, commit-order and retry statements otherwise match the supplied sources.",
+            "id": "Q1",
+            "status": "FAIL"
+          },
+          {
+            "evidence": "Monitoring overhead and repeated work after serialization-failure aborts are separately stated.",
+            "id": "Q2",
+            "status": "PASS"
+          }
+        ],
+        "normal_regression": {
+          "evidence": "This is the known case; the separate normal control has its own review.",
+          "status": "UNREVIEWED"
+        },
+        "outcome_sha256": "854a8d3f455caed11717907f7669204c8fc2d687918f8010c8da131a1654f804",
+        "question_omission": {
+          "evidence": "Q1 and its packet explicitly contain T1 reading B in both concurrent orders; no missing question is needed to detect the error.",
+          "status": "PASS"
+        },
+        "reviewer": "root",
+        "rewrite_new_error": {
+          "evidence": "The wrong variable is present in the draft and remains in the rewrite; it is not a newly introduced error.",
+          "status": "PASS"
+        },
+        "verifier_error": {
+          "evidence": "All six independent answers are source-supported, but parent assessment R0002 falsely marks the block containing the wrong read variable supported.",
+          "status": "FAIL"
+        }
+      },
+      "provenance": [
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-known-codex-2/explanation/outcome.json",
+          "sha256": "ca10bd428289365e8b7be90518962f3272a282fdbbf4d8af317b10c4faa1b098"
+        },
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-known-codex-2/review.json",
+          "sha256": "8fe9bb8260a49b0c8b1ed701adc41293b7bf86246cd4e515e8f29065a832f0e9"
+        }
+      ],
+      "holdout": false
+    },
+    {
+      "id": "normal-claude-1",
+      "answer": "**Read/Write and Write/Write Relationships**\n\nT1 reads cell A only; T2 reads cell B only. T1 writes to A; T2 writes to B. There are no read/write edges between these transactions—T1 does not read what T2 writes, and T2 does not read what T1 writes. There are no write/write conflicts either: each transaction writes to a different cell. In this finite boolean model, the two transactions operate on completely independent data, with no overlap in their access patterns.\n\n**Concurrent Outcome and Invariant Preservation**\n\nBoth concurrent-start schedules—T1 then T2, and T2 then T1—drive the system from the initial state (A=true, B=true) to the final state (A=false, B=false) with the invariant holding at every step. The unconditional at-least-zero invariant is satisfied throughout because neither transaction can create a violation: each observation is true before the transaction commits, and the write simply sets its cell to false. The concurrent-snapshot model ensures both transactions acquire their required guard values before either commits, so both proceed and both maintain the invariant.\n\n**Serial Coordination and Invariant Safety**\n\nWithin the scope of this finite-model scenario, the unconditional at-least-zero invariant does not require serial coordination. Each transaction independently preserves the invariant: T1's write of A=false respects the invariant, and T2's write of B=false respects the invariant. Because there is no cross-transaction constraint—no requirement that one cell's value depend on another's—and because the invariant is unconditional (not a conditional assertion about relationships between A and B), independent concurrent execution is safe. The model distinguishes between potential overlap in schedules and actual invariant failure: both schedules are possible, yet both satisfy the invariant, confirming that potential interleaving does not translate to a broken invariant here.",
+      "review": {
+        "criteria": [
+          {
+            "evidence": "Final explicitly states T1 reads/writes only A and T2 only B, with no cross edges.",
+            "id": "H1",
+            "status": "PASS"
+          },
+          {
+            "evidence": "Both final false values preserve the unconditional at-least-zero invariant in both listed concurrent orders.",
+            "id": "H2",
+            "status": "PASS"
+          },
+          {
+            "evidence": "Final explicitly says serial coordination is unnecessary for this invariant.",
+            "id": "H3",
+            "status": "PASS"
+          },
+          {
+            "evidence": "Final has explicit relationships, concurrent outcome and finite-model scope.",
+            "id": "Q1",
+            "status": "PASS"
+          },
+          {
+            "evidence": "The correct no-overlap conclusion is retained without a false final correction.",
+            "id": "Q2",
+            "status": "PASS"
+          }
+        ],
+        "normal_regression": {
+          "evidence": "The complete final answer preserves the valid normal outcome and absence of cross dependencies.",
+          "status": "PASS"
+        },
+        "outcome_sha256": "f06f574ad70d7e4befec85c5b21ff1bd80db8c9d2908df867a4e136cfde9a03d",
+        "question_omission": {
+          "evidence": "All three needed topics are represented; no new transaction program is introduced.",
+          "status": "PASS"
+        },
+        "reviewer": "root",
+        "rewrite_new_error": {
+          "evidence": "The final answer retains the correct draft and does not import the false serializability explanation. However, Q2 comparison marks the whole check supported without identifying its causal error.",
+          "status": "PASS"
+        },
+        "verifier_error": {
+          "evidence": "Q2 attributes serializability to separating snapshot and serial write phases; that is not a general guarantee of snapshot isolation. Q3 labels the existing execution mechanism as a mitigation despite no invariant violation, and lists scope limits as trade-offs. The causal claims are not established by S1.",
+          "status": "FAIL"
+        }
+      },
+      "provenance": [
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-normal-claude-1/explanation/outcome.json",
+          "sha256": "b0f9cacc263bee3336ec324f13c7e15baabb39c348913ccd8501ee0a892d0566"
+        },
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-normal-claude-1/review.json",
+          "sha256": "c95ccd144a9658b08e92859c5909fce9e735e2cacd3966670a9698a2f5b40c70"
+        }
+      ],
+      "holdout": false
+    },
+    {
+      "id": "normal-claude-3",
+      "answer": "## Read/Write and Write/Write Relationships\n\nT1 and T2 operate on completely disjoint sets of cells. T1 reads only A and writes only A; T2 reads only B and writes only B. Because each transaction operates on separate cells, there is no read/write dependency—neither transaction reads a cell written by the other. There are also no write/write conflicts: T1's write to A does not overlap with T2's write to B. The source confirms both the potential_read_write_edges and potential_write_write_edges arrays are empty, directly reflecting this independence.\n\n## Concurrent Outcome and the Unconditional Invariant\n\nThe stated invariant requires at least 0 cells from {A, B} to be true—a constraint satisfied by any state, including the final state [A=false, B=false] reached by all execution paths. Both concurrent-start schedules (T1 then T2, or T2 then T1) produce this same final state because the transactions operate independently. In the concurrent-snapshot model, both T1 and T2 observe the initial state [A=true, B=true] before either commits: T1's snapshot sees A=true and proceeds to write A=false; T2's snapshot sees B=true and proceeds to write B=false. The snapshot-isolation mechanism—where reads complete before any concurrent write commits—prevents neither transaction from seeing a false precondition. Because their write sets do not overlap, first-committer-wins does not cause an abort, and the invariant holds at every step and in the final state.\n\n## Serial Coordination: Not Required\n\nNo serial coordination is necessary to preserve this invariant. Since T1 and T2 have no overlapping read or write sets, their execution order is commutative: both orderings (T1 then T2 and T2 then T1) produce the same final state and maintain the unconditional at-least-zero constraint. The invariant does not depend on a particular execution order, and because each transaction's outcome is independent of the other, concurrent interleaving cannot violate it. This example illustrates an important distinction: potential scheduling overlap—the fact that both transactions might run concurrently—does not imply an invariant failure. The invariant failure arises only when actual read/write or write/write dependencies exist and are not managed. Here, no such dependencies exist.",
+      "review": {
+        "criteria": [
+          {
+            "evidence": "The final answer retains the correct independent T1/A and T2/B read/write sets.",
+            "id": "H1",
+            "status": "PASS"
+          },
+          {
+            "evidence": "It explicitly says the at-least-zero invariant is satisfied by every state, including both false.",
+            "id": "H2",
+            "status": "PASS"
+          },
+          {
+            "evidence": "It correctly says no serial coordination is required for this invariant.",
+            "id": "H3",
+            "status": "PASS"
+          },
+          {
+            "evidence": "The last paragraph adds an unsupported universal necessity: invariant failure arises only with unmanaged read/write or write/write dependencies. S1 establishes this case only; an individually invalid transaction could violate an invariant without such cross-transaction edges. The second paragraph also adds an ambiguous double negative about false preconditions.",
+            "id": "Q1",
+            "status": "FAIL"
+          },
+          {
+            "evidence": "The valid no-overlap statement remains intact.",
+            "id": "Q2",
+            "status": "PASS"
+          }
+        ],
+        "normal_regression": {
+          "evidence": "The concrete normal result and lack of a needed mitigation are preserved.",
+          "status": "PASS"
+        },
+        "outcome_sha256": "b636485b6fb10f05f3cd39732ea1e3a6f9f60300dafb63ce9992699f03904467",
+        "question_omission": {
+          "evidence": "The new universal claim is outside the selected case-scoped questions and supplied sources.",
+          "status": "FAIL"
+        },
+        "reviewer": "root",
+        "rewrite_new_error": {
+          "evidence": "The final conclusion introduces the unsupported universal condition described under Q1.",
+          "status": "FAIL"
+        },
+        "verifier_error": {
+          "evidence": "All three independent answers were reviewed. Q2 no longer asserts general serializability from split phases; Q3 now correctly says no mitigation is required.",
+          "status": "PASS"
+        }
+      },
+      "provenance": [
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-normal-claude-3/explanation/outcome.json",
+          "sha256": "351b0ae0be8833e331fe8eeb2c8af6d2f80bc8d2054a11f865b11fbe2f496126"
+        },
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-normal-claude-3/review.json",
+          "sha256": "09dc54f59ad322c5cd6874fe65afe405de39a2651f57d3580424226d84f22233"
+        }
+      ],
+      "holdout": false
+    },
+    {
+      "id": "normal-codex-3",
+      "answer": "### Read/write and write/write relationships\n\nInitially, A=true and B=true. T1 reads only A and, when A is true, writes A=false. T2 reads only B and, when B is true, writes B=false. Their read sets and write sets are disjoint, and the supplied model lists no potential read/write or write/write edges between them. Touching the modeled state is therefore not, by itself, a cross-transaction conflict. The invariant requires at least zero true cells among A and B, so it imposes no cross-row preservation requirement.\n\n### Concurrent outcome\n\nUnder the supplied concurrent-start model, both transactions take snapshots before either commit. T1 observes A=true and T2 observes B=true, so both pass their guards and commit in either listed order. Their atomic writes are disjoint, producing A=false, B=false. That state has zero true cells and therefore satisfies the unconditional at-least-zero invariant. The concurrent execution consequently has no invariant failure; there is no broken cross-row condition to explain.\n\n### Is serial coordination necessary?\n\nFor this invariant, serial coordination is not necessary within the stated finite boolean model. The listed serial schedules—T1 followed by T2 and T2 followed by T1—produce the same final state and preserve the invariant, as do the listed concurrent-start schedules. The model's first-committer-wins rule is immaterial here because the transactions have no overlapping writes. This conclusion is specific to the supplied model and invariant; it is not a general rule for other invariants or transaction programs. The artifact is not a verified real-database observation, and it does not assert that all possible interleavings were checked.",
+      "review": {
+        "criteria": [
+          {
+            "evidence": "Final B1 identifies T1 read/write A and T2 read/write B; it states no cross-transaction edges. No invented overlap.",
+            "id": "H1",
+            "status": "PASS"
+          },
+          {
+            "evidence": "Final B2 explicitly derives zero true cells satisfying the at-least-zero invariant.",
+            "id": "H2",
+            "status": "PASS"
+          },
+          {
+            "evidence": "Final B3 says serial coordination is unnecessary for this invariant within this model.",
+            "id": "H3",
+            "status": "PASS"
+          },
+          {
+            "evidence": "The three sections give concrete read/write sets, both commit orders, serial comparison, and model/real-database limits.",
+            "id": "Q1",
+            "status": "PASS"
+          },
+          {
+            "evidence": "The valid no-overlap conclusion is retained in draft, independent answers and final answer.",
+            "id": "Q2",
+            "status": "PASS"
+          }
+        ],
+        "normal_regression": {
+          "evidence": "The valid normal example remains valid in the final answer; first-committer-wins is correctly described as immaterial without overlapping writes.",
+          "status": "PASS"
+        },
+        "outcome_sha256": "3071ded61aa058f40228af7a0f6a61631ae616b306e44d1bfd09c95d122d767b",
+        "question_omission": {
+          "evidence": "Q1-Q3 cover relationships, invariant outcome and need for coordination. The final answer adds no different transaction program or remedy.",
+          "status": "PASS"
+        },
+        "reviewer": "root",
+        "rewrite_new_error": {
+          "evidence": "Reviewed the complete final answer and comparisons. No new invariant failure or isolation guarantee is introduced.",
+          "status": "PASS"
+        },
+        "verifier_error": {
+          "evidence": "Individually reviewed all three verifier answers against the supplied finite scenario. No conflicting relation, final state or needed mitigation is asserted.",
+          "status": "PASS"
+        }
+      },
+      "provenance": [
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-normal-codex-3/explanation/outcome.json",
+          "sha256": "b4a578659b31476f638261aaa49eda2ab950de1a122a6cc984e2d489c7348534"
+        },
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-normal-codex-3/review.json",
+          "sha256": "9039e3dd92b8d179eb815c0f55878a1630bd8e6d3605d9f3917a49c509254ff8"
+        }
+      ],
+      "holdout": false
+    },
+    {
+      "id": "unseen-claude-2",
+      "answer": "**Read and Write Sets**\n\nTransaction T1 reads cells {A, B, C} to evaluate its guard and writes only A (setting it to false). Transaction T2 reads the same set {A, B, C} for its guard and writes only B (setting it to false). The invariant requires at least 2 of {A, B, C} to remain true. C is never written by either transaction.\n\n**Concurrent-Start Snapshot Outcome**\n\nWhen both transactions begin, they observe the same snapshot: A=true, B=true, C=true. Both guards are satisfied. T1 commits first, writing A=false; T2 commits second, writing B=false. The final state is A=false, B=false, C=true. The invariant is violated: only one cell remains true, not the required minimum of two.\n\n**Serial Whole-Transaction Execution**\n\nIn any serial execution, the second transaction reads the first transaction's committed writes before evaluating its guard. In the T1→T2 order, T1 commits (A becomes false), and then T2 observes A=false, B=true, C=true. T2's guard fails because not all three are true, so T2 does not commit. The invariant holds: A=false, B=true, C=true has two cells true. Similarly, in the T2→T1 order, T1 observes A=true, B=false, C=true after T2 commits; T1's guard fails. Both serial orders preserve the invariant.\n\n**Why Snapshot Isolation Differs from Serial Execution**\n\nUnder PostgreSQL Repeatable Read (snapshot isolation), each transaction establishes a consistent snapshot at its concurrent start. Both T1 and T2 observe all three cells as true in their snapshots. Each transaction's guard passes during execution because it reads only its snapshot, never seeing the other transaction's in-flight write. Only when both transactions commit do their writes take effect sequentially. Snapshot isolation provides no coordination between concurrent transactions with distinct write targets; therefore, it does not prevent one transaction from committing after another transaction has already passed its guard based on a stale snapshot. Serializable isolation adds read-write antidependency monitoring to detect when such conflicts occur.\n\n**Mitigation: PostgreSQL Serializable Isolation**\n\nPostgreSQL's Serializable mode uses Serializable Snapshot Isolation (SSI), which monitors read-write antidependencies among concurrent transactions. SSI detects dangerous structures consisting of two adjacent read-write conflicts and applies commit-order conditions to prevent anomalies. This detection is not an exact search for complete cycles; a dangerous structure can occur without a cycle, causing some transactions to be aborted even though their execution would not have produced an anomaly. Conflict checking occurs during reads, writes, and commit processing. When such a conflict is detected, one of the conflicting transactions is aborted with a serialization failure and must be retried entirely by the application. For this scenario, SSI would abort either T1 or T2 during commit processing, preventing both transactions from succeeding with the concurrent-start snapshot and preserving the invariant.\n\n**Trade-Offs: Serializable Costs**\n\nSerializable isolation adds monitoring overhead to detect read-write antidependencies; this overhead is distinct from the cost of work repeated after transaction aborts. Transactions may be aborted with serialization failures, requiring the application to implement retry logic for the entire transaction. In scenarios with frequent long transactions or high contention on the guarded cells, these aborts and re-executions can become significant. The benefit is that the application receives the guarantee that committed results are equivalent to some serial execution, without requiring physical serial execution. Predicate locks used for SSI monitoring do not block other transactions, so blocking delays are avoided, but CPU cost is incurred during conflict monitoring.\n\n**Alternative Mitigation: Explicit Row Locking**\n\nAnother valid mitigation uses explicit row locks with the FOR UPDATE mode. The application acquires FOR UPDATE locks on all relevant cells {A, B, C} before reading the guard condition. In PostgreSQL 18, FOR UPDATE locks conflict with other FOR UPDATE locks on the same rows. Once T1 acquires its locks, T2 must wait until T1 commits or rolls back and releases its locks. After T1 commits with A=false, T2's FOR UPDATE lock succeeds, but T2 then evaluates its guard and observes A=false, B=true, C=true—the guard fails because not all three are true. T2 does not commit, and the invariant is preserved. This mitigation requires careful lock acquisition order (identical across all transactions accessing these cells) to avoid deadlocks from inconsistent ordering or lock upgrade attempts. In Repeatable Read or Serializable isolation, attempting to lock a row changed since the snapshot can raise an error, adding a failure mode that the application must handle.",
+      "review": {
+        "criteria": [
+          {
+            "evidence": "Both guards observe the original all-true snapshot; the concurrent final state has only C=true and violates at-least-two. Both serial orders preserve it.",
+            "id": "H1",
+            "status": "PASS"
+          },
+          {
+            "evidence": "The answer gives both read sets as A/B/C, distinct writes A and B, and unchanged C.",
+            "id": "H2",
+            "status": "PASS"
+          },
+          {
+            "evidence": "Serializable with whole-transaction retry is the valid primary mitigation. Errors in its detailed abort phase and the added locking alternative are retained as Q1 failures.",
+            "id": "H3",
+            "status": "PASS"
+          },
+          {
+            "evidence": "The rewrite replaces the correct first-non-transaction-control-statement snapshot point with a general concurrent-start claim. It says writes take effect only when both transactions commit, asserts an exact commit-phase SSI abort, and guarantees that the waiting FOR UPDATE succeeds and the second guard sees the updated state despite the supplied changed-snapshot error condition. The later caveat does not repair that guaranteed trace.",
+            "id": "Q1",
+            "status": "FAIL"
+          },
+          {
+            "evidence": "Monitoring overhead, whole-transaction retries and lock waiting are stated. Broader exclusions or unsupported scope are assessed under Q1.",
+            "id": "Q2",
+            "status": "PASS"
+          }
+        ],
+        "normal_regression": {
+          "evidence": "No fresh normal control of the final contract was run; this task informed the unmapped-claims clarification and is a post-adjustment diagnostic.",
+          "status": "UNREVIEWED"
+        },
+        "outcome_sha256": "07af3e038d68f73a978ca78d36d5a4b3972218d5cdd52adb9e6465bb1bbd2a25",
+        "question_omission": {
+          "evidence": "Q2/Q3/Q6 and their supplied sources contain the snapshot, SSI and locking conditions needed to correct these errors.",
+          "status": "PASS"
+        },
+        "reviewer": "root",
+        "rewrite_new_error": {
+          "evidence": "The draft correctly states the first-non-transaction-control-statement snapshot point; the rewrite drops it and states a general concurrent-start point instead. The SSI exact-cycle error is corrected, but other timing and locking errors remain.",
+          "status": "FAIL"
+        },
+        "verifier_error": {
+          "evidence": "Q5 asserts an exact commit-phase abort and a guaranteed second locking guard failure; parent comparisons accept those claims. R0004/R0005 also fail to notice the incorrect write-visibility timing, and R0008/R0009 accept the overconfident locking trace.",
+          "status": "FAIL"
+        }
+      },
+      "provenance": [
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-unseen-claude-2/explanation/outcome.json",
+          "sha256": "10646ce047814934f096028e41015c91bffef81a10a362ec92261495cbdba667"
+        },
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-unseen-claude-2/review.json",
+          "sha256": "c3a432f933575eb72463b3a40949cf972de55815f043b4df5ab08f7d7814b6f6"
+        }
+      ],
+      "holdout": false
+    },
+    {
+      "id": "unseen-codex-1",
+      "answer": "### Finite model and concurrent execution\n\nInitially A=true, B=true, and C=true, and at least two of the three cells must remain true. T1 reads A, B, and C and writes A=false when all three read values are true. T2 reads the same three cells and writes B=false under the same guard. C is never written. Thus the read sets overlap completely, while the write sets {A} and {B} are disjoint. The model lists read-write edges in both directions—T1 reads B while T2 writes B, and T2 reads A while T1 writes A—but no write-write edge.\n\nIn each supplied concurrent-start schedule, both transactions observe the original all-true snapshot. If T1 is listed first, it commits A=false, leaving A=false, B=true, C=true; T2 then commits B=false from its original snapshot. If T2 is listed first, the symmetric sequence occurs. Both transactions therefore commit in the supplied model, ending at A=false, B=false, C=true, where only one cell is true and the invariant is false.\n\n### Serial whole-transaction execution\n\nThe listed serial schedules differ because the second transaction reads the state committed by the first. With T1 followed by T2, T1 commits A=false; T2 observes A=false, its all-three-true guard is false, and the final state is A=false, B=true, C=true. With T2 followed by T1, T1 observes B=false after T2 commits, and the final state is A=true, B=false, C=true. The invariant remains true in both serial schedules.\n\nThese are outcomes of the supplied finite boolean model, not observations verified against a real database. The supplied data also does not report that all possible interleavings were checked.\n\n### PostgreSQL 18 Repeatable Read\n\nPostgreSQL 18 Repeatable Read uses snapshot isolation, with successive statements using the snapshot established by the first non-transaction-control statement. A transaction attempting to update or lock a row changed by another transaction since that snapshot can fail. Distinct write targets do not by themselves protect a business invariant spanning multiple rows. These PostgreSQL facts do not verify that the finite model's outcome occurred in a real database.\n\n### One mitigation: Serializable with whole-transaction retry\n\nRun these transactions at PostgreSQL 18 Serializable and retry the entire transaction when a serialization failure occurs. Serializable ensures that committed results are equivalent to some serial execution, without requiring physical serial execution; the supplied serial executions for this transaction pair preserve the invariant.\n\nSerializable Snapshot Isolation monitors read-write antidependencies while snapshot isolation is running. A serialization anomaly requires a dependency cycle, but the implementation looks for dangerous structures consisting of adjacent read-write conflicts together with commit-order conditions. A dangerous structure can occur without a complete cycle, so a transaction may be aborted even when its execution would not have produced an anomaly. Conflict checking occurs during reads, writes, and commit processing; describing it solely as cycle detection at commit omits implementation conditions.\n\nThe trade-offs are monitoring overhead beyond Repeatable Read and repeated work after serialization-failure retries. Predicate locks used for SSI monitoring do not block other transactions.",
+      "review": {
+        "criteria": [
+          {
+            "evidence": "Both original all-true guards pass; both listed concurrent orders end A=false/B=false/C=true and violate at-least-two. The listed serial orders preserve the invariant.",
+            "id": "H1",
+            "status": "PASS"
+          },
+          {
+            "evidence": "Both transactions read A/B/C, write distinct A and B cells, leave C unchanged and have reciprocal read-write edges without a write-write edge.",
+            "id": "H2",
+            "status": "PASS"
+          },
+          {
+            "evidence": "Both transactions run at PostgreSQL 18 Serializable with whole-transaction retry. The answer relates serial-equivalent committed results to the invariant-preserving supplied serial executions.",
+            "id": "H3",
+            "status": "PASS"
+          },
+          {
+            "evidence": "The snapshot point is the first non-transaction-control statement. SSI dangerous structures, commit-order conditions, conservative aborts and read/write/commit checks are scoped correctly. No physical-serial or real-database verification claim is made.",
+            "id": "Q1",
+            "status": "PASS"
+          },
+          {
+            "evidence": "Monitoring overhead and repeated transaction work are separately stated; monitoring predicate locks are correctly described as nonblocking.",
+            "id": "Q2",
+            "status": "PASS"
+          }
+        ],
+        "normal_regression": {
+          "evidence": "This is the fixed unseen case. The earlier normal control passed before subsequent contract changes; a fresh normal control of the final contract was not run.",
+          "status": "UNREVIEWED"
+        },
+        "outcome_sha256": "4d993829d43c949d4e5570b30e1f287ad9545cb333beefe0411b9bb12fb1be93",
+        "question_omission": {
+          "evidence": "The six questions cover all required scenario, implementation, mitigation and cost obligations; no material final claim lacks the relevant supplied evidence.",
+          "status": "PASS"
+        },
+        "reviewer": "root",
+        "rewrite_new_error": {
+          "evidence": "The full rewrite preserves the correct draft example and conditions and introduces no observed material factual error.",
+          "status": "PASS"
+        },
+        "verifier_error": {
+          "evidence": "The parent explicitly limits the mechanism-label inference in Q2 and the unspecified locking alternative in Q5. The final answer retains the supplied model outcomes and a supported Serializable mitigation, without carrying those broader interpretations forward. This does not certify that every possible wording of the independent answers is uniquely correct.",
+          "status": "PASS"
+        }
+      },
+      "provenance": [
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-unseen-codex-1/explanation/outcome.json",
+          "sha256": "f577d3976c00ccacfa8331db993d2280aff4a06cb5b711530cab9ead11f19db1"
+        },
+        {
+          "path": ".superpowers/verification-contract-103/attempts/contract103-unseen-codex-1/review.json",
+          "sha256": "829070dbd6fc605310d5c99980c8c04bd59ff2a105971f1d811e503171ebeb9d"
+        }
+      ],
+      "holdout": false
+    }
+  ]
+}

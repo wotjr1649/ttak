@@ -1,21 +1,53 @@
 {
   "name": "ttak",
-  "version": "0.2.0-rc.1",
+  "version": "0.2.0-rc.13+codex.20260914064205",
   "description": "Lean development, focused review, audience-adaptive explanation and visible progress. Turn the operating discipline on with \"ttak on\".",
-  "author": { "name": "Kim Jae Seok", "url": "https://github.com/wotjr1649" },
+  "author": {
+    "name": "Kim Jae Seok",
+    "url": "https://github.com/wotjr1649"
+  },
   "homepage": "https://github.com/wotjr1649/ttak",
   "repository": "https://github.com/wotjr1649/ttak",
   "license": "MIT",
-  "keywords": ["yagni", "explain", "audience", "discipline", "productivity"],
+  "keywords": [
+    "yagni",
+    "explain",
+    "audience",
+    "discipline",
+    "productivity"
+  ],
   "skills": "./skills/",
+  "mcpServers": {
+    "ttak_scenario": {
+      "command": "node",
+      "args": [
+        "scripts/scenario-feedback-mcp.cjs",
+        "--host",
+        "codex"
+      ],
+      "cwd": ".",
+      "env": {
+        "OPENAI_API_KEY": "",
+        "ANTHROPIC_API_KEY": "",
+        "CLAUDE_CODE_OAUTH_TOKEN": ""
+      }
+    }
+  },
   "interface": {
-    "displayName": "TTAK — Track · Trim · Adapt · Keep",
+    "displayName": "TTAK \u2014 Track \u00b7 Trim \u00b7 Adapt \u00b7 Keep",
     "shortDescription": "Lean development, focused review, clear explanations and visible progress.",
     "longDescription": "Opt-in operating discipline for lean development and visible progress, plus focused complexity review and audience-adaptive explanation. Turn the discipline on with \"ttak on\", off with \"ttak off\". Review and explanation remain independently callable. Release-candidate comparison validation is in progress.",
     "developerName": "Kim Jae Seok",
     "category": "Productivity",
-    "capabilities": ["Instructions", "Lifecycle hooks"],
-    "defaultPrompt": ["ttak on", "ttak off", "Explain this for a beginner."],
+    "capabilities": [
+      "Instructions",
+      "Lifecycle hooks"
+    ],
+    "defaultPrompt": [
+      "ttak on",
+      "ttak off",
+      "Explain this for a beginner."
+    ],
     "logo": "./assets/logo.png",
     "composerIcon": "./assets/logo.png"
   }

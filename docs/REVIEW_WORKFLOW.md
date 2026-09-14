@@ -1,8 +1,43 @@
 # Explanation review integration
 
 The release objective and its comparison criteria remain in [RELEASE.md](RELEASE.md).
-This integration is in progress. It is not installed in the explanation skill and is not an
-accuracy guarantee.
+The current candidate integrates fresh fact and final-explanation verification; its observed scope
+and remaining release gates are in the [release work log](RELEASE_RESUME_2026-09-14.ko.md).
+The paragraph-isolated architecture described below is historical and remains deferred.
+
+Historical product experiment: [integrated validation 87](NATIVE_VALIDATION_87.ko.md) integrated rc.13
+JSON-text normalization and passed Node 221 / Python 78 / conformance checks. Four installed
+OFF/ON controls passed. The first Haiku explanation received exactly one required evidence
+reconciliation and completed a revised answer, but final Q1 precision failed. Five requests were
+used, seven stopped unrun, and task profiles restored. This same-model correction candidate is
+not adopted as the shipping quality solution. Further native calls with it are not proposed;
+no replacement design is adopted. Product code is rc.13 and No-Go. Original criteria remain.
+The two-role architecture below remains deferred. No stopped ledger is authorized to resume.
+
+Historical decision: [diagnostic 50 reassessment](RELEASE_PATH_REASSESSMENT.ko.md) separates final
+product requirements from experiment-specific gates. It identifies no sufficiently grounded
+new implementation candidate. Both review-integration paths remain deferred; there are no
+new model calls or changes to stopped ledgers. The historical implementation sequences below
+are not instructions to resume those experiments.
+
+September 9 reassessment: the owner chose to treat this paragraph-isolated architecture as a
+candidate whose adoption depends on evidence. The adapter-first sequence below records the
+earlier path; it is no longer the selected next action. [Diagnostic 47 preparation](REASSESSMENT_47.ko.md)
+defines a source-entailment/context-consistency role candidate, complete input packets and an
+18-call maximum screen inside the remaining 27 diagnostics. No native calls were made; nine
+calls remain unallocated. The subsequent [local role contract and workflow](REVIEW_ROLES.md)
+implement structural validation, reconciliation and two-role rechecks; 45 related Node tests
+pass. [Diagnostic 48](NATIVE_REVIEW_TRANSPORT.md) subsequently audited one actual evidence-role
+call per host, including model/effort, exact prompt, Unicode and process-tree cleanup. It leaves
+25 diagnostic calls (18 planned, 7 unallocated). Native context/repair cycles and semantic quality
+remain unverified. Existing paragraph-runtime
+modules remain unchanged, and no quality or release pass follows from this preparation.
+
+[Diagnostic 49](ROLE_SCREEN_49.ko.md) then froze the execution inputs and introduced a shared
+result-bound call ledger. Its first Claude evidence-role call omitted the mandatory U014
+post-wait claim despite returning all 16 units. The candidate screen stopped after one call;
+context, repair and Codex jobs were not launched. There are 24 diagnostic calls remaining.
+The role candidate is not adopted for product integration.
 
 The host generates an audience-appropriate draft. Reviewed evidence and the draft enter an
 orchestrator, which assigns one paragraph per fresh native session while retaining the full

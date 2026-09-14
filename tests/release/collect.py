@@ -34,11 +34,17 @@ def activation_prompts(case, condition, host, readiness):
     return prompts
 
 
-def command(host, model, effort, session=None, plugin_roots=()):
+def command(host, model, effort, session=None, plugin_roots=(), mcp_config=None):
     if host == "claude":
-        args = ["claude", "-p", "--model", model, "--effort", effort,
+        setting = (["--settings", '{"alwaysThinkingEnabled":true}']
+                   if model == "claude-haiku-4-5-20251001" and effort is None
+                   else ["--effort", effort])
+        args = ["claude", "-p", "--model", model, *setting,
                 "--output-format", "json", "--tools", "Skill",
-                "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}']
+                "--strict-mcp-config", "--mcp-config", str(mcp_config) if mcp_config else '{"mcpServers":{}}',
+                "--max-turns", "8"]
+        if mcp_config:
+            args += ["--allowedTools", "Skill", "mcp__ttak_scenario__scenario_review"]
         for root in plugin_roots:
             args += ["--plugin-dir", str(root)]
         if session:
@@ -93,9 +99,12 @@ def parse(host, stdout):
         answers = [e["item"]["text"] for e in events
                    if e.get("type") == "item.completed" and
                    e.get("item", {}).get("type") == "agent_message"]
-        answer = "\n".join(answers)
+        # Stop feedback can leave an incorrect earlier final in the same host turn.
+        # Grade only the last completed answer; preserve the count for the audit.
+        answer = answers[-1] if answers else None
         session = next((e.get("thread_id") for e in events if e.get("type") == "thread.started"), None)
-        usage = next((e.get("usage", {}) for e in events if e.get("type") == "turn.completed"), {})
+        completed = [e for e in events if e.get("type") == "turn.completed"]
+        usage = completed[-1].get("usage", {}) if completed else {}
         models = []  # Resolve from the host-owned transcript; the requested model is not evidence.
     if not isinstance(answer, str) or not answer.strip():
         raise ValueError("no readable model response")
@@ -105,7 +114,10 @@ def parse(host, stdout):
         session = str(uuid.UUID(session))
     safe_usage = {key: value for key, value in usage.items()
                   if "token" in key.lower() and isinstance(value, (int, float))}
-    return {"answer": answer, "session": session, "usage": safe_usage, "observed_models": models}
+    return {"answer": answer, "session": session, "usage": safe_usage, "observed_models": models,
+            "assistant_message_count": len(answers) if host == "codex" else None,
+            "native_turn_count": len(completed) if host == "codex" else row.get("num_turns"),
+            "hook_correction_verified": False}
 
 
 def native_environment(host, profile, model, effort, environ=None):
@@ -126,7 +138,10 @@ def native_environment(host, profile, model, effort, environ=None):
         env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] = "1"
         # --model alone leaves WebFetch/background processing on a different default model.
         env["ANTHROPIC_DEFAULT_HAIKU_MODEL"] = model
-        env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
+        if model == "claude-haiku-4-5-20251001" and effort is None:
+            env["MAX_THINKING_TOKENS"] = "8192"
+        else:
+            env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
     return env
 
 
@@ -158,19 +173,50 @@ def preflight(profile, experiment, host, condition):
         plugin_root = (profile / relative).resolve(strict=True)
         if not plugin_root.is_relative_to(profile):
             raise ValueError("installed plugin root escaped the trial profile")
-        if (plugin_root / ".mcp.json").exists():
-            raise ValueError("trial plugins must not supply external connectors")
+        from release_runtime import reviewed_mcp
+        reviewed_mcp(host, [plugin_root], condition)
     return profile
 
 
 def run_trial(experiment, trial_id, profile, timeout, execute):
-    verify_freeze(experiment)
+    if execute:
+        from release_runtime import checked_timeout
+        checked_timeout(timeout)
+    manifest = json.loads((experiment / "manifest.json").read_text(encoding="utf-8"))
+    low = "study" in manifest
+    if low:
+        import low_study
+        low_study.verify_freeze(experiment)
+    else:
+        verify_freeze(experiment)
     rows = json.loads((experiment / "plan.json").read_text(encoding="utf-8"))
     matches = [r for r in rows if r["id"] == trial_id]
     if len(matches) != 1:
         raise ValueError("trial id is not in the frozen plan")
     row = matches[0]
-    case = next(c for c in load_suite()["cases"] if c["id"] == row["case"])
+    if low:
+        import low_models
+        if row.get("study") != low_models.STUDY or any(row.get(k) != v for k, v in low_models.settings(row["host"]).items()):
+            raise ValueError("low-model trial settings differ from the frozen study")
+    suite = json.loads((experiment / "cases.json").read_text(encoding="utf-8")) if low else load_suite()
+    case = next(c for c in suite["cases"] if c["id"] == row["case"])
+    if low and manifest.get('normal_plugin_collector_ready'):
+        # The scored low-model campaign uses normal installed plugins throughout.
+        # Historical collectors remain available only to historical freezes.
+        campaign_file = experiment.parent / 'campaign.json'
+        if not execute:
+            print(json.dumps({'trial': row, 'campaign': str(campaign_file),
+                              'route': 'normal installed-plugin conversation',
+                              'status': 'dry run; no host invoked'}))
+            return
+        from normal_campaign import read, run
+        campaign = read(campaign_file)
+        if timeout != campaign['limits']['timeout_seconds'][row['host']]:
+            raise ValueError('timeout differs from the explicit frozen host budget')
+        if profile is not None and profile.resolve() != Path(campaign['profiles'][row['host']]).resolve():
+            raise ValueError('profile differs from the reviewed campaign profile')
+        print(json.dumps(run(campaign_file, trial_id), ensure_ascii=True))
+        return
     args = command(row["host"], row["model"], row["effort"])
     if not execute:
         print(json.dumps({"trial": row, "command": args, "turns": len(case["turns"]),
@@ -181,7 +227,12 @@ def run_trial(experiment, trial_id, profile, timeout, execute):
     readiness = json.loads((profile / "readiness.json").read_text(encoding="utf-8"))
     activations = activation_prompts(case, row["condition"], row["host"], readiness)
     plugin_roots = selected_plugins(profile, readiness, case, row["condition"])
-    destination = experiment / "trials" / trial_id
+    from release_runtime import reviewed_mcp, invoke_bounded, native_binary
+    mcp_config = reviewed_mcp(row["host"], plugin_roots, row["condition"])
+    # Keep the immutable low-model freeze free of runtime files and transcripts.
+    destination = ((experiment.parent / (experiment.name + "-results")) if low else experiment) / "trials" / trial_id
+    if destination.resolve() != destination.absolute() or not destination.resolve().is_relative_to(ROOT.resolve()):
+        raise ValueError("trial output path escaped the reviewed task root or traversed a link")
     if destination.exists():
         raise ValueError("trial already has state; inspect it instead of silently rerunning")
     destination.mkdir(parents=True)
@@ -190,6 +241,8 @@ def run_trial(experiment, trial_id, profile, timeout, execute):
     if "fixture" in case:
         shutil.copyfile(HERE / "fixtures" / case["fixture"], work / case["fixture"])
     env = native_environment(row["host"], profile, row["model"], row["effort"])
+    if row["host"] == "claude" and mcp_config:
+        env["CLAUDE_PLUGIN_ROOT"] = str(plugin_roots[0])
     record = {**row, "turns": [], "activation_turns": [], "delivery_verified": False, "actual_model_verified": False,
               "effort_verified": False, "release_qualified": False,
               "scope": "native skill use with supplied source; generated code is checked separately"}
@@ -207,14 +260,15 @@ def run_trial(experiment, trial_id, profile, timeout, execute):
             for index, (phase, prompt) in enumerate(conversation):
                 if phase == "turns" and not record["turns"] and "fixture" in case:
                     prompt += "\n\nSupplied project.py:\n```python\n" + (work / case["fixture"]).read_text(encoding="utf-8") + "\n```"
-                args = command(row["host"], row["model"], row["effort"], session, plugin_roots)
-                args[0] = shutil.which(args[0]) or args[0]
+                args = command(row["host"], row["model"], row["effort"], session, plugin_roots, mcp_config)
+                args[0] = native_binary(row["host"])
                 started = time.monotonic()
-                result = subprocess.run(args, input=prompt, cwd=work, env=env, capture_output=True,
-                                        text=True, encoding="utf-8", errors="strict", timeout=timeout)
-                if result.returncode:
-                    raise ValueError(f"host exit {result.returncode}; no retry attempted")
-                turn = parse(row["host"], result.stdout)
+                result = invoke_bounded(args, prompt, work, env, timeout)
+                record.setdefault("processes", []).append({k: result[k] for k in
+                    ("status", "exitCode", "cleanupVerified", "activeProcesses", "elapsedMs")})
+                if result["status"] != "exited" or result["exitCode"] != 0:
+                    raise ValueError("bounded host failed; no retry attempted")
+                turn = parse(row["host"], result["stdout"])
                 if phase == "activation_turns" and re.search(r"unknown (?:command|skill)|skill not found", turn["answer"], re.I):
                     raise ValueError("native skill activation failed; no task turn will be scored")
                 session = turn["session"] or session
@@ -241,11 +295,15 @@ def main():
     parser.add_argument("--experiment", type=Path, required=True)
     parser.add_argument("--trial", required=True)
     parser.add_argument("--profile", type=Path)
-    parser.add_argument("--timeout", type=int, default=180)
+    parser.add_argument("--timeout", type=int, help="Explicit per-turn execution budget in seconds for the selected model/settings")
     parser.add_argument("--execute", action="store_true")
     args = parser.parse_args()
-    if not 1 <= args.timeout <= 300:
-        parser.error("timeout must be between 1 and 300 seconds per turn")
+    if args.execute or args.timeout is not None:
+        from release_runtime import checked_timeout
+        try:
+            checked_timeout(args.timeout)
+        except ValueError:
+            parser.error("--timeout must specify a finite execution budget; there is no fixed inference default")
     if args.execute and not args.profile:
         parser.error("--execute needs a prepared --profile")
     experiment = args.experiment.resolve(strict=True)

@@ -2,13 +2,32 @@
   "hooks": {
     "SessionStart": [
       { "matcher": "startup|resume|clear|compact",
-        "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ttak.cjs\"", "timeout": 5 }] }
+        "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ttak.cjs\"", "timeout": 5 },
+                  { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scenario-evidence.cjs\"", "timeout": 5 }] }
     ],
     "SubagentStart": [
-      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ttak.cjs\"", "timeout": 5 }] }
+      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ttak.cjs\"", "timeout": 5 },
+                  { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scenario-evidence.cjs\"", "timeout": 5 }] }
+    ],
+    "PreToolUse": [
+      { "matcher": "^(Agent|Task|mcp__(plugin_ttak_)?ttak_scenario__explanation_(packet|result|final_preview|assess_request|notice_from_assessment|prepare|next|check_final|revise_final|decide|repair_notice|dispatch|fact_result|final_result|notice_result|assessment_result))$", "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scenario-evidence.cjs\"", "timeout": 5 }] }
     ],
     "UserPromptSubmit": [
-      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ttak.cjs\"", "timeout": 5 }] }
+      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ttak.cjs\"", "timeout": 5 },
+                  { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scenario-evidence.cjs\"", "timeout": 5 }] }
+    ],
+    "PostToolUse": [
+      { "matcher": "^(mcp__(plugin_ttak_)?ttak_scenario__(scenario_review|explanation_assess_request|explanation_notice_from_assessment|explanation_decide|explanation_repair_notice|explanation_prepare|explanation_next|explanation_check_final|explanation_revise_final|explanation_dispatch|explanation_packet|explanation_result|explanation_final_preview|explanation_fact_result|explanation_final_result|explanation_notice_result|explanation_assessment_result)|Agent|Task)$",
+        "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scenario-evidence.cjs\"", "timeout": 5 }] }
+    ],
+    "SubagentStop": [
+      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scenario-evidence.cjs\"", "timeout": 5 }] }
+    ],
+    "SessionEnd": [
+      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scenario-evidence.cjs\"", "timeout": 3 }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scenario-stop.cjs\"", "timeout": 5 }] }
     ]
   }
 }

@@ -67,10 +67,14 @@ codex plugin add ttak@ttak
 ```
 
 Codex **will not run a plugin's hooks until you enable them, and installing is not enough.** TTAK
-declares three — session start, user prompt submit, subagent start — and each is enabled separately.
+declares eight events: `SessionStart`, `UserPromptSubmit`, `SubagentStart`, `PreToolUse`,
+`PostToolUse`, `SubagentStop`, `Stop` and `SessionEnd`. There are eleven command handlers in total;
+review and enable every handler.
 The CLI's `/hooks` lists them per event with an installed and an active count; the ChatGPT desktop
 app's hook settings list the plugin by name with one toggle per event. The run behind this paragraph
-used the desktop app. Turn all three on.
+used the desktop app and covered the original three events. The current candidate adds evidence
+recording, independent fact and final explanation checks, and session cleanup; its current validation
+is recorded in the [release work log](docs/RELEASE_RESUME_2026-09-14.ko.md).
 
 Until they are on, the failure is worse than silence. `ttak on` is not consumed by the plugin, so it
 reaches the model as an ordinary prompt — and the model may answer as though it had worked. In one
