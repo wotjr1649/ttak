@@ -1,0 +1,211 @@
+{
+  "status": "LOCAL_PROTOTYPE_VALIDATED_NATIVE_UNRUN",
+  "native_model_starts": 0,
+  "sources": [
+    {
+      "name": "ponytail",
+      "revision": "2ed6c52c9d7e5e56942508591085fd45dea277d3",
+      "files": {
+        "skills/ponytail/SKILL.md": {
+          "file_bytes": 6757,
+          "body_bytes": 5799,
+          "sha256": "46a57e26a2632e7fa40eae6a3cf3011ccdc4d8db19d8f8617907d6b5deef055e"
+        },
+        ".agents/rules/ponytail.md": {
+          "file_bytes": 2525,
+          "body_bytes": 2523,
+          "sha256": "6ae86de93c755fb230db7fa354b54ae31f1fa136467aaa7048dabebc378e0060"
+        },
+        "hooks/claude-codex-hooks.json": {
+          "file_bytes": 1007,
+          "body_bytes": 1005,
+          "sha256": "ce20ff5604dea5779f0155caa23dce83ade503f95d90d3ab25a68204d029997a"
+        },
+        "hooks/ponytail-activate.js": {
+          "file_bytes": 4053,
+          "body_bytes": 4051,
+          "sha256": "6d16ab136a5e790a3b7f07c8a86725df1ddec9cf0cfeb6aaed28b9665f7105f3"
+        },
+        "hooks/ponytail-instructions.js": {
+          "file_bytes": 5585,
+          "body_bytes": 5583,
+          "sha256": "bb5fecf1ff5b8482ed27ec5836756d67c4b787f6d7e0557bda681bd3077e4e75"
+        },
+        "hooks/ponytail-mode-tracker.js": {
+          "file_bytes": 5448,
+          "body_bytes": 5446,
+          "sha256": "763e88833a55aa240c11bfb470ce88ed6f34714c46e899f91582b41394388e87"
+        },
+        "hooks/ponytail-config.js": {
+          "file_bytes": 6050,
+          "body_bytes": 6048,
+          "sha256": "7600d560a1a7582d20a95ffdbbe3111b4ae93c4f6cbf6f06cb9feb45c9beeed7"
+        },
+        "hooks/ponytail-runtime.js": {
+          "file_bytes": 3349,
+          "body_bytes": 3347,
+          "sha256": "0d9029ad605719437b3364c242847930fed3d8fc4f169ddd2a1e7e503c73f10b"
+        },
+        "hooks/ponytail-subagent.js": {
+          "file_bytes": 2760,
+          "body_bytes": 2758,
+          "sha256": "fa1d3bff69d0101a97cc96cf4f7fe4059b599577f8d6463d4cd160a0bcae8d62"
+        }
+      }
+    },
+    {
+      "name": "i-have-adhd",
+      "revision": "58494af57962b2d7a996b4d419474380a299af5e",
+      "files": {
+        "skills/i-have-adhd/SKILL.md": {
+          "file_bytes": 6953,
+          "body_bytes": 6520,
+          "sha256": "13969c0aa5a69127828ef10fb4a53aa2b56d08c184b9f4354d0ea34695c358bb"
+        },
+        "skills/i-have-adhd/agents/openai.yaml": {
+          "file_bytes": 245,
+          "body_bytes": 243,
+          "sha256": "0f227b4fb11ac6cc087464a96153e443c8541e92c0db605f356b2c1d4038c96e"
+        },
+        "hooks/hooks.json": {
+          "file_bytes": 566,
+          "body_bytes": 564,
+          "sha256": "55e6f42d516f53459db4c81fa9b353958b9596cd1c1a978da50708d8ea500371"
+        },
+        "hooks/always-on.mjs": {
+          "file_bytes": 1810,
+          "body_bytes": 1808,
+          "sha256": "4e7334e9a5f94f9d30f399376db40c40d07b18f11f83f8d852cf398d2e35b7ce"
+        },
+        ".codex-plugin/plugin.json": {
+          "file_bytes": 1317,
+          "body_bytes": 1315,
+          "sha256": "0ebb5d47a81c88d3087a60f1bb6c9a319e41798ce5801844ba284404450292e1"
+        }
+      }
+    },
+    {
+      "name": "ELI5",
+      "revision": "a766623b062331fdde53467001379b4ddf3acc2f",
+      "files": {
+        "skills/eli5/SKILL.md": {
+          "file_bytes": 8081,
+          "body_bytes": 7352,
+          "sha256": "3700f6605d0600cbf84d962df5d99d94da4ba5895a9dcd874567f3aefc3a8406"
+        }
+      }
+    }
+  ],
+  "draft": {
+    ".claude-plugin/plugin.json": {
+      "file_bytes": 346,
+      "body_bytes": 345,
+      "sha256": "0f904b32a293f26fee9a54fd499aaf6e5d68cf8ec54a7902ea6b6217bfc3136e"
+    },
+    ".codex-plugin/plugin.json": {
+      "file_bytes": 884,
+      "body_bytes": 883,
+      "sha256": "1223372918bc57d5597822ed569f7630390a2f3f78ffca114189003e762aa1a9"
+    },
+    "ATTRIBUTIONS.md": {
+      "file_bytes": 8918,
+      "body_bytes": 8917,
+      "sha256": "410ccbd4ecd2486431105beb4b31bb7c2520e5d8cf5b7b7731b6aebca256a3e1"
+    },
+    "hooks/hooks.json": {
+      "file_bytes": 357,
+      "body_bytes": 356,
+      "sha256": "9fafcb66d90628489d98da9c44663df4d198cb5c25992cf099eb074e61e04d4c"
+    },
+    "hooks/state.cjs": {
+      "file_bytes": 5031,
+      "body_bytes": 5030,
+      "sha256": "71f26564a3a115f7960b9ff7c7f265e459e49839acccdb9fc6fd39e9facda302"
+    },
+    "hooks/ttak.cjs": {
+      "file_bytes": 3566,
+      "body_bytes": 3565,
+      "sha256": "c149da0a07c9513f9a21129a7d18b76ab3e6d8663d7bcbd7a1ef1d81a5748c01"
+    },
+    "LICENSE": {
+      "file_bytes": 1069,
+      "body_bytes": 1068,
+      "sha256": "fc4f9ef11a3d86a1aa40680960da716f08a97001aafcf407db0237c0981d6a0b"
+    },
+    "policy/core.md": {
+      "file_bytes": 1078,
+      "body_bytes": 1077,
+      "sha256": "3fb23e20ccf80cc4bca099eef781081fee9cb7d20360639303b3c6cab1a2c8eb"
+    },
+    "references/explain.md": {
+      "file_bytes": 1127,
+      "body_bytes": 1126,
+      "sha256": "1668252ccc5daaf9b4c6a91abc3b253ead4d4bc9ad9eb02e0b2c5915548cea11"
+    },
+    "references/review.md": {
+      "file_bytes": 984,
+      "body_bytes": 983,
+      "sha256": "6a43fed29b337a8bcec0388503cf5b2ec0adbc864872e3d41aa484cd97ad99d0"
+    },
+    "skills/ttak/SKILL.md": {
+      "file_bytes": 987,
+      "body_bytes": 796,
+      "sha256": "fa6ace2e74d1e5e24379e502bbd376ba3a096676414a100d49a7f740f2d7fecd"
+    }
+  },
+  "injection": {
+    "off_additional_context_bytes": 0,
+    "on_core_template_bytes": 1077,
+    "on_rendered_core_bytes_at_test_path": 1177,
+    "discovery": "one settings skill; host metadata overhead remains",
+    "subagent_hook_injection_bytes": 0
+  },
+  "preserved_runtime_files": 33,
+  "validation": {
+    "local_node_tests": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0
+    },
+    "skill_creator": "PASS",
+    "plugin_structure": "PASS",
+    "native": "UNRUN",
+    "runtime_files_unchanged": 33
+  },
+  "plugin_eval": {
+    "plugin": {
+      "score": 58,
+      "grade": "D",
+      "report_sha256": "0fbc23f56f35b4e9c10725563fdaf592dbad71f6dc126571fbe09e75e18a9ff9",
+      "deductions": [
+        {
+          "id": "deferred_cost_tokens-budget-high",
+          "penalty": 14
+        },
+        {
+          "id": "interface-missing-privacyPolicyURL",
+          "penalty": 14
+        },
+        {
+          "id": "interface-missing-termsOfServiceURL",
+          "penalty": 14
+        },
+        {
+          "id": "coverage-artifacts-unavailable",
+          "penalty": 0.25
+        }
+      ]
+    },
+    "skill": {
+      "score": 100,
+      "grade": "A",
+      "report_sha256": "7481834c26b8894b53d754a437e8dfb968c6ce155c985a505aba68eb628d3cb5",
+      "deductions": [
+        {
+          "id": "coverage-artifacts-unavailable",
+          "penalty": 0.25
+        }
+      ]
+    }
+  }
+}

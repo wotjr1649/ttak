@@ -1,6 +1,6 @@
 {
   "name": "ttak",
-  "version": "0.3.0-design.1",
+  "version": "0.3.0-design.2",
   "description": "Focused simplification and reader-aware explanations. Inactive design prototype; not release-qualified.",
   "author": {
     "name": "Kim Jae Seok"
@@ -12,10 +12,15 @@
   "interface": {
     "displayName": "TTAK",
     "shortDescription": "Only what is needed, clear for the reader.",
-    "longDescription": "Inactive design prototype for a smaller TTAK. Optional core policy wiring and native behavioral qualification remain pending.",
+    "longDescription": "Opt-in TTAK guidance with one settings skill and task-specific references. Local hook tests only; native qualification pending.",
     "developerName": "Kim Jae Seok",
     "category": "Productivity",
-    "capabilities": ["Instructions"],
-    "defaultPrompt": ["Review this change for unnecessary complexity."]
+    "websiteURL": "https://github.com/wotjr1649/ttak",
+    "capabilities": [
+      "Instructions"
+    ],
+    "defaultPrompt": [
+      "Show the saved TTAK setting."
+    ]
   }
 }

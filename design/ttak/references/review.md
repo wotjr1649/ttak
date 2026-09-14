@@ -1,9 +1,3 @@
----
-name: ttak-review
-description: "Review code or a design for unnecessary complexity. Use when the user asks what can be simplified, reused, or removed."
-license: MIT
----
-
 # Review necessary complexity
 
 Find simplifications justified by current requirements and actual use. Read the supplied change and the relevant callers or constraints; a description-only review rests on the supplied premises.

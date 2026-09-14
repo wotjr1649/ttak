@@ -1,0 +1,11 @@
+{
+  "name": "ttak",
+  "version": "0.3.0-design.2",
+  "description": "Focused simplification and reader-aware explanations. Inactive design prototype; not release-qualified.",
+  "author": {
+    "name": "Kim Jae Seok"
+  },
+  "homepage": "https://github.com/wotjr1649/ttak",
+  "repository": "https://github.com/wotjr1649/ttak",
+  "license": "MIT"
+}

@@ -1,5 +1,7 @@
 # TTAK 재설계 조사와 Plugin-Eval 결과
 
+현재 설계는 [ON/OFF·자동 적용 재설계](TTAK_REDESIGN_2026-09-14.ko.md)와 [로컬 검증·적대적 검토](TTAK_ROUTING_REVIEW_2026-09-14.ko.md)를 따른다. 아래 design.1 평가 수치와 이전 후보 기록은 당시 증거이며 현재 설계의 출하 합격을 뜻하지 않는다.
+
 2026-09-14 조사. 범위는 지정 글 정독, 원본 지침의 선택·크기 실측, 비활성 스킬 초안 작성과 정적 평가다. 모델 호출, 새 설치, 활성화, 기존 runtime 변경은 없다. 설계 결정은 [재설계안](TTAK_REDESIGN_2026-09-14.ko.md), 측정 원자료는 [JSON](TTAK_REDESIGN_MEASUREMENTS_2026-09-14.json)에 있다.
 
 ## 지정 글에서 채택한 원칙
