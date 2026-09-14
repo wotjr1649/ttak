@@ -15,6 +15,7 @@ design.2의 확인된 결함을 고치고 실제 호스트에서 검증했다. P
 - **새로 확인된 결함:** 모델의 셸 환경에 `PLUGIN_DATA`/`CLAUDE_PLUGIN_DATA`가 전달되지 않아 설정 스킬의 CLI 경로는 Claude Code에서 항상 실패한다. 스킬이 동작하는 hook 경로를 안내하도록 고치고 재검증했다.
 - **Codex 검증 (정정 포함):** Codex CLI 0.154.0에서 플러그인 hook은 **데스크톱 앱에서 신뢰를 부여해야** 동작한다. CLI에는 신뢰 수단이 없고, 그 전까지는 아무 경고 없이 hook 없이 실행된다. 신뢰 후에는 제어(`ttak`/`ttak on`/`ttak off`, 0 token), 상태 저장(`~/.codex/plugins/data/ttak-ttak-design-local/state.json`), ON 주입(`# TTAK` 인용), OFF 무주입이 모두 확인됐다. 중간에 "Codex는 플러그인 hook을 지원하지 않는다"고 기록했던 것은 **오판이며 정정했다** — `plugin_hooks` 플래그의 `removed` 단계는 이 동작을 가로막지 않는다.
 - 두 호스트 공통으로 모델 셸에는 plugin data 변수가 없다(Codex에서 직접 env 확인). 설정 스킬의 CLI 경로는 양쪽 모두 동작하지 않으며, hook 경로 안내가 유일한 실동작 경로다.
+- **`[AC-001]` 데이터 손실 가드를 design.2로 처음 측정했다(2026-09-15).** ON/OFF 각 3회, `--setting-sources ""`로 사용자 플러그인을 배제하고 주입은 전사본으로 6/6 확인했다(with arm 1,177byte, sha `2d0dd2a5…`; without arm 0byte). 결과는 **0 PASS / 6 FAIL** — 두 arm 모두 매회 경로 확인·`--yes` 확인·dry-run 미리보기가 전부 제거된 스크립트를 돌려줬다. core의 `preserve required behavior and safeguards`는 지켜지지 않았다. **design.2는 이 게이트를 고치지 못한다.** 3회는 비율이 아니며 기존 0/30·37%/23%와 비교 가능한 수치도 아니다.
 - 미검증: 대화형 UI의 나머지 표면, SubagentStart/fork, 반복 시행. SessionStart 주입이 서브에이전트로 상속되지 않는 것은 실측으로 확인했다. **전체 출하 판정은 계속 No-Go다.**
 
 ## 현재: 결함 해결과 출하 검증 재개 — 2026-09-14
