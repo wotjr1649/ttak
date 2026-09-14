@@ -13,13 +13,15 @@ function visibleOutput(value){
 }
 function collectHistory(events,session,turnIds){
  if(!uuid(session)||!Array.isArray(turnIds)||!turnIds.length||turnIds.some(id=>!uuid(id))||new Set(turnIds).size!==turnIds.length)throw new Error('native_history_scope');
- const selected=new Set(turnIds),contexts=new Set(),calls=[],outputs=[],usage=[],responses=new Set();let current=null;
+ const selected=new Set(turnIds),contexts=new Map(),calls=[],outputs=[],usage=[],responses=new Set();let current=null;
  for(const event of events){
   if(event.type==='turn_context'){
    current=event.payload?.turn_id;
    if(selected.has(current)){
     if(event.payload.model!=='gpt-5.6-luna'||event.payload.effort!=='high')throw new Error('native_history_model');
-    contexts.add(current);
+    const settings={turn_id:current,model:event.payload.model,effort:event.payload.effort,multi_agent_version:event.payload.multi_agent_version??null};
+    if(contexts.has(current)&&JSON.stringify(contexts.get(current))!==JSON.stringify(settings))throw new Error('native_history_settings_changed');
+    contexts.set(current,settings);
    }
   }
   if(event.type==='token_usage_record'&&selected.has(event.payload?.turn_id)){
@@ -43,7 +45,7 @@ function collectHistory(events,session,turnIds){
  if([...selected].some(id=>!contexts.has(id)))throw new Error('native_history_missing_turn');
  const ids=calls.map(call=>call.call_id);
  if(new Set(ids).size!==ids.length||outputs.length!==calls.length||outputs.some(out=>ids.filter(id=>id===out.call_id).length!==1)||new Set(outputs.map(out=>out.call_id)).size!==outputs.length)throw new Error('native_history_unpaired_call');
- return {source:'completed_native_turn_ledger',session,turn_ids:turnIds,calls,outputs,usage,
+ return {source:'completed_native_turn_ledger',session,turn_ids:turnIds,contexts:[...contexts.values()],calls,outputs,usage,
    aggregate:usage.reduce((sum,row)=>{sum.responses++;for(const key of ['input','output','total','thinking'])sum[key]+=row[key];return sum;},{responses:0,input:0,output:0,total:0,thinking:0}),hidden_content_retained:false};
 }
 function nativeHistory(profile,session,turnIds){

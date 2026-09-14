@@ -4,6 +4,15 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const {specification,reserveCheckpoint}=require('./release/normal-codex.cjs'),{collector}=require('./release/normal-events.cjs');
 const area=path.resolve(__dirname,'../.superpowers'),sha=value=>createHash('sha256').update(value).digest('hex');
 const spec=()=>({collection_id:'00000000-0000-0000-0000-000000000001',prompt:'Explain a fictional register that returns7 without changing its value.',session:null,skills:[],ttak_root:null,parent_turn_limit:20,internal_verifier_limit:0});
+test('candidate activation and resumed task share a provisioned agent capability while allocations remain separate',()=>{
+  const {threadConfiguration}=require('./release/normal-codex.cjs');
+  const activation={...spec(),ttak_root:'reviewed-candidate'},task={...activation,internal_verifier_limit:11,session:'00000000-0000-0000-0000-000000000002'};
+  assert.deepEqual(threadConfiguration(activation),threadConfiguration(task));
+  assert.equal(threadConfiguration(activation)['agents.enabled'],true);
+  assert.equal(activation.internal_verifier_limit,0);
+  assert.equal(threadConfiguration(spec())['agents.enabled'],false);
+  assert.equal(threadConfiguration(task)['agents.max_concurrent_threads_per_session'],1);
+});
 test('normal transport rejects unknown effects, invalid sessions and unbounded limits',()=>{
   assert.deepEqual(specification(spec()),spec());
   for(const fields of [{collection_id:'../escape'},{collection_id:null},{session:'not-a-session'},{parent_turn_limit:0},{parent_turn_limit:21},{internal_verifier_limit:12},

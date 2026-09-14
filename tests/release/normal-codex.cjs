@@ -36,6 +36,14 @@ function reserveCheckpoint(spec,cwd=process.cwd()){
   const file=path.join(work,'normal-checkpoint-'+spec.collection_id+'.json');
   const descriptor=fs.openSync(file,'wx');fs.closeSync(descriptor);return file;
 }
+function threadConfiguration(spec){
+  // Codex retains the initial multi-agent mode across thread/resume. Provision
+  // the candidate capability on its first activation; the per-turn observer
+  // still rejects any spawn when that turn's verifier allocation is zero.
+  return {model_reasoning_effort:'high','features.shell_tool':false,'features.apps':false,web_search:'disabled',
+    'agents.enabled':spec.ttak_root!==null,'agents.max_concurrent_threads_per_session':1,
+    'agents.default_subagent_model':'gpt-5.6-luna','agents.default_subagent_reasoning_effort':'high'};
+}
 async function run(value){
   const spec=specification(value);localPath(process.cwd(),true);const profile=localPath(process.env.CODEX_HOME,true),cache=path.join(profile,'plugins/cache');
   if(spec.skills.some(skill=>!within(path.resolve(skill.path),cache))||spec.ttak_root&&!within(path.resolve(spec.ttak_root),cache))rejectSpec();
@@ -53,9 +61,7 @@ async function run(value){
     checkpoint,reject,resolve:()=>{if(!settled){settled=true;resolveDone();}}}),reject);
   try{
     await c.request('initialize',{clientInfo:{name:'ttak_normal_comparison',version:'1'}});c.send({method:'initialized'});
-    const config={model_reasoning_effort:'high','features.shell_tool':false,'features.apps':false,web_search:'disabled',
-      'agents.enabled':spec.internal_verifier_limit>0,'agents.max_concurrent_threads_per_session':1,
-      'agents.default_subagent_model':'gpt-5.6-luna','agents.default_subagent_reasoning_effort':'high'};
+    const config=threadConfiguration(spec);
     const options={cwd:process.cwd(),model:'gpt-5.6-luna',sandbox:'read-only',approvalPolicy:'never',config};
     const thread=spec.session?await c.request('thread/resume',{threadId:spec.session,...options})
       :await c.request('thread/start',{...options,allowProviderModelFallback:false});
@@ -66,12 +72,16 @@ async function run(value){
   }catch(error){report.error=/^[a-z_]+$/.test(error.message)?error.message:'normal_trial_failed';}
   finally{await c.close();checkpoint();}
   if(!report.error){
-    report.native_history=require('./normal-history.cjs').nativeHistory(profile,report.session,report.turns.map(turn=>turn.id));
+    try{
+      report.native_history=require('./normal-history.cjs').nativeHistory(profile,report.session,report.turns.map(turn=>turn.id));
+      const expected=spec.ttak_root===null?'disabled':'v1';
+      if(report.native_history.contexts.some(context=>context.multi_agent_version!==expected))throw new Error('native_agent_mode_mismatch');
+    }catch(error){report.error=/^[a-z_]+$/.test(error.message)?error.message:'native_history_failed';}
     checkpoint();
   }
   return report;
 }
-module.exports={specification,reserveCheckpoint,run};
+module.exports={specification,reserveCheckpoint,threadConfiguration,run};
 if(require.main===module){
   let input='',bytes=0;process.stdin.setEncoding('utf8');
   process.stdin.on('data',chunk=>{bytes+=Buffer.byteLength(chunk);if(bytes>65536){process.stdin.destroy();process.exitCode=1;}else input+=chunk;});
