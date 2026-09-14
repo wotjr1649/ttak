@@ -103,9 +103,9 @@
       "sha256": "0f904b32a293f26fee9a54fd499aaf6e5d68cf8ec54a7902ea6b6217bfc3136e"
     },
     ".codex-plugin/plugin.json": {
-      "file_bytes": 884,
-      "body_bytes": 883,
-      "sha256": "1223372918bc57d5597822ed569f7630390a2f3f78ffca114189003e762aa1a9"
+      "file_bytes": 1057,
+      "body_bytes": 1056,
+      "sha256": "13a8184b13180efc842e4baf8415f320f137b70f254d067eab6acbcc72563604"
     },
     "ATTRIBUTIONS.md": {
       "file_bytes": 8071,
@@ -182,34 +182,42 @@
   },
   "plugin_eval": {
     "plugin": {
-      "score": 58,
-      "grade": "D",
-      "report_sha256": "4af9fcaa8374392e5314719b2afdbab5779aea954633b446ef754edbae9be1e1",
+      "score": 86,
+      "grade": "B",
+      "report_sha256": "95429e611b3c8b1e098919f8920af073c55dca1de6dafd301111dfa334611534",
       "deferred_cost_tokens": 5260,
       "deferred_band": "excessive",
-      "previous": {
-        "score": 58,
-        "deferred_cost_tokens": 5353,
-        "report_sha256": "0fbc23f56f35b4e9c10725563fdaf592dbad71f6dc126571fbe09e75e18a9ff9"
+      "policy_urls_published": {
+        "privacy": "https://github.com/wotjr1649/ttak/blob/main/docs/PRIVACY.md",
+        "terms": "https://github.com/wotjr1649/ttak/blob/main/docs/TERMS.md",
+        "commit": "8a841e5ac90871af6569008b1f33724a846c04be",
+        "http_status": 200
       },
+      "history": [
+        {
+          "score": 58,
+          "deferred_cost_tokens": 5353,
+          "report_sha256": "0fbc23f56f35b4e9c10725563fdaf592dbad71f6dc126571fbe09e75e18a9ff9",
+          "note": "session 11 handoff baseline"
+        },
+        {
+          "score": 58,
+          "deferred_cost_tokens": 5260,
+          "report_sha256": "4af9fcaa8374392e5314719b2afdbab5779aea954633b446ef754edbae9be1e1",
+          "note": "after the notice rewrite, before the policy URLs"
+        }
+      ],
       "deductions": [
         {
           "id": "deferred_cost_tokens-budget-high",
           "penalty": 14
         },
         {
-          "id": "interface-missing-privacyPolicyURL",
-          "penalty": 14
-        },
-        {
-          "id": "interface-missing-termsOfServiceURL",
-          "penalty": 14
-        },
-        {
           "id": "coverage-artifacts-unavailable",
           "penalty": 0.25
         }
-      ]
+      ],
+      "remaining_note": "deferred is the evaluator static total; ATTRIBUTIONS.md is 2017 of 5260 and is never loaded by a model. Real ON injection is the 1,177-byte core, OFF is 0."
     },
     "skill": {
       "score": 100,

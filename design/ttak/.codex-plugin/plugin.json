@@ -16,6 +16,8 @@
     "developerName": "Kim Jae Seok",
     "category": "Productivity",
     "websiteURL": "https://github.com/wotjr1649/ttak",
+    "privacyPolicyURL": "https://github.com/wotjr1649/ttak/blob/main/docs/PRIVACY.md",
+    "termsOfServiceURL": "https://github.com/wotjr1649/ttak/blob/main/docs/TERMS.md",
     "capabilities": [
       "Instructions"
     ],
