@@ -1,0 +1,25 @@
+{
+  "id": "visibility-after-wait",
+  "observed_failure": {
+    "trial": "full-comparison-207/codex.explain-expert.ttak.1",
+    "claim": "after the first commits, the second rechecks the current state and must refuse the off-call change if no doctor remains",
+    "problem": "The explanation inferred a fresh post-wait view from locking alone under unspecified snapshot-isolation semantics. Both native reviews missed the unsupported implementation assumption."
+  },
+  "public_sources": [
+    {
+      "url": "https://www.postgresql.org/docs/18/explicit-locking.html",
+      "fact": "PostgreSQL 18 distinguishes waiting and returning an updated locked row from the Repeatable Read/Serializable case: locking a row changed since the transaction started can instead raise an error."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html",
+      "fact": "A PostgreSQL Repeatable Read transaction retains its transaction snapshot. Applications must be prepared to retry an entire transaction after a serialization failure."
+    }
+  ],
+  "native_regression_prompt": "Assess and correct this claim for PostgreSQL 18 Repeatable Read: 'After a SELECT FOR UPDATE waits for another transaction to commit, it always rechecks the newest committed row in the same transaction, so no transaction retry is needed.' Assume the waiting transaction already established its snapshot, and the other transaction changed and committed the row it is trying to lock. The PostgreSQL documentation states that Repeatable Read or Serializable locking can raise an error when the row changed since the transaction started, and applications must retry the entire transaction after serialization failure. Explain the relevant failure path briefly. Do not claim every locking read in every isolation level behaves this way.",
+  "acceptance": [
+    "Rejects the unconditional fresh-read and no-retry claim under the supplied Repeatable Read conditions",
+    "Identifies the serialization-failure path and the need to restart the whole transaction including its decision",
+    "Does not claim that locks universally refresh snapshots or that every isolation level has the same behavior"
+  ],
+  "limits": "This is a source-backed native regression fixture. It is not a live database test or proof that a model will always avoid factual errors. Different correct wording is acceptable."
+}

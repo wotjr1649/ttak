@@ -1,6 +1,9 @@
 'use strict';
 // Compact review reports, not a semantic oracle. No I/O, model calls or text trimming.
 const {checkedData,exact,checkInt,list,canonical,checkText}=require('./verification-packet.cjs');
+const mechanismGrounding='Separate execution order from the state or version an operation observes. '
+  +'For a claimed change in visibility, identify the specified rule that refreshes the view, aborts the operation or requires a restart; waiting or exclusion alone establishes none of these. '
+  +'Ground a remedy in the stated abstraction, or name its additional implementation and operating-mode requirements. Calling behavior normal does not establish those requirements.';
 const dimensions={
   requirement_review:{
     essential_requirements:'Check every essential requirement in the entire original request, including prose. Distinguish requirements from source inventories and optional alternatives.',
@@ -8,7 +11,7 @@ const dimensions={
   claim_review:{
     actors_targets:'Compare each claimed subject, action, read target, write target and resulting value with the original evidence.',
     conditions_outcomes:'Check each action under its stated conditions. Distinguish a false condition and no action from an operation being rejected or aborted; do not swap the actor in an alternative order.',
-    timing_negation:'Check event order, snapshot timing, causal direction and negation in the actual explanation.',
+    timing_negation:'Check event order, snapshot timing, causal direction and negation in the actual explanation. '+mechanismGrounding,
     guarantees_scope_costs:'Check implementation and operating-mode conditions, affected operations, guarantees and costs. An effect on one class of operation is not an effect on every operation.'},
   fact_review:{
     source_support:'Compare each actual fact answer with the original evidence, not with the final answer alone. A matching quote or receipt does not establish its conclusion.',
@@ -104,4 +107,4 @@ function scopeReviewIssues(value,issues,factIssues){
   compileReviewChecks(output,merged.length);
   return {checks:output,issues:merged};
 }
-module.exports={reviewSchema,flatReviewSchema,inlineReviewSchema,compileInlineReviewChecks,expandReviewChecks,compileReviewChecks,scopeReviewIssues};
+module.exports={mechanismGrounding,reviewSchema,flatReviewSchema,inlineReviewSchema,compileInlineReviewChecks,expandReviewChecks,compileReviewChecks,scopeReviewIssues};
