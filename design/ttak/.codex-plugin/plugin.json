@@ -9,6 +9,7 @@
   "repository": "https://github.com/wotjr1649/ttak",
   "license": "MIT",
   "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "TTAK",
     "shortDescription": "Only what is needed, clear for the reader.",
@@ -19,7 +20,8 @@
     "privacyPolicyURL": "https://github.com/wotjr1649/ttak/blob/main/docs/PRIVACY.md",
     "termsOfServiceURL": "https://github.com/wotjr1649/ttak/blob/main/docs/TERMS.md",
     "capabilities": [
-      "Instructions"
+      "Instructions",
+      "Lifecycle hooks"
     ],
     "defaultPrompt": [
       "Show the saved TTAK setting."

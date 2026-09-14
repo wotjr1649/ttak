@@ -269,11 +269,28 @@
       "development": "PASS - fix and test delivered, deprecated alias preserved, and the unrun test reported as unrun rather than claimed"
     },
     "not_established": [
-      "Codex CLI behavior",
       "installed-marketplace provisioning",
       "interactive UI",
       "SubagentStart and fork",
-      "repeated trials or any rate"
-    ]
+      "repeated trials or any rate",
+      "whether any other Codex version supports plugin hooks"
+    ],
+    "codex": {
+      "host": "Codex CLI 0.154.0 on Windows",
+      "install": "local marketplace -> codex plugin add, into the user profile; removed afterwards, profile restored",
+      "runs": 3,
+      "input_tokens": 293898,
+      "output_tokens": 1800,
+      "timed_out": 0,
+      "finding": "plugin_hooks is a removed feature (codex features list: stage removed, effective false), so a plugin-provided hooks/hooks.json never runs. Confirmed independently: an instrumented copy of ttak.cjs in the installed cache logged zero invocations across a real codex exec turn, with the plugin installed and enabled and features.hooks true.",
+      "consequences": [
+        "TTAK 0.3.0-design.2 control (ttak / $ttak / /ttak) is not intercepted on Codex: the prompt reaches the model",
+        "SessionStart core injection does not happen on Codex at any setting",
+        "the settings skill is discovered and runs, but its shell has neither PLUGIN_DATA nor CLAUDE_PLUGIN_DATA, exactly as in Claude Code",
+        "features.hooks true refers to the user-level ~/.codex/hooks.json, which the design deliberately does not write to"
+      ],
+      "incidental": "a Codex local marketplace only resolves a plugin whose source path is under the marketplace root",
+      "not_attempted": "--dangerously-bypass-hook-trust was not used; forcing a removed feature is not a product path"
+    }
   }
 }
