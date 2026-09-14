@@ -1,9 +1,10 @@
 'use strict';
 // Compact review reports, not a semantic oracle. No I/O, model calls or text trimming.
 const {checkedData,exact,checkInt,list,canonical,checkText}=require('./verification-packet.cjs');
-const mechanismGrounding='Separate execution order from the state or version an operation observes. '
-  +'For a claimed change in visibility, identify the specified rule that refreshes the view, aborts the operation or requires a restart; waiting or exclusion alone establishes none of these. '
-  +'Ground a remedy in the stated abstraction, or name its additional implementation and operating-mode requirements. Calling behavior normal does not establish those requirements.';
+const mechanismGrounding='Identify each actor\'s read targets separately from its write targets: disjoint writes can still have cross-row read/write dependencies. '
+  +'Separate execution order from observed versions. Waiting for a lock does not itself refresh a retained snapshot. '
+  +'For example, in PostgreSQL 18 Repeatable Read, locking a row changed after the transaction established its snapshot can cause serialization failure; the application retries the whole transaction, including its decision. '
+  +'Serializable correctness also does not promise a fresh read after waiting. State the implementation and isolation-mode rule supporting a remedy and its observation, abort or restart path; calling behavior normal establishes none of these.';
 const dimensions={
   requirement_review:{
     essential_requirements:'Check every essential requirement in the entire original request, including prose. Distinguish requirements from source inventories and optional alternatives.',

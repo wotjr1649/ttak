@@ -1,7 +1,7 @@
 {
   "name": "ttak",
   "displayName": "TTAK — Track · Trim · Adapt · Keep",
-  "version": "0.2.0-rc.13+codex.20260914090256",
+  "version": "0.2.0-rc.13+codex.20260914091452",
   "mcpServers": "./.claude-plugin/mcp.json",
   "description": "Lean development, focused review, audience-adaptive explanation and visible progress. Turn the operating discipline on with \"ttak on\".",
   "author": {

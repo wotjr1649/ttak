@@ -21,5 +21,6 @@
     "Identifies the serialization-failure path and the need to restart the whole transaction including its decision",
     "Does not claim that locks universally refresh snapshots or that every isolation level has the same behavior"
   ],
+  "related_failure_208": "Claude still assumed fresh reads after a lock wait and confused disjoint writes with disjoint reads. Review read targets and write targets separately, and use the concrete retained-snapshot counterexample to distinguish waiting from a refresh or restart rule.",
   "limits": "This is a source-backed native regression fixture. It is not a live database test or proof that a model will always avoid factual errors. Different correct wording is acceptable."
 }
