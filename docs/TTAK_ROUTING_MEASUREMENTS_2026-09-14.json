@@ -184,8 +184,8 @@
     "plugin": {
       "score": 86,
       "grade": "B",
-      "report_sha256": "c1375f65f767ac2f87f3ca4913b1a88a466e8f38a7b925c782d53d6a9a02094e",
-      "deferred_cost_tokens": 5260,
+      "report_sha256": "edaebe8afcecc488d858a44a62a488e2614257ea8491bf0a2cd0137227f98cb9",
+      "deferred_cost_tokens": 5395,
       "deferred_band": "excessive",
       "policy_urls_published": {
         "privacy": "https://github.com/wotjr1649/ttak/blob/main/docs/PRIVACY.md",
@@ -205,6 +205,12 @@
           "deferred_cost_tokens": 5260,
           "report_sha256": "4af9fcaa8374392e5314719b2afdbab5779aea954633b446ef754edbae9be1e1",
           "note": "after the notice rewrite, before the policy URLs"
+        },
+        {
+          "score": 86,
+          "deferred_cost_tokens": 5260,
+          "report_sha256": "c1375f65f767ac2f87f3ca4913b1a88a466e8f38a7b925c782d53d6a9a02094e",
+          "note": "after the policy URLs, before the AC-001 change and the promotion"
         }
       ],
       "deductions": [
@@ -219,11 +225,12 @@
       ],
       "remaining_note": "deferred is the evaluator static total; ATTRIBUTIONS.md is 2017 of 5260 and is never loaded by a model. Real ON injection is the 1,177-byte core, OFF is 0.",
       "budgets": {
-        "trigger": 69,
-        "invoke": 556,
+        "trigger": 64,
+        "invoke": 564,
         "invoke_band": "moderate",
-        "deferred": 5260
-      }
+        "deferred": 5395
+      },
+      "version_evaluated": "0.3.0-rc.1"
     },
     "skill": {
       "score": 100,
