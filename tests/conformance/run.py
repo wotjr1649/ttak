@@ -535,6 +535,14 @@ def capture_cli_version(host):
 
 def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout,
               plugin_dir=None, policy_sha=None, codex_fixtures=None):
+    # Absolute, always. Every trial runs from a fresh empty cwd below, so a
+    # relative --plugin-dir resolves to nothing there: the host loads no
+    # plugin, the hook never runs, and the `with` arm is the baseline wearing
+    # a `with` label -- the one result this instrument must never produce
+    # silently. Observed 2026-09-15, caught by verify_injection.py and not by
+    # anything here, which is why it is pinned here now.
+    if plugin_dir is not None:
+        plugin_dir = str(Path(plugin_dir).resolve())
     # A neutral, empty cwd for every trial: the isolation flags stop the
     # operator's own settings/config leaking in, but the model's own repo
     # (this one) would leak a second way if either arm ran from ROOT — a

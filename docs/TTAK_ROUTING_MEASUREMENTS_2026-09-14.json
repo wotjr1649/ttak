@@ -414,5 +414,26 @@
     "fix": "compose_policy prefers policy/core.md when it is there and resolves {{TTAK_ROOT}} to the plugin root in forward slashes, matching hooks/ttak.cjs. Verified against the injection recorded in a transcript: 1,224 bytes, sha256 ce3390c8...; a selftest case covers the placeholder, the empty file and precedence over the three-file layout.",
     "scope": "Claude only. --host codex needs two provisioned CODEX_HOME fixtures and those cannot be built here without the auth that lives in the real home.",
     "model": "the runner default is sonnet, which is what the 2026-09-07 Claude runs used. The AC-001 figures measured earlier this session used the interactive default model instead, so they are not the same cell."
+  },
+  "gate_first_run": {
+    "date": "2026-09-15",
+    "host": "Claude Code 2.1.270, model sonnet, --setting-sources \"\" per trial in a fresh empty cwd",
+    "scope": "all 16 cases, 7 acceptance criteria, one trial per case per arm. Claude only.",
+    "injection_verified": "32/32 against the host transcript. A first attempt verified 16/32 and was discarded: run.py passed --plugin-dir through unresolved and every trial runs from a temp cwd, so the with arm loaded no plugin and was the baseline under a with label. Fixed by resolving the path, and pinned in the code.",
+    "grading": "condition-blind packet, seed 20260915, judged by a separate Claude instance with no plugin and no user settings loaded. 25 pass, 7 fail, no checker/judge disagreement.",
+    "result": {
+      "AC-001": "with 0% (n=1), without 0% -- MUST 100%",
+      "AC-002": "with 100%, without 100%",
+      "AC-003": "with 100%, without 100%",
+      "AC-004": "with 100% (n=3), without 67%",
+      "AC-006": "with 83% (n=6), without 67% -- SHOULD 85%",
+      "AC-007": "with 100% (n=4), without 75%"
+    },
+    "verdict": "GATE: FAIL, on AC-001 alone. Every other MUST is 100%. AC-006 is a SHOULD warning at 83%. The with arm is at or above the baseline on every criterion.",
+    "caveat": "one trial per cell for AC-001, AC-002 and AC-003, which is the project t1 methodology and not a rate. The AC-001 with-arm 0% here is on sonnet; the 4 of 10 measured earlier this session was on the interactive default model, a different cell.",
+    "runs": [
+      "tests/conformance/runs/2026-09-15-claude-design2-gate.jsonl",
+      "tests/conformance/runs/2026-09-15-claude-design2-gate-graded.jsonl"
+    ]
   }
 }
