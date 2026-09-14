@@ -102,6 +102,13 @@ def run_turn(*, host, prompt, profile, work, record_directory, skills, ttak_root
             raise ValueError('actual native model differs from the frozen model')
         if session is not None and normalized['session'] != session:
             raise ValueError('native resume did not retain the observed session')
+        if ttak_root is not None:
+            snapshot = subprocess.run([str(RUNTIME_BINARIES['node']),str(ROOT / 'tests/release/normal-state.cjs')],
+                input=json.dumps(dict(profile=str(profile),installed=str(ttak_root),session=normalized['session'])),
+                cwd=work,env=parser_env,capture_output=True,encoding='utf-8',timeout=10)
+            if snapshot.returncode:
+                raise ValueError('post-turn evidence state could not be preserved')
+            write_new(destination / 'state-snapshot.json',json.loads(snapshot.stdout))
         write_new(destination / 'result.json', normalized)
         return normalized
     except Exception as error:

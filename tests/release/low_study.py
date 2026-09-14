@@ -51,6 +51,7 @@ def source_files():
         'tests/release/normal-events.cjs', 'tests/release/normal-parse.cjs',
         'tests/release/normal-rpc.cjs', 'tests/release/normal-codex.cjs',
         'tests/release/normal-history.cjs', 'scripts/review-native.cjs',
+        'tests/release/normal-state.cjs',
         'scripts/scenario-native-audit.cjs', 'scripts/bounded-native-process.cjs',
         'scripts/bounded-native-cli.cjs', 'scripts/windows-job.cs', 'scripts/windows-job.ps1',
         'tests/release/fixtures/project.py', 'tests/release/verify_project.py',
