@@ -1,5 +1,13 @@
 # First release candidate
 
+Current shipping scope (2026-09-14): the user's latest request removes the
+192-subject comparison and repeated baseline superiority from mandatory release
+qualification. Correct differences in wording, length and organization are accepted.
+The remaining gate covers factual correctness, essential requirements, actual
+execution and state recovery, and truthful completion reporting. Historical
+comparison plans and failures below remain evidence, not current prerequisites.
+See [current work and outstanding checks](RELEASE_RESUME_2026-09-14.ko.md#출하까지-남은-검증).
+
 Latest follow-up: [Native result API guidance 117](NATIVE_WIRE_117.ko.md). Luna completed the
 normal control with one result submission per verifier, exact final text and an accepting Stop.
 Haiku split one mechanism into five fact checks and timed out before the final check. Its empty
