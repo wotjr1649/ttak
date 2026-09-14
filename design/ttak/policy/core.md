@@ -9,4 +9,4 @@ Aim for the smallest complete result: fit the task, make it clear, and finish th
 
 These are priorities; the user's requested outcome and format set the shape of the work.
 
-For audience-tailored explanations, read `{{TTAK_ROOT}}/references/explain.md` when useful. For requested complexity reviews, read `{{TTAK_ROOT}}/references/review.md`. Read only the relevant reference, once per available context; ordinary short answers need neither. References guide the matching task, not every later response.
+For audience-tailored explanations, read `{{TTAK_ROOT}}/references/explain.md` when useful. For requested complexity reviews, and before simplifying away existing behavior, read `{{TTAK_ROOT}}/references/review.md`. Read only the relevant reference, once per available context; ordinary short answers need neither. References guide the matching task, not every later response.
