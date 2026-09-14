@@ -4,7 +4,7 @@
 
 An opt-in instruction set for Claude Code and Codex CLI with focused review and audience-adaptive
 explanation. It supports lean development and visible progress during long work.
-**This is an unqualified release candidate.** Its four capabilities and comparison gate are defined
+**This is an unqualified release candidate.** Its four capabilities and current shipping gate are defined
 in [the current release scope](docs/RELEASE.md). Historical measurements below concern the earlier
 policy; they do not validate this candidate or establish general improvements in quality or cost.
 
@@ -342,7 +342,10 @@ there and here as factual attribution. **None of their authors endorses TTAK.**
 
 ## Status
 
-Pre-release. The gates still open are the copied-content review, the inherited `LCL-BEH-001`
-behaviour gate (not re-run), the interactive surface of both hosts and the explainer's invocation
-syntax — the non-interactive surface is verified in the two host-integration documents — the
-cross-host conformance run, and the required human adversarial review of the English policy text.
+Pre-release. Current qualification focuses on factual correctness, essential requirements,
+execution and state recovery, and truthful completion. Correct wording differences are accepted;
+the 192-subject comparison and repeated superiority are optional follow-up evaluation.
+The latest known factual defect, observed checks and remaining work are recorded in the
+[release work log](docs/RELEASE_RESUME_2026-09-14.ko.md). The native checks use Claude Code
+2.1.266 and Codex CLI 0.154.0 on Windows; they do not establish interactive UI or automatic
+skill-selection behavior on every host version.
