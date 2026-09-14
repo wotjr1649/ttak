@@ -148,9 +148,9 @@
       "sha256": "6a43fed29b337a8bcec0388503cf5b2ec0adbc864872e3d41aa484cd97ad99d0"
     },
     "skills/ttak/SKILL.md": {
-      "file_bytes": 987,
-      "body_bytes": 796,
-      "sha256": "fa6ace2e74d1e5e24379e502bbd376ba3a096676414a100d49a7f740f2d7fecd"
+      "file_bytes": 1162,
+      "body_bytes": 971,
+      "sha256": "6b07bb0d370de83801f2b8f80f5fef54237868c1d1719c2561d5790cf6977ebf"
     }
   },
   "injection": {
@@ -169,7 +169,7 @@
     },
     "skill_creator": "PASS",
     "plugin_structure": "PASS",
-    "native": "UNRUN",
+    "native": "RUN",
     "runtime_files_unchanged": 33,
     "coverage": {
       "method": "NODE_V8_COVERAGE from every process, innermost range per process, OR-merged",
@@ -184,7 +184,7 @@
     "plugin": {
       "score": 86,
       "grade": "B",
-      "report_sha256": "95429e611b3c8b1e098919f8920af073c55dca1de6dafd301111dfa334611534",
+      "report_sha256": "c1375f65f767ac2f87f3ca4913b1a88a466e8f38a7b925c782d53d6a9a02094e",
       "deferred_cost_tokens": 5260,
       "deferred_band": "excessive",
       "policy_urls_published": {
@@ -217,7 +217,13 @@
           "penalty": 0.25
         }
       ],
-      "remaining_note": "deferred is the evaluator static total; ATTRIBUTIONS.md is 2017 of 5260 and is never loaded by a model. Real ON injection is the 1,177-byte core, OFF is 0."
+      "remaining_note": "deferred is the evaluator static total; ATTRIBUTIONS.md is 2017 of 5260 and is never loaded by a model. Real ON injection is the 1,177-byte core, OFF is 0.",
+      "budgets": {
+        "trigger": 69,
+        "invoke": 556,
+        "invoke_band": "moderate",
+        "deferred": 5260
+      }
     },
     "skill": {
       "score": 100,
@@ -237,5 +243,37 @@
     "metric": "longest shared word run, file-wide, shipped text vs each pinned source",
     "max_words": 4,
     "max_run": "use when the user"
+  },
+  "native": {
+    "host": "Claude Code 2.1.270 on Windows",
+    "plugin_load": "--plugin-dir, session only; no install, no profile change",
+    "models": [
+      "claude-opus-5",
+      "claude-haiku-4-5-20251001"
+    ],
+    "runs": 15,
+    "total_cost_usd": 2.3358,
+    "timed_out": 0,
+    "evidence": ".superpowers/native-213/",
+    "results": {
+      "control_plain": "PASS - ttak / ttak on / ttak off intercepted by the UserPromptSubmit hook, state saved, 0 model tokens",
+      "control_slash": "PASS - /ttak:ttak on and /ttak off take the same path",
+      "injection_on": "PASS - SessionStart injects policy/core.md; the model quoted its first line",
+      "injection_off": "PASS - OFF injects nothing; the model answered NONE",
+      "settings_skill": "FAIL then FIXED - neither PLUGIN_DATA nor CLAUDE_PLUGIN_DATA reaches the model shell in this host, so the CLI route always reports unavailable; SKILL.md now directs the user to the hook route, retested",
+      "reference_simple": "PASS - a short factual question read no reference",
+      "reference_explain": "PASS - an audience-tailored request read references/explain.md once",
+      "reference_review": "PASS - a complexity review read references/review.md and kept the compatibility adapter",
+      "unrelated_short": "PASS - 7x8 answered 56 with no tool call and no forced procedure",
+      "factual_209_area": "PASS (1 case) - snapshot isolation write skew and DEFERRABLE INITIALLY DEFERRED answered correctly against the official docs; one case is not a general accuracy claim",
+      "development": "PASS - fix and test delivered, deprecated alias preserved, and the unrun test reported as unrun rather than claimed"
+    },
+    "not_established": [
+      "Codex CLI behavior",
+      "installed-marketplace provisioning",
+      "interactive UI",
+      "SubagentStart and fork",
+      "repeated trials or any rate"
+    ]
   }
 }

@@ -4,6 +4,17 @@
 
 사용자의 최신 요청으로 원본 세 제품의 전 기능 통합을 제외하고 [재설계](TTAK_REDESIGN_2026-09-14.ko.md)했다. 짧은 방향성 core와 독립된 두 스킬이던 design.1(`ef59a03`)은 설정 스킬 `ttak` 하나와 ON core, 조건부 explain/review 자료로 구성된 `0.3.0-design.2`로 대체됐다. [웹 조사·Plugin-Eval 평가](TTAK_REDESIGN_RESEARCH_2026-09-14.ko.md)와 비활성 지침 초안을 작성했다. 기존 runtime은 교체하지 않았으며 아래 사실 오류·미출하 판정은 유지한다.
 
+## 현재: 실측 기반 보완과 첫 native 검증 — 2026-09-15
+
+design.2의 확인된 결함을 고치고 실제 호스트에서 검증했다. Plugin-Eval 기본 점수는 58/D에서 **86/B**가 됐다. 정책 문서 2개를 실제로 게시(`8a841e5`)하고 URL을 연결한 결과다. 남은 감점은 deferred 예산 −14와 coverage −0.25뿐이며, 이를 없애려면 필요한 고지를 지우거나 hook 코드를 minify해야 하므로 유지한다. 실제 주입량은 ON에서 core 1,177byte, OFF 0byte로 변함이 없다.
+
+- `state.cjs`: rename 실패 시 임시 파일이 host data root에 남는 것을 재현하고 수정했다. 회귀 테스트를 추가했고, 수정 전 코드에서 실패하는 것을 확인했다.
+- `design/ttak/ATTRIBUTIONS.md`: 이전 후보 경로와 깨진 링크를 현재 패키지 기준으로 다시 썼다. MIT 고지 3건은 원본 `LICENSE`와 byte 단위로 재확인했고, 원본과의 최장 공통 어구는 4단어로 실측했다.
+- 기존 테스트의 실제 coverage를 처음 수집했다(자식 프로세스 포함). `ttak.cjs` 96.2%, `state.cjs` 78% → 신규 Codex 프로필의 재귀 생성 경로를 덮는 테스트를 추가해 92.9%.
+- Claude Code 2.1.270에서 세션 한정 적재로 native 15회를 실행했다($2.34, timeout 0, 누수 프로세스 0). hook 제어(plain/slash) PASS, ON core 주입·OFF 무주입 PASS, 조건부 자료 선택 PASS, 209 사실 오류 영역 1건 정답, 개발 과제 완수·호환 별칭 보존·미실행 검사의 정직한 보고 PASS.
+- **새로 확인된 결함:** 모델의 셸 환경에 `PLUGIN_DATA`/`CLAUDE_PLUGIN_DATA`가 전달되지 않아 설정 스킬의 CLI 경로는 Claude Code에서 항상 실패한다. 스킬이 동작하는 hook 경로를 안내하도록 고치고 재검증했다.
+- 미검증: Codex CLI, marketplace 설치 경로, 대화형 UI, SubagentStart/fork, 반복 시행. **전체 출하 판정은 계속 No-Go다.**
+
 ## 현재: 결함 해결과 출하 검증 재개 — 2026-09-14
 
 사용자의 후속 요청에 따라 결함 수정, 발견된 결함의 추가 분석·수정, 남은 검증을 재개했다.
