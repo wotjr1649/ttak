@@ -119,12 +119,27 @@ def contains_subseq(cmd, sub):
     return any(cmd[i:i + m] == sub for i in range(n - m + 1))
 
 
-def assert_isolated(host, cmd, model):
+def effort_flag(host, effort):
+    """How each host takes reasoning effort. Claude has a flag; Codex has no
+    flag for it and takes a config override instead -- verified against
+    `claude --help` (low, medium, high, xhigh, max) and `codex exec --help`
+    plus the key name in an operator config.toml. A model with no effort
+    setting passes None and gets neither."""
+    return {"claude": ["--effort", effort],
+            "codex": ["-c", f"model_reasoning_effort={effort}"]}[host]
+
+
+def assert_isolated(host, cmd, model, effort=None):
     for sub in REQUIRED[host]:
         if not contains_subseq(cmd, sub):
             raise AssertionError(f"{host} command missing required isolation flag {sub!r}: {cmd!r}")
     if "--model" not in cmd or cmd[cmd.index("--model") + 1] != model:
         raise AssertionError(f"{host} command must pin --model to the requested model, never inherit a default: {cmd!r}")
+    # Effort is pinned the same way and for the same reason: an edit that drops
+    # it leaves the host on its own default, and two cells of a per-model
+    # matrix would then differ by something the row does not record.
+    if effort is not None and not contains_subseq(cmd, effort_flag(host, effort)):
+        raise AssertionError(f"{host} command must pin the requested effort {effort!r}: {cmd!r}")
 
 
 # Windows caps a command line at 32,767 characters and the failure is opaque:
@@ -145,7 +160,7 @@ def assert_fits_command_line(host, cmd):
             f"large part on stdin rather than as an argument.")
 
 
-def build_command(host, arm, model, prompt, plugin_dir=None):
+def build_command(host, arm, model, prompt, plugin_dir=None, effort=None):
     """Build the argv for one trial. `arm` toggles whether TTAK is loaded:
 
     Claude: --plugin-dir loads a plugin directory for one session only
@@ -168,16 +183,20 @@ def build_command(host, arm, model, prompt, plugin_dir=None):
     """
     if host == "claude":
         cmd = list(CLAUDE_BASE) + ["--model", model]
+        if effort is not None:
+            cmd += effort_flag(host, effort)
         if arm == "with":
             cmd += ["--plugin-dir", str(plugin_dir or ROOT)]
     elif host == "codex":
         cmd = list(CODEX_BASE) + ["--model", model]
+        if effort is not None:
+            cmd += effort_flag(host, effort)
         if arm == "with":
             cmd += ["--dangerously-bypass-hook-trust"]
     else:
         raise ValueError(f"unknown host {host!r}")
     cmd.append(prompt)
-    assert_isolated(host, cmd, model)
+    assert_isolated(host, cmd, model, effort)
     assert_fits_command_line(host, cmd)
     return cmd
 
@@ -334,9 +353,14 @@ def policy_sha256(host, arm, plugin_dir, codex_fixtures=None):
     if host == "claude":
         return hashlib.sha256(compose_policy(Path(plugin_dir or ROOT) / "policy").encode("utf-8")).hexdigest()
     home = codex_home("with", codex_fixtures)
-    found = next(iter(sorted(home.glob("plugins/**/policy/invariants.md"))), None)
+    # Both policy layouts, newest first: 0.3.0-rc.1 ships one core.md where the
+    # predecessor shipped three files, and compose_policy() already reads
+    # either. Looking only for invariants.md made a correctly provisioned
+    # candidate fixture read as "a shape this runner does not know".
+    found = next(iter(sorted(home.glob("plugins/**/policy/core.md"))
+                      + sorted(home.glob("plugins/**/policy/invariants.md"))), None)
     if found is None:
-        raise ValueError(f"no policy/ directory under {home / 'plugins'}: "
+        raise ValueError(f"no policy/core.md or policy/invariants.md under {home / 'plugins'}: "
                          "the with-arm fixture is missing or has a shape this runner does not know")
     return hashlib.sha256(compose_policy(found.parent).encode("utf-8")).hexdigest()
 
@@ -534,7 +558,7 @@ def capture_cli_version(host):
 
 
 def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout,
-              plugin_dir=None, policy_sha=None, codex_fixtures=None):
+              plugin_dir=None, policy_sha=None, codex_fixtures=None, effort=None):
     # Absolute, always. Every trial runs from a fresh empty cwd below, so a
     # relative --plugin-dir resolves to nothing there: the host loads no
     # plugin, the hook never runs, and the `with` arm is the baseline wearing
@@ -565,7 +589,7 @@ def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout
                 plugin_data_dir = trial_dir / "plugin-data"
                 seed_state_on(plugin_data_dir)
 
-        cmd = build_command(host, arm, model, case["prompt"], plugin_dir)
+        cmd = build_command(host, arm, model, case["prompt"], plugin_dir, effort)
         env = build_env(plugin_data_dir)
         if host == "codex":
             # Both arms, not just `with`: see CODEX_FIXTURES. A fresh directory
@@ -590,7 +614,7 @@ def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout
 
     return {
         "case": case["id"], "ac": case["ac"], "trial": trial, "arm": arm, "host": host,
-        "model": model, "cli_version": cli_version, "plugin_skills": plugin_skills,
+        "model": model, "effort": effort, "cli_version": cli_version, "plugin_skills": plugin_skills,
         "command": cmd, "exit_code": exit_code, "stdout": stdout, "stderr": stderr,
         "error": error, "duration_s": round(time.time() - started, 3),
         # Which policy ran, and where. The cwd is gone by the time this row is
@@ -604,19 +628,20 @@ def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout
     }
 
 
-def do_dry_run(cases, host, arm, model, trials, existing, plugin_dir=None, policy_sha=None):
+def do_dry_run(cases, host, arm, model, trials, existing, plugin_dir=None, policy_sha=None,
+               effort=None):
     # Honors resumability too: a row already present in --out would not
     # actually be re-run, so "the exact commands it would run" must skip it
     # here as well, or a dry-run against a partially-done --out would show
     # commands that a real run of the same arguments would not issue.
     skipped = 0
-    print(f"# plugin_dir={plugin_dir or ROOT} policy_sha256={policy_sha}")
+    print(f"# plugin_dir={plugin_dir or ROOT} policy_sha256={policy_sha} effort={effort}")
     for case in cases:
         for trial in range(1, trials + 1):
             if should_skip(case["id"], trial, arm, host, policy_sha, existing):
                 skipped += 1
                 continue
-            cmd = build_command(host, arm, model, case["prompt"], plugin_dir)
+            cmd = build_command(host, arm, model, case["prompt"], plugin_dir, effort)
             print(f"# case={case['id']} ac={case['ac']} trial={trial} arm={arm} host={host}")
             print(shlex.join(cmd))
     if skipped:
@@ -625,7 +650,7 @@ def do_dry_run(cases, host, arm, model, trials, existing, plugin_dir=None, polic
 
 
 def do_run(cases, host, arm, model, trials, out_path, timeout, plugin_dir=None, policy_sha=None,
-           codex_fixtures=None):
+           codex_fixtures=None, effort=None):
     if host == "codex":
         problem = codex_fixture_problem(arm, codex_fixtures)
         if problem is not None:
@@ -647,7 +672,7 @@ def do_run(cases, host, arm, model, trials, out_path, timeout, plugin_dir=None, 
                 skipped += 1
                 continue
             row = run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout,
-                            plugin_dir, policy_sha, codex_fixtures)
+                            plugin_dir, policy_sha, codex_fixtures, effort)
             append_row(out_path, row)
             ran += 1
     print(f"ran {ran} trial(s), skipped {skipped} already-present row(s) -> {out_path}")
@@ -842,6 +867,21 @@ def _selftest():
     assert "--plugin-dir" not in build_command("claude", "without", "m", "p")
     assert "--dangerously-bypass-hook-trust" in build_command("codex", "with", "m", "p")
     assert "--dangerously-bypass-hook-trust" not in build_command("codex", "without", "m", "p")
+
+    # Effort is pinned per host and recorded; a model without one passes neither.
+    assert contains_subseq(build_command("claude", "without", "m", "p", effort="high"),
+                           ["--effort", "high"])
+    assert contains_subseq(build_command("codex", "without", "m", "p", effort="high"),
+                           ["-c", "model_reasoning_effort=high"])
+    assert "--effort" not in build_command("claude", "without", "m", "p")
+    assert not any("model_reasoning_effort" in str(a) for a in build_command("codex", "without", "m", "p"))
+    for _host in ("claude", "codex"):
+        try:
+            assert_isolated(_host, build_command(_host, "without", "m", "p"), "m", "high")
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(f"{_host}: a dropped effort flag must fail loudly")
 
     # response_text(): the two hosts write different shapes and one reader has
     # to know both, or a whole host's rows read as empty.
@@ -1227,6 +1267,17 @@ def _selftest():
         assert compose_policy(pol) == "A\n\nB\n\nC", repr(compose_policy(pol))
         assert policy_sha256("claude", "with", td) ==             hashlib.sha256("A\n\nB\n\nC".encode("utf-8")).hexdigest()
         assert policy_sha256("claude", "without", td) is None,             "the baseline injects nothing, so it has no policy identity to record"
+
+        # The Codex locator must find either policy layout, not just the old one.
+        for leaf in ("core.md", "invariants.md"):
+            fx = Path(td) / f"fx-{leaf}"
+            fx_pol = fx / "codex-home-with" / "plugins" / "cache" / "ttak" / "ttak" / "9.9.9" / "policy"
+            fx_pol.mkdir(parents=True)
+            (fx_pol / leaf).write_text("X", encoding="utf-8")
+            if leaf == "invariants.md":
+                for other in ("precedence.md", "contract.md"):
+                    (fx_pol / other).write_text("X", encoding="utf-8")
+            assert policy_sha256("codex", "with", None, fx) is not None, leaf
         # The candidate's single file takes precedence over the three when it is
         # there, and its {{TTAK_ROOT}} resolves to the plugin root -- the policy
         # directory's parent -- with forward slashes on every platform. A hash over
@@ -1383,6 +1434,9 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--host", choices=["claude", "codex"])
     p.add_argument("--arm", choices=["with", "without"])
+    p.add_argument("--effort", default=None, choices=("low", "medium", "high", "xhigh", "max"),
+                   help="reasoning effort to pin. Omit it for a model that has no effort setting; "
+                        "the row records which was used either way")
     p.add_argument("--model", default=None,
                    help=f"model id; defaults to {DEFAULT_MODEL!r} on claude, required on codex")
     p.add_argument("--trials", type=int)
@@ -1471,9 +1525,9 @@ def main(argv=None):
         if args.dry_run:
             existing = load_existing_keys(args.out) if args.out else set()
             return do_dry_run(cases, args.host, args.arm, args.model, args.trials, existing,
-                              args.plugin_dir, policy_sha)
+                              args.plugin_dir, policy_sha, args.effort)
         return do_run(cases, args.host, args.arm, args.model, args.trials, args.out, args.timeout,
-                      args.plugin_dir, policy_sha, args.codex_fixtures)
+                      args.plugin_dir, policy_sha, args.codex_fixtures, args.effort)
     except (ValueError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
