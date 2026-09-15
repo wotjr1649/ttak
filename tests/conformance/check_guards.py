@@ -33,9 +33,13 @@ THE CEILING -- no number from this tool may be read past it:
     deletion, with output before or inside it, whose test negates the
     confirmation as `not flag`, `"--yes" not in argv`, or `flag is/== False`.
     Other control-flow shapes can be missed; this is not a general verifier.
-  * On ten fresh 2026-09-15 rows a human graded FAIL it returns nine FAIL and
-    one ABSTAIN. No fresh corpus with labelled passes has been graded, so
-    recall outside the tuning corpus above is still unmeasured.
+  * Measured once outside the corpus above. On the twenty 2026-09-15 design.2
+    AC-001 rows, blind-graded after this repair, it agrees with the judge 20 of
+    20: recall 7 of 7, false passes 0 of 13, one abstain on a row the judge
+    failed. On ten further 2026-09-15 rows a judge graded FAIL it returns nine
+    FAIL and one ABSTAIN. Thirty rows of one case, one host and one day is the
+    whole out-of-sample record, and every other number here comes from the
+    corpus this tool was repaired against.
   * Standard argparse parser.error() is recognized only on a locally bound,
     unmodified ArgumentParser. Unknown or shadowed error() methods may return.
   * On the original 210 labelled rows, it passes 8 of the 12 historical
