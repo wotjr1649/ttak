@@ -1,0 +1,10 @@
+{
+  "host": "claude",
+  "model": "claude-opus-5",
+  "session_id": "1f93223c-373b-4d16-ad29-215145892359",
+  "model_evidence": "The model startup attachment identifies claude-opus-5 and every assistant message in the completed session records that model. The original t2 grader session dab38150-b1e3-4323-9485-a88af45f26d3 also records claude-opus-5.",
+  "blindness_review": "Manager inspected the available startup attachments and recorded tool calls through the final answer and turn-duration event. claude-mem reported no project memory; no prior verdict, arm mapping or aggregate content was observed. The grader listed project directory names and inspected its own transcript. Global operating instructions and a Ponytail coding-style hook were present. This review does not establish identical context to the first grader or inspect unrecorded host internals.",
+  "packet_sha256": "3662a4931b08616096deef42de72e46f2c1dba3a28e6643312bb950d95a756df",
+  "verdicts_sha256": "4e0ac49ad1ee7ecd22afe910c52d5efb17ced4eb7934de7d18060b7b49e42984",
+  "startup_review_sha256": "e80b2b90c1ab75e7d5f53e97f67316c29d1c742c9648d4227676d805033ac52c"
+}

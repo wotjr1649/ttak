@@ -1,0 +1,11 @@
+{
+  "host": "codex",
+  "model": "gpt-6-astra",
+  "session_id": "01a07e89-10eb-7292-ae9e-26af86f441ca",
+  "model_evidence": "Codex rollout turn_context.model=gpt-6-astra; effort=medium; originator=codex-tui; cli_version=0.153.4. Startup self-report did not expose the exact model; manager verified the rollout afterward.",
+  "blindness_review": "Manager reviewed the recorded startup context and tool calls. No prior verdict, arm mapping, aggregate document, external lookup or delegate access was observed. This is evidence from the available transcript, not a proof about unrecorded host internals.",
+  "packet_sha256": "3662a4931b08616096deef42de72e46f2c1dba3a28e6643312bb950d95a756df",
+  "verdicts_sha256": "9c14e8558d4fd0e8b582c8c494c8a4ba04e7cc6c63e4e3019aea64ff5d5e0835",
+  "startup_review_sha256": "84ee0d727effa27340cba3e8de454327379134ca5f783bd4c6a3a6c63851685c",
+  "protocol_deviation": "The planned same-family Claude regrading was performed in Codex instead. This layer records that additional Codex observation; it does not complete the planned Claude comparison."
+}

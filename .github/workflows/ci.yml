@@ -20,4 +20,7 @@ jobs:
       - name: No skipped assertions
         run: grep -qE '^. skipped 0$' /tmp/suite.log
       - name: Cross-host conformance selftest
-        run: python3 tests/conformance/run.py --selftest
+        run: |
+          python3 tests/conformance/run.py --selftest
+          python3 tests/conformance/check_guards.py --selftest
+          python3 tests/conformance/blind_grade.py --selftest
