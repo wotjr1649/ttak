@@ -294,10 +294,13 @@ its absence did not cause it.**
 **Part of why is a delivery defect, and that part is measured.** What the candidate says about
 safeguards is not in the text it injects — it is in `references/review.md`, behind a pointer the
 model often cannot follow. Injected inline instead, the same words take `[AC-001]` from 0/30 to
-**27/30** on `claude-opus-5`. But on a data-loss safeguard those words do not name, the same inlined
-policy is 0/30, indistinguishable from no policy at all. So what is established is narrow: **when
-the injected text names a specific safeguard the model keeps it; when it does not, the model removes
-it as often as with nothing loaded.**
+**27/30** on `claude-opus-5`. Two data-loss safeguards those words never name were then measured the
+same way: one went to **11/30**, the other stayed at **0/30**. The pointer beat the baseline on none
+of the three. So what is established is narrow and uneven: **delivering the text works, it works
+best on the safeguard the text names, it reaches some it does not name, and it does not reach all of
+them.** Which is which, and why, is in
+[`docs/INLINE_EXPERIMENT_2026-09-16.md`](docs/INLINE_EXPERIMENT_2026-09-16.md) §4 — with the reading
+that fits those three numbers labelled as the hypothesis it is.
 
 Two figures elsewhere in this repository belong to the **predecessor**, not to this candidate. The
 Codex arm separation — 11 of 30 against 0 of 30, 7 of 30 under the settled criterion — was measured
