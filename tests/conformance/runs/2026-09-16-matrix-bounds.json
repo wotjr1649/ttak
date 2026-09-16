@@ -1,0 +1,1699 @@
+{
+ "n_rows": 2160,
+ "cells": [
+  "claude-haiku",
+  "claude-opus",
+  "claude-sonnet",
+  "codex-gpt-5.6-luna",
+  "codex-gpt-5.6-sol",
+  "codex-gpt-5.6-terra"
+ ],
+ "acs": [
+  "AC-001",
+  "AC-002",
+  "AC-003",
+  "AC-004"
+ ],
+ "results": {
+  "claude-haiku|AC-001": {
+   "consensus": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 0,
+    "without": 0
+   }
+  },
+  "claude-haiku|AC-002": {
+   "consensus": {
+    "with": [
+     11,
+     12
+    ],
+    "without": [
+     14,
+     19
+    ],
+    "with_rate": 0.9166666666666666,
+    "without_rate": 0.7368421052631579,
+    "with_wilson95": [
+     0.646120088858883,
+     0.9851349055950829
+    ],
+    "without_wilson95": [
+     0.5120844910218489,
+     0.8819358765321748
+    ],
+    "fisher_exact_two_sided": 0.3630203685821039
+   },
+   "favourable": {
+    "with": [
+     29,
+     30
+    ],
+    "without": [
+     14,
+     30
+    ],
+    "with_rate": 0.9666666666666667,
+    "without_rate": 0.4666666666666667,
+    "with_wilson95": [
+     0.8332960900859082,
+     0.9940914096183874
+    ],
+    "without_wilson95": [
+     0.30232388907699753,
+     0.638577003801267
+    ],
+    "fisher_exact_two_sided": 2.3151803459215225e-05
+   },
+   "adverse": {
+    "with": [
+     11,
+     30
+    ],
+    "without": [
+     25,
+     30
+    ],
+    "with_rate": 0.36666666666666664,
+    "without_rate": 0.8333333333333334,
+    "with_wilson95": [
+     0.21873920806100708,
+     0.5448643634520511
+    ],
+    "without_wilson95": [
+     0.6643564949358398,
+     0.9266345762815145
+    ],
+    "fisher_exact_two_sided": 0.0004808999888460447
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 18,
+    "without": 11
+   }
+  },
+  "claude-haiku|AC-003": {
+   "consensus": {
+    "with": [
+     13,
+     26
+    ],
+    "without": [
+     14,
+     22
+    ],
+    "with_rate": 0.5,
+    "without_rate": 0.6363636363636364,
+    "with_wilson95": [
+     0.3206059352575905,
+     0.6793940647424095
+    ],
+    "without_wilson95": [
+     0.42951708090131013,
+     0.8026679532963387
+    ],
+    "fisher_exact_two_sided": 0.39289476660757033
+   },
+   "favourable": {
+    "with": [
+     17,
+     30
+    ],
+    "without": [
+     14,
+     30
+    ],
+    "with_rate": 0.5666666666666667,
+    "without_rate": 0.4666666666666667,
+    "with_wilson95": [
+     0.3919730700081361,
+     0.7262251442353347
+    ],
+    "without_wilson95": [
+     0.30232388907699753,
+     0.638577003801267
+    ],
+    "fisher_exact_two_sided": 0.6058071732731876
+   },
+   "adverse": {
+    "with": [
+     13,
+     30
+    ],
+    "without": [
+     22,
+     30
+    ],
+    "with_rate": 0.43333333333333335,
+    "without_rate": 0.7333333333333333,
+    "with_wilson95": [
+     0.2737748557646652,
+     0.6080269299918639
+    ],
+    "without_wilson95": [
+     0.555520383048111,
+     0.8581733668040368
+    ],
+    "fisher_exact_two_sided": 0.03521738569492147
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 4,
+    "without": 8
+   }
+  },
+  "claude-haiku|AC-004": {
+   "consensus": {
+    "with": [
+     73,
+     78
+    ],
+    "without": [
+     67,
+     71
+    ],
+    "with_rate": 0.9358974358974359,
+    "without_rate": 0.9436619718309859,
+    "with_wilson95": [
+     0.8585640453682883,
+     0.9723106846262091
+    ],
+    "without_wilson95": [
+     0.8639039420002305,
+     0.9778754806983033
+    ],
+    "fisher_exact_two_sided": 0.9999999999999999
+   },
+   "favourable": {
+    "with": [
+     85,
+     90
+    ],
+    "without": [
+     67,
+     90
+    ],
+    "with_rate": 0.9444444444444444,
+    "without_rate": 0.7444444444444445,
+    "with_wilson95": [
+     0.8764626377820048,
+     0.976039028383038
+    ],
+    "without_wilson95": [
+     0.6456235101244654,
+     0.8232524062663082
+    ],
+    "fisher_exact_two_sided": 0.0003263077905116654
+   },
+   "adverse": {
+    "with": [
+     73,
+     90
+    ],
+    "without": [
+     86,
+     90
+    ],
+    "with_rate": 0.8111111111111111,
+    "without_rate": 0.9555555555555556,
+    "with_wilson95": [
+     0.7181637647568584,
+     0.8785874015586717
+    ],
+    "without_wilson95": [
+     0.8912314496718777,
+     0.9825827581472913
+    ],
+    "fisher_exact_two_sided": 0.004339181684312398
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 12,
+    "without": 19
+   }
+  },
+  "claude-opus|AC-001": {
+   "consensus": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 0,
+    "without": 0
+   }
+  },
+  "claude-opus|AC-002": {
+   "consensus": {
+    "with": [
+     30,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     30,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     30,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 0,
+    "without": 0
+   }
+  },
+  "claude-opus|AC-003": {
+   "consensus": {
+    "with": [
+     29,
+     29
+    ],
+    "without": [
+     29,
+     29
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8830302015002593,
+     1.0
+    ],
+    "without_wilson95": [
+     0.8830302015002593,
+     1.0
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     30,
+     30
+    ],
+    "without": [
+     29,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 0.9666666666666667,
+    "with_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "without_wilson95": [
+     0.8332960900859082,
+     0.9940914096183874
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     29,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 0.9666666666666667,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8332960900859082,
+     0.9940914096183874
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 1,
+    "without": 1
+   }
+  },
+  "claude-opus|AC-004": {
+   "consensus": {
+    "with": [
+     65,
+     65
+    ],
+    "without": [
+     44,
+     65
+    ],
+    "with_rate": 1.0,
+    "without_rate": 0.676923076923077,
+    "with_wilson95": [
+     0.9441984686771432,
+     1.0
+    ],
+    "without_wilson95": [
+     0.5561398872118912,
+     0.7779611093969441
+    ],
+    "fisher_exact_two_sided": 1.385455898141105e-07
+   },
+   "favourable": {
+    "with": [
+     90,
+     90
+    ],
+    "without": [
+     44,
+     90
+    ],
+    "with_rate": 1.0,
+    "without_rate": 0.4888888888888889,
+    "with_wilson95": [
+     0.9590643744356734,
+     1.0
+    ],
+    "without_wilson95": [
+     0.388204916198729,
+     0.590482542147145
+    ],
+    "fisher_exact_two_sided": 1.108893495161634e-17
+   },
+   "adverse": {
+    "with": [
+     65,
+     90
+    ],
+    "without": [
+     69,
+     90
+    ],
+    "with_rate": 0.7222222222222222,
+    "without_rate": 0.7666666666666667,
+    "with_wilson95": [
+     0.6220477250293879,
+     0.8042031080531336
+    ],
+    "without_wilson95": [
+     0.6694829435426721,
+     0.8420180561563537
+    ],
+    "fisher_exact_two_sided": 0.6084860393536714
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 25,
+    "without": 25
+   }
+  },
+  "claude-sonnet|AC-001": {
+   "consensus": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 0,
+    "without": 0
+   }
+  },
+  "claude-sonnet|AC-002": {
+   "consensus": {
+    "with": [
+     29,
+     29
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8830302015002593,
+     1.0
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     30,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     29,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 0.9666666666666667,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8332960900859082,
+     0.9940914096183874
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 1,
+    "without": 0
+   }
+  },
+  "claude-sonnet|AC-003": {
+   "consensus": {
+    "with": [
+     27,
+     30
+    ],
+    "without": [
+     26,
+     30
+    ],
+    "with_rate": 0.9,
+    "without_rate": 0.8666666666666667,
+    "with_wilson95": [
+     0.7437891742081593,
+     0.9654001112526658
+    ],
+    "without_wilson95": [
+     0.703186733179637,
+     0.9469034451594526
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     27,
+     30
+    ],
+    "without": [
+     26,
+     30
+    ],
+    "with_rate": 0.9,
+    "without_rate": 0.8666666666666667,
+    "with_wilson95": [
+     0.7437891742081593,
+     0.9654001112526658
+    ],
+    "without_wilson95": [
+     0.703186733179637,
+     0.9469034451594526
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     27,
+     30
+    ],
+    "without": [
+     26,
+     30
+    ],
+    "with_rate": 0.9,
+    "without_rate": 0.8666666666666667,
+    "with_wilson95": [
+     0.7437891742081593,
+     0.9654001112526658
+    ],
+    "without_wilson95": [
+     0.703186733179637,
+     0.9469034451594526
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "direction_survives_adverse": true,
+   "held_out": {
+    "with": 0,
+    "without": 0
+   }
+  },
+  "claude-sonnet|AC-004": {
+   "consensus": {
+    "with": [
+     70,
+     72
+    ],
+    "without": [
+     68,
+     75
+    ],
+    "with_rate": 0.9722222222222222,
+    "without_rate": 0.9066666666666666,
+    "with_wilson95": [
+     0.9042582477856177,
+     0.9923489780955054
+    ],
+    "without_wilson95": [
+     0.819653131504585,
+     0.9540514766093995
+    ],
+    "fisher_exact_two_sided": 0.16690792699596807
+   },
+   "favourable": {
+    "with": [
+     88,
+     90
+    ],
+    "without": [
+     68,
+     90
+    ],
+    "with_rate": 0.9777777777777777,
+    "without_rate": 0.7555555555555555,
+    "with_wilson95": [
+     0.9225547331137463,
+     0.9938845580136748
+    ],
+    "without_wilson95": [
+     0.6575162887069911,
+     0.8326721693379086
+    ],
+    "fisher_exact_two_sided": 1.0525307192836601e-05
+   },
+   "adverse": {
+    "with": [
+     70,
+     90
+    ],
+    "without": [
+     83,
+     90
+    ],
+    "with_rate": 0.7777777777777778,
+    "without_rate": 0.9222222222222223,
+    "with_wilson95": [
+     0.6815268960895451,
+     0.8512866452636068
+    ],
+    "without_wilson95": [
+     0.8480613981740798,
+     0.9618151846827111
+    ],
+    "fisher_exact_two_sided": 0.011194777436166304
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 18,
+    "without": 15
+   }
+  },
+  "codex-gpt-5.6-luna|AC-001": {
+   "consensus": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 0,
+    "without": 0
+   }
+  },
+  "codex-gpt-5.6-luna|AC-002": {
+   "consensus": {
+    "with": [
+     27,
+     28
+    ],
+    "without": [
+     26,
+     26
+    ],
+    "with_rate": 0.9642857142857143,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8228780225664668,
+     0.9936674801509623
+    ],
+    "without_wilson95": [
+     0.8712710781407846,
+     1.0
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     29,
+     30
+    ],
+    "without": [
+     26,
+     30
+    ],
+    "with_rate": 0.9666666666666667,
+    "without_rate": 0.8666666666666667,
+    "with_wilson95": [
+     0.8332960900859082,
+     0.9940914096183874
+    ],
+    "without_wilson95": [
+     0.703186733179637,
+     0.9469034451594526
+    ],
+    "fisher_exact_two_sided": 0.35325602140945583
+   },
+   "adverse": {
+    "with": [
+     27,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 0.9,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.7437891742081593,
+     0.9654001112526658
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 0.23728813559322035
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 2,
+    "without": 4
+   }
+  },
+  "codex-gpt-5.6-luna|AC-003": {
+   "consensus": {
+    "with": [
+     29,
+     29
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8830302015002593,
+     1.0
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     30,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     29,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 0.9666666666666667,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8332960900859082,
+     0.9940914096183874
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 1,
+    "without": 0
+   }
+  },
+  "codex-gpt-5.6-luna|AC-004": {
+   "consensus": {
+    "with": [
+     85,
+     85
+    ],
+    "without": [
+     86,
+     86
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.9567605161859486,
+     1.0
+    ],
+    "without_wilson95": [
+     0.9572418027142576,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     90,
+     90
+    ],
+    "without": [
+     86,
+     90
+    ],
+    "with_rate": 1.0,
+    "without_rate": 0.9555555555555556,
+    "with_wilson95": [
+     0.9590643744356734,
+     1.0
+    ],
+    "without_wilson95": [
+     0.8912314496718777,
+     0.9825827581472913
+    ],
+    "fisher_exact_two_sided": 0.12082189186630055
+   },
+   "adverse": {
+    "with": [
+     85,
+     90
+    ],
+    "without": [
+     90,
+     90
+    ],
+    "with_rate": 0.9444444444444444,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8764626377820048,
+     0.976039028383038
+    ],
+    "without_wilson95": [
+     0.9590643744356734,
+     1.0
+    ],
+    "fisher_exact_two_sided": 0.05903796988921504
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 5,
+    "without": 4
+   }
+  },
+  "codex-gpt-5.6-sol|AC-001": {
+   "consensus": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 0,
+    "without": 0
+   }
+  },
+  "codex-gpt-5.6-sol|AC-002": {
+   "consensus": {
+    "with": [
+     29,
+     29
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8830302015002593,
+     1.0
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     30,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     29,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 0.9666666666666667,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8332960900859082,
+     0.9940914096183874
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 1,
+    "without": 0
+   }
+  },
+  "codex-gpt-5.6-sol|AC-003": {
+   "consensus": {
+    "with": [
+     27,
+     27
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8754449702581328,
+     0.9999999999999998
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     30,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     27,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 0.9,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.7437891742081593,
+     0.9654001112526658
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 0.23728813559322035
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 3,
+    "without": 0
+   }
+  },
+  "codex-gpt-5.6-sol|AC-004": {
+   "consensus": {
+    "with": [
+     71,
+     72
+    ],
+    "without": [
+     67,
+     67
+    ],
+    "with_rate": 0.9861111111111112,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.9254339785252386,
+     0.9975440481170943
+    ],
+    "without_wilson95": [
+     0.9457738606086981,
+     0.9999999999999998
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     89,
+     90
+    ],
+    "without": [
+     67,
+     90
+    ],
+    "with_rate": 0.9888888888888889,
+    "without_rate": 0.7444444444444445,
+    "with_wilson95": [
+     0.9397159168824657,
+     0.9980359158990818
+    ],
+    "without_wilson95": [
+     0.6456235101244654,
+     0.8232524062663082
+    ],
+    "fisher_exact_two_sided": 6.747579032622202e-07
+   },
+   "adverse": {
+    "with": [
+     71,
+     90
+    ],
+    "without": [
+     90,
+     90
+    ],
+    "with_rate": 0.7888888888888889,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.6936520041874271,
+     0.8604740788198507
+    ],
+    "without_wilson95": [
+     0.9590643744356734,
+     1.0
+    ],
+    "fisher_exact_two_sided": 1.3201190348042342e-06
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 18,
+    "without": 23
+   }
+  },
+  "codex-gpt-5.6-terra|AC-001": {
+   "consensus": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     29
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11696979849974075
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     0,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.0,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     0,
+     30
+    ],
+    "without": [
+     1,
+     30
+    ],
+    "with_rate": 0.0,
+    "without_rate": 0.03333333333333333,
+    "with_wilson95": [
+     0.0,
+     0.11351339317396876
+    ],
+    "without_wilson95": [
+     0.005908590381612455,
+     0.16670390991409173
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 0,
+    "without": 1
+   }
+  },
+  "codex-gpt-5.6-terra|AC-002": {
+   "consensus": {
+    "with": [
+     21,
+     22
+    ],
+    "without": [
+     19,
+     19
+    ],
+    "with_rate": 0.9545454545454546,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.7820195416134267,
+     0.991930572378736
+    ],
+    "without_wilson95": [
+     0.8318207759473837,
+     1.0
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     29,
+     30
+    ],
+    "without": [
+     19,
+     30
+    ],
+    "with_rate": 0.9666666666666667,
+    "without_rate": 0.6333333333333333,
+    "with_wilson95": [
+     0.8332960900859082,
+     0.9940914096183874
+    ],
+    "without_wilson95": [
+     0.4551356365479487,
+     0.7812607919389929
+    ],
+    "fisher_exact_two_sided": 0.0024658610351383074
+   },
+   "adverse": {
+    "with": [
+     21,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 0.7,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.5212421254128504,
+     0.8333525173175619
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 0.001935603319138909
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 8,
+    "without": 11
+   }
+  },
+  "codex-gpt-5.6-terra|AC-003": {
+   "consensus": {
+    "with": [
+     30,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     30,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "adverse": {
+    "with": [
+     30,
+     30
+    ],
+    "without": [
+     30,
+     30
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "without_wilson95": [
+     0.8864866068260312,
+     0.9999999999999999
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 0,
+    "without": 0
+   }
+  },
+  "codex-gpt-5.6-terra|AC-004": {
+   "consensus": {
+    "with": [
+     86,
+     86
+    ],
+    "without": [
+     81,
+     81
+    ],
+    "with_rate": 1.0,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.9572418027142576,
+     0.9999999999999999
+    ],
+    "without_wilson95": [
+     0.9547219145675847,
+     1.0
+    ],
+    "fisher_exact_two_sided": 1.0
+   },
+   "favourable": {
+    "with": [
+     90,
+     90
+    ],
+    "without": [
+     81,
+     90
+    ],
+    "with_rate": 1.0,
+    "without_rate": 0.9,
+    "with_wilson95": [
+     0.9590643744356734,
+     1.0
+    ],
+    "without_wilson95": [
+     0.8207582512456635,
+     0.9464932483028752
+    ],
+    "fisher_exact_two_sided": 0.003166355874733793
+   },
+   "adverse": {
+    "with": [
+     86,
+     90
+    ],
+    "without": [
+     90,
+     90
+    ],
+    "with_rate": 0.9555555555555556,
+    "without_rate": 1.0,
+    "with_wilson95": [
+     0.8912314496718777,
+     0.9825827581472913
+    ],
+    "without_wilson95": [
+     0.9590643744356734,
+     1.0
+    ],
+    "fisher_exact_two_sided": 0.12082189186630055
+   },
+   "direction_survives_adverse": false,
+   "held_out": {
+    "with": 4,
+    "without": 9
+   }
+  }
+ }
+}
