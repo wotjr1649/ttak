@@ -1,5 +1,14 @@
 # Findings
 
+> **Scope: this document records the predecessor, not the release candidate.** Every run below was
+> measured against the three-file policy that composes to 2,977 bytes (`dadd47cd…`). The candidate
+> `design/ttak` injects one 1,224-byte file (`ce3390c8…`) and is a different intervention; nothing
+> here transfers to it, and the Codex arm separation in §1 in particular **does not** — the
+> candidate is 0/30 in both arms on three GPT models at the same n. The candidate's record is
+> [`MATRIX_FINDINGS_2026-09-16.md`](MATRIX_FINDINGS_2026-09-16.md) and
+> [`INLINE_EXPERIMENT_2026-09-16.md`](INLINE_EXPERIMENT_2026-09-16.md). This file is kept because
+> it is the evidence those two supersede, not because it still describes what ships.
+
 What TTAK has been measured to do, on the evidence in this repository. It is a measurement record,
 not a product claim. Every number below has a file behind it and a command that reproduces it, and
 everything that was not measured is marked `NOT VERIFIED` rather than left to read as a result.
