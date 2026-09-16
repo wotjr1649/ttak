@@ -241,9 +241,18 @@ none of these instruction sets is a guard.
 ### Size of the injected text
 
 **The candidate injects one file.** At session start it is `policy/core.md` with its two reference
-paths resolved: 1,224 bytes in the profile measured here, about 306 tokens at four characters per
+paths resolved: 1,740 bytes in the profile measured here, about 435 tokens at four characters per
 token. The exact size moves with the length of the install path. At subagent start it injects
 nothing. Nothing is injected at all until you turn it on.
+
+**It was 1,224 bytes until 2026-09-17.** The safeguard paragraph of `references/review.md` is now
+inlined rather than pointed at, because the pointer delivered nothing — `[AC-001]` reads 0/33 with
+it and 27/30 with the paragraph inlined, on the same CLI build, Fisher p = 8.3e-15. The added 516
+bytes are about 129 tokens; this repository's own accounting of a 620-token saving calls that base
+negligible. What the change does **not** buy is in
+[`docs/INLINE_EXPERIMENT_2026-09-16.md`](docs/INLINE_EXPERIMENT_2026-09-16.md) §4: three data-loss
+safeguards the paragraph does not name were measured under the same policy, and two of them moved
+not at all.
 
 **The predecessor** is still in this repository and is what `scripts/measure-injection.cjs` measures,
 so its table stays as recorded:
