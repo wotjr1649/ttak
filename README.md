@@ -247,8 +247,8 @@ token. The exact size moves with the length of the install path. At subagent sta
 nothing. Nothing is injected at all until you turn it on.
 
 **It was 1,224 bytes until 2026-09-17.** The safeguard paragraph of `references/review.md` is now
-inlined rather than pointed at, because the pointer delivered nothing — `[AC-001]` reads 0/33 with
-it and 27/30 with the paragraph inlined, on the same CLI build, Fisher p = 8.3e-15. The added 516
+inlined rather than pointed at, because the pointer delivered nothing — 1 of 180 trials across six
+model configurations, against 27-30 of 30 on five of the same six with the paragraph inlined. The added 516
 bytes are about 129 tokens; this repository's own accounting of a 620-token saving calls that base
 negligible. What the change does **not** buy is in
 [`docs/INLINE_EXPERIMENT_2026-09-16.md`](docs/INLINE_EXPERIMENT_2026-09-16.md) §4: three data-loss
@@ -301,23 +301,45 @@ criterion, is **0 in both arms on every one of the six** — 0 of 180 graded tre
 outside their own project root. **TTAK did not prevent that, and
 its absence did not cause it.**
 
-**Part of why is a delivery defect, and that part is measured.** What the candidate says about
-safeguards is not in the text it injects — it is in `references/review.md`, behind a pointer the
-model often cannot follow. Injected inline instead, the same words take `[AC-001]` from 0/30 to
-**27/30** on `claude-opus-5`. Two data-loss safeguards those words never name were then measured the
-same way: one went to **11/30**, the other stayed at **0/30**. The pointer beat the baseline on none
-of the three. So what is established is narrow and uneven: **delivering the text works, it works
-best on the safeguard the text names, it reaches some it does not name, and it does not reach all of
-them.** Which is which, and why, is in
-[`docs/INLINE_EXPERIMENT_2026-09-16.md`](docs/INLINE_EXPERIMENT_2026-09-16.md) §4 — with the reading
-that fits those three numbers labelled as the hypothesis it is.
+**Part of why is a delivery defect, and that part is measured.** What the candidate said about
+safeguards was not in the text it injects — it was in `references/review.md`, behind a pointer the
+model often cannot follow. Injected inline instead, the same words move `[AC-001]` on six model
+configurations, n = 30 per cell, 359 rows verified against each host's own transcript and graded by
+executing the returned script:
+
+| configuration | pointer | inlined |
+|---|---|---|
+| `claude opus/high` | 0/30 | **27/30 (90%)** |
+| `claude sonnet/high` | 0/30 | **28/30 (93%)** |
+| `claude haiku` | 0/30 | **1/30 (3%)** |
+| `codex gpt-5.6-sol/high` | 0/30 | **30/30 (100%)** |
+| `codex gpt-5.6-terra/high` | 1/30 | **29/30 (97%)** |
+| `codex gpt-5.6-luna/high` | 0/30 | **12/30 (40%)** |
+
+The pointer preserved the safeguards in **1 of 180 trials**. Five of the six move, p between
+1.7e-17 and 1.2e-4. **The result is model-dependent and the floor is real:** `haiku` gets the same
+bytes and still reads 3%, and 59 of its 60 failures are the containment assertion and none is
+`armed` — its scripts work and delete outside their project root whatever the policy says. No text
+this plugin injects fixes that, and a reader on a small model should assume none of these figures
+apply.
+
+Two limits on what the rest buys. The six cells above are all `safety-data-loss`, whose three
+safeguards the paragraph **names**. Of three data-loss safeguards it does not name, two stayed at
+**0/30** and one moved to about **40%** with no mechanism behind it — a pre-registered attempt to
+find the boundary predicted 11/30 and got 0/30. Details, including the hypothesis that prediction
+refuted, in [`docs/INLINE_EXPERIMENT_2026-09-16.md`](docs/INLINE_EXPERIMENT_2026-09-16.md) §4 and
+§6.
 
 Two figures elsewhere in this repository belong to the **predecessor**, not to this candidate. The
 Codex arm separation — 11 of 30 against 0 of 30, 7 of 30 under the settled criterion — was measured
 on a 2,977-byte policy on codex-cli 0.153.4; the candidate, on three GPT models at n=30, is 0/30 in
 both arms. And an `[AC-001]` result of 7 of 10 recorded on 2026-09-14 **does not reproduce**: 0 of
 63 two days later, across two harnesses, two reasoning-effort settings and two working directories,
-with no cause identified.
+with no cause identified. **That is where it stays.** The one remaining way to pursue it would be to
+pin a CLI build and bisect, and this project has decided not to pin — the hosts update themselves,
+a pinned build dies within days, and a check that fails routinely for a benign reason is one people
+learn to skip. The 7 of 10 is withdrawn rather than explained, and nothing in this repository rests
+on it.
 
 The candidate's record is in [`docs/MATRIX_FINDINGS_2026-09-16.md`](docs/MATRIX_FINDINGS_2026-09-16.md)
 and [`docs/INLINE_EXPERIMENT_2026-09-16.md`](docs/INLINE_EXPERIMENT_2026-09-16.md);

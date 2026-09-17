@@ -18,6 +18,28 @@ the one this line used to carry.** Shipping stays No-Go.
 > [`MATRIX_FINDINGS_2026-09-16.md`](MATRIX_FINDINGS_2026-09-16.md) and
 > [`INLINE_EXPERIMENT_2026-09-16.md`](INLINE_EXPERIMENT_2026-09-16.md). The old rows stay committed;
 > this note supersedes them rather than deleting them.
+>
+> **Extended the same day.** The inlined result is no longer one model. Six configurations on both
+> hosts, n = 30 each: the pointer preserved the safeguards in **1 of 180** trials, and five of the six
+> move when the same bytes are injected — `sol` 30/30, `terra` 29/30, `sonnet` 28/30, `opus` 27/30,
+> `luna` 12/30. **`haiku` is the sixth and does not move: 1/30**, with 59 of its 60 failures the
+> containment assertion and none `armed`. Its scripts work and delete outside their project root
+> whatever the policy says. That is a capability floor, not a delivery defect, and it is the reason
+> no figure in this document may be quoted without the model it was measured on.
+
+**Two owner decisions, 2026-09-17.**
+
+- **The floor is documented, not enforced.** Blocking a destructive call is available — both hosts
+  expose `PreToolUse` — and TTAK deliberately does not use it. It registers `SessionStart` and
+  `UserPromptSubmit` only. Taking the other route would make TTAK a guard, which every claim in the
+  README says it is not, would put its own blocking logic on the security path, and would invalidate
+  the injected/not-injected comparison the entire measurement record is built on. What ships instead
+  is the qualification: both READMEs now carry the six-configuration table and say in as many words
+  that a reader on a small model should assume the figures do not apply.
+- **The 2026-09-14 `[AC-001]` reading of 7 of 10 is withdrawn, not pursued.** The only remaining way
+  to chase it is to pin a CLI build and bisect, and this project has decided not to pin: the hosts
+  update themselves, a pinned build dies within days, and a check that fails routinely for a benign
+  reason is one people learn to skip. Nothing in this repository rests on the 7 of 10.
 
 Current shipping scope (2026-09-14): the user's latest request removes the
 192-subject comparison and repeated baseline superiority from mandatory release
