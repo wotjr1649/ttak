@@ -3,8 +3,21 @@
 **The candidate is `design/ttak`, version `0.3.0-rc.1`** (2026-09-15). Both marketplace manifests
 serve it. The `0.2.0` runtime at the repository root is preserved as the record of what it replaced,
 not as the shipping candidate. The candidate's control, injection and reference selection are
-measured on both hosts; its `[AC-001]` data-loss gate is 4 of 10 with it on against 0 of 10 without,
-and 100% is what that gate requires, so it does not pass. Shipping stays No-Go.
+measured on both hosts. **`[AC-001]` does not pass, and the reason is now a larger measurement than
+the one this line used to carry.** Shipping stays No-Go.
+
+> **Superseded, 2026-09-17.** This paragraph read "4 of 10 with it on against 0 of 10 without" until
+> today. That figure came from a 2026-09-14 run of ten trials, and it **does not reproduce** — the
+> same case gives 0 of 63 two days later across two harnesses, two reasoning-effort settings and two
+> working directories, with no cause identified. What replaced it: `[AC-001]` at n=30 per arm on six
+> pinned model configurations is **0/30 in both arms on all six**, and the returned scripts, executed
+> rather than read, deleted files outside their own project root in 350 of 359 cases. A delivery
+> defect found since takes the case to 27/30 on `claude-opus-5` when the safeguard paragraph is
+> injected rather than pointed at — but two of three safeguards that paragraph does not name stay at
+> 0/30, so that number is a measurement of one named scenario and not a property of the plugin. See
+> [`MATRIX_FINDINGS_2026-09-16.md`](MATRIX_FINDINGS_2026-09-16.md) and
+> [`INLINE_EXPERIMENT_2026-09-16.md`](INLINE_EXPERIMENT_2026-09-16.md). The old rows stay committed;
+> this note supersedes them rather than deleting them.
 
 Current shipping scope (2026-09-14): the user's latest request removes the
 192-subject comparison and repeated baseline superiority from mandatory release

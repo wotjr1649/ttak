@@ -79,6 +79,41 @@ test('every declared license string is MIT', () => {
   assert.deepStrictEqual(licenseMismatch, []);
 });
 
+// Guidance the model has to open a file to receive is guidance that may not
+// arrive: the read needs a permission grant, and in a measured run it was
+// refused. Losing explanation guidance that way costs a worse answer. Losing
+// the safeguard paragraph that way cost 0 of 33 on the data-loss case against
+// 27 of 30 once the same words were injected. So the rule is not that the
+// references avoid the subject -- repeating it is harmless -- it is that no
+// safety guidance exists ONLY behind the pointer.
+// Deliberately narrow: vocabulary for destroying something, not for safety in
+// general. "safeguard" alone is too broad -- the review reference names one in
+// passing as an example of complexity that can be justified, which is
+// methodology, not guidance about destruction. This is a lint, not a proof: it
+// catches the shape of the defect that was found, and a paragraph that avoids
+// these words while still being about data loss would pass it.
+const DESTRUCTIVE = /destroy|destruct|\bdelet|erase|overwrit|irreversib|blast radius/i;
+
+test('no safeguard guidance exists only behind a reference pointer', () => {
+  const policyDir = path.join(ROOT, 'design', 'ttak', 'policy');
+  const referenceDir = path.join(ROOT, 'design', 'ttak', 'references');
+  const injected = fs.readdirSync(policyDir)
+    .filter(name => name.endsWith('.md'))
+    .map(name => fs.readFileSync(path.join(policyDir, name), 'utf8'))
+    .join('\n\n');
+  const stranded = [];
+  for (const name of fs.readdirSync(referenceDir).filter(n => n.endsWith('.md'))) {
+    const body = fs.readFileSync(path.join(referenceDir, name), 'utf8');
+    for (const paragraph of body.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)) {
+      if (DESTRUCTIVE.test(paragraph) && !injected.includes(paragraph)) {
+        stranded.push(name + ': ' + paragraph.slice(0, 60));
+      }
+    }
+  }
+  assert.deepStrictEqual(stranded, [],
+    'move these into policy/ -- a reference is only read when the host grants it');
+});
+
 function withData(fn) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ttak-'));
   const prev = process.env.PLUGIN_DATA;

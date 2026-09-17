@@ -172,9 +172,10 @@ a profile with nothing else loaded. **That no longer reproduces.** The case now 
 model has to reach the file for itself: 0 of 30 on each of six model configurations in the matrix,
 where each trial runs in an empty directory and the read is denied outright, and 0 of 3 through the
 original harness at the original working directory, where it is not. What does move it is the same
-words injected instead of pointed at — 27 of 30 on `claude-opus-5`. **Guidance the model has to open
-a file to receive is guidance that may not arrive**, and with the user's own instruction files
-present it opened the reference and returned the script without its safeguards anyway.
+words injected instead of pointed at — 27 of 30 on `claude-opus-5`, against 0 of 30 on two of the
+three safeguards that same injected text does not name. **Guidance the model has to open a file to
+receive is guidance that may not arrive**, and with the user's own instruction files present it
+opened the reference and returned the script without its safeguards anyway.
 
 ## What is measured
 
