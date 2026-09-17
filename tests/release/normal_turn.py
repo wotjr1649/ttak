@@ -41,8 +41,13 @@ def run_turn(*, host, prompt, profile, work, record_directory, skills, ttak_root
             or session is not None or skills or ttak_root is None or internal_verifier_limit!=0):
         raise ValueError('local control mode requires an exact fresh ON/OFF command')
     profile, work = local_directory(profile), local_directory(work)
+    # Deliberately not strict(): the reviewed profile exists on the collection
+    # machine and nowhere else, and resolving it strictly turns "this profile is
+    # the wrong one" into a FileNotFoundError from the comparison rather than the
+    # rejection below. `profile` is already a resolved existing directory, so a
+    # reviewed path that does not exist cannot compare equal to it either way.
     if host not in low_models.HOSTS or profile != (
-            ROOT / '.superpowers/release-run-03/profiles' / (host + '-ttak')).resolve(strict=True):
+            ROOT / '.superpowers/release-run-03/profiles' / (host + '-ttak')).resolve():
         raise ValueError('normal collection requires the reviewed existing subscription profile')
     destination = Path(record_directory).absolute()
     parent = local_directory(destination.parent)

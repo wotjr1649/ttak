@@ -1,9 +1,21 @@
 """Native command construction only; no CLI or model is launched."""
 import json
 import unittest
+from unittest import mock
+import normal_commands
 from normal_commands import request
 
 class NormalCommandsTests(unittest.TestCase):
+    def setUp(self):
+        # What is under test here is the argument vector, and the claude branch
+        # resolves its executable off disk so the integrity ledger sees the bytes
+        # it is actually about to run. That control has its own tests; requiring
+        # an installed host here would only make these assertions unrunnable
+        # anywhere but the collection machine.
+        patch = mock.patch.object(normal_commands, 'native_binary',
+                                  return_value='/reviewed/claude')
+        patch.start(); self.addCleanup(patch.stop)
+
     def args(self,host='codex',**changes):
         values=dict(session=None,skills=[],ttak_root=None,
                     collection_id='00000000-0000-0000-0000-000000000001',

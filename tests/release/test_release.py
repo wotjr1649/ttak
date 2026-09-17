@@ -44,7 +44,11 @@ class ReleaseTests(unittest.TestCase):
             completed = {"status": "exited", "exitCode": 0, "cleanupVerified": True,
                          "activeProcesses": 0, "elapsedMs": 1, "stdout": json.dumps(response)}
             trial = "claude.progress-interruption.baseline.1"
+            # native_binary() reads the installed host off disk so the ledger sees
+            # the bytes about to run; it has its own tests. Stubbed here because
+            # this one is about what a wrong model does to the trial record.
             with mock.patch.dict(os.environ, {}, clear=True), \
+                    mock.patch("release_runtime.native_binary", return_value="/reviewed/claude"), \
                     mock.patch("release_runtime.invoke_bounded", return_value=completed) as process:
                 with self.assertRaisesRegex(ValueError, "model usage"):
                     run_trial(experiment, trial, profile, 1, True)
