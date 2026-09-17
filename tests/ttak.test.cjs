@@ -114,6 +114,22 @@ test('no safeguard guidance exists only behind a reference pointer', () => {
     'move these into policy/ -- a reference is only read when the host grants it');
 });
 
+// The list in test-local.cjs is the enforcement point for a platform boundary,
+// so it has to be derived from the boundary rather than remembered. Two files
+// that reach the Windows-only supervisor were missing from it and failed 23
+// times on ubuntu before anyone noticed.
+test('every suite that reaches the Windows-only supervisor is listed as Windows-only', () => {
+  const runner = fs.readFileSync(path.join(ROOT, 'scripts', 'test-local.cjs'), 'utf8');
+  const listed = new Set([...runner.matchAll(/'([a-z0-9-]+\.test\.cjs)'/g)].map(m => m[1]));
+  const testsDir = path.join(ROOT, 'tests');
+  const unlisted = fs.readdirSync(testsDir)
+    .filter(name => name.endsWith('.test.cjs') && !listed.has(name))
+    .filter(name => /scripts\/(bounded-native-process|verification-execution)\.cjs/
+      .test(fs.readFileSync(path.join(testsDir, name), 'utf8')));
+  assert.deepStrictEqual(unlisted, [],
+    'add these to windowsOnly in scripts/test-local.cjs -- they cannot run off Windows');
+});
+
 function withData(fn) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ttak-'));
   const prev = process.env.PLUGIN_DATA;

@@ -10,8 +10,18 @@ const allowed = new Set(['PATH', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATHEXT', '
 const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => allowed.has(name.toUpperCase())));
 Object.assign(env, { TEMP: temporary, TMP: temporary, TMPDIR: temporary, PYTHONDONTWRITEBYTECODE: '1', PYTHONIOENCODING: 'utf-8' });
 env.TTAK_TEST_PYTHON = python;
+// The native collector is Windows-only by design -- it supervises through a job
+// object assigned before the process starts, and scripts/verification-execution.cjs
+// names pwsh.exe by absolute path. The suites that drive it therefore have nothing
+// to exercise elsewhere. Listed by the reason rather than one-by-one as they are
+// noticed: bounded-native-process was gated from the start, the other two were not,
+// and on the branch's first CI run they failed 23 times on ubuntu for no reason but
+// the platform. Excluded from the file list rather than skipped inside it, because
+// the run also asserts zero skipped assertions.
+const windowsOnly = new Set(['bounded-native-process.test.cjs', 'verification-execution.test.cjs',
+  'verification-native-evidence.test.cjs']);
 const files = fs.readdirSync(path.join(root, 'tests')).filter(name => name.endsWith('.test.cjs') &&
-  (process.platform === 'win32' || name !== 'bounded-native-process.test.cjs')).sort().map(name => 'tests/' + name);
+  (process.platform === 'win32' || !windowsOnly.has(name))).sort().map(name => 'tests/' + name);
 const commands = [
   ['node-tests', process.execPath, ['--test', '--test-concurrency=1', '--test-reporter=tap', ...files]],
   ['python-tests', python, ['-B', '-m', 'unittest', 'discover', '-s', 'tests/release', '-p', 'test_*.py']],
