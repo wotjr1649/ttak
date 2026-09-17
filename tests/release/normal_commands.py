@@ -5,7 +5,7 @@ from pathlib import Path
 import uuid
 
 from prepare import ROOT
-from release_runtime import NATIVE_BINARIES, RUNTIME_BINARIES
+from release_runtime import RUNTIME_BINARIES, native_binary
 
 EXPLANATION_TOOLS = (
     'scenario_review', 'explanation_assess_request', 'explanation_notice_from_assessment',
@@ -45,7 +45,7 @@ def request(host, prompt, *, session, skills, ttak_root, collection_id,
         if set(skill) != {'name', 'package'} or not all(isinstance(v,str) and v and
                 all(c in 'abcdefghijklmnopqrstuvwxyz0123456789-' for c in v) for v in skill.values()):
             raise ValueError('invalid Claude native invocation')
-    args = [str(NATIVE_BINARIES['claude'][0]), '-p', '--model', 'claude-haiku-4-5-20251001',
+    args = [native_binary('claude'), '-p', '--model', 'claude-haiku-4-5-20251001',
             '--settings', '{"alwaysThinkingEnabled":true}', '--output-format', 'stream-json',
             '--verbose', '--tools', 'Skill,Agent' if internal_verifier_limit else 'Skill',
             '--allowedTools', 'Skill']
