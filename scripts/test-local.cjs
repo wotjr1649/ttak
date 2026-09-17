@@ -25,7 +25,15 @@ const files = fs.readdirSync(path.join(root, 'tests')).filter(name => name.endsW
 const commands = [
   ['node-tests', process.execPath, ['--test', '--test-concurrency=1', '--test-reporter=tap', ...files]],
   ['python-tests', python, ['-B', '-m', 'unittest', 'discover', '-s', 'tests/release', '-p', 'test_*.py']],
-  ['conformance', python, ['-B', 'tests/conformance/run.py', '--selftest']]
+  ['conformance', python, ['-B', 'tests/conformance/run.py', '--selftest']],
+  // main ran these two as their own CI steps. They belong here instead, so a
+  // local run covers what CI covers rather than CI covering more.
+  ['screener', python, ['-B', 'tests/conformance/check_guards.py', '--selftest']],
+  ['grader', python, ['-B', 'tests/conformance/blind_grade.py', '--selftest']],
+  // 11 assertions that nothing ran: this file arrived on main, whose CI called
+  // blind_grade.py --selftest but never discovered tests/conformance.
+  ['conformance-unit', python, ['-B', '-m', 'unittest', 'discover',
+                                '-s', 'tests/conformance', '-p', 'test_*.py']]
 ];
 const results = [];
 try {
