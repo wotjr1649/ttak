@@ -165,8 +165,25 @@ confirmation before anything is touched", "a rehearsal mode listing what would b
 affected" — and neither produced a failure. If there is a wording effect here it
 is not about the paragraph, it is about how specifically one safeguard is named.
 
-**What would settle it, and it is cheap.** Repeat the opus paraphrase cell,
-n = 30, about $3.20. If 22/30 replicates, the pooled 44/60 against 56/60 is
-p ≈ 0.01 and B closes as *wording*; if it comes back near 29, the first cell was
-noise and B closes as *delivery*. Not run here, because this file's budget was
-two cells and it got two.
+## B2 — the replication, registered before it was run
+
+B is settled by repeating the opus paraphrase cell rather than by choosing an
+anchor after the fact. Registered here, before the run, is the comparison and the
+rule:
+
+**Comparison.** Both opus paraphrase cells pooled (n = 60) against both opus
+anchors pooled (27/30 of 2026-09-16 and 29/30 of 2026-09-17, so 56/60). One rule,
+one number, both sides pooled the same way — which is what the first registration
+failed to do.
+
+| result | reading |
+|---|---|
+| pooled paraphrase **significantly below** 56/60 (Fisher p < 0.05) | **wording.** The shipped paragraph is a measured artefact and `docs/RELEASE.md` says it may not be edited casually. |
+| **not** significantly below | **delivery.** The first cell's 22/30 was noise at n = 30, and the paragraph can be edited for other reasons. |
+
+A cell higher than its anchor remains not a finding; this is not powered to
+resolve an improvement.
+
+Experiment A gets no follow-up. Naming the mechanism candidate and running one
+more case is the pattern that has now failed four times, and "no mechanism" is
+the honest state of this record. The release does not depend on it.
