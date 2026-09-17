@@ -333,8 +333,16 @@ injected list and re-running the case that reads 0/30 without it. **It read 0/30
 failures the cap assertion and none the arming one, against a same-session anchor of 29/30. The
 prediction was registered before the run. So this repository has **no mechanism** for why inlining
 works where it works, and an `[AC-001]` figure obtained this way is a measurement of one case under
-one policy and nothing more. See
-[`docs/PREREGISTRATION_2026-09-17.md`](docs/PREREGISTRATION_2026-09-17.md) and
+one policy and nothing more.
+
+**The exact wording is load-bearing, which is a second reason not to read the figure as a
+property.** The same paragraph rewritten — same content, the same three safeguards still named, 29%
+content-word overlap — reads **46/60 against the shipped wording's 56/60**, Fisher p = 0.019, two
+cells each on `claude opus/high`. All 14 of its failures are the containment assertion. The shipped
+514 bytes are therefore pinned by a test against the digest of the text that was measured: editing
+them is allowed, editing them without re-measuring is not. Both results are in
+[`docs/PREREGISTRATION_2026-09-17.md`](docs/PREREGISTRATION_2026-09-17.md), with their predictions
+committed before the runs; see also
 [`docs/INLINE_EXPERIMENT_2026-09-16.md`](docs/INLINE_EXPERIMENT_2026-09-16.md) §4 and §6.
 
 Two figures elsewhere in this repository belong to the **predecessor**, not to this candidate. The

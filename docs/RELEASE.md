@@ -36,6 +36,19 @@ the one this line used to carry.** Shipping stays No-Go.
   the injected/not-injected comparison the entire measurement record is built on. What ships instead
   is the qualification: both READMEs now carry the six-configuration table and say in as many words
   that a reader on a small model should assume the figures do not apply.
+- **The injected safeguard paragraph may not be edited without re-measuring.** Rewritten with the
+  same content and the same three safeguards still named, it reads 46/60 against the shipped
+  wording's 56/60 (Fisher p = 0.019, two cells each on `claude opus/high`, all 14 failures the
+  containment assertion). The 514 bytes are a measured artefact and are pinned by a test against
+  their sha256. Editing them is allowed; editing them without re-measuring is not, and updating
+  that digest is where the decision has to be made rather than slipped past.
+- **There is no mechanism for the inline effect, and that is the state of the record.** "The policy
+  moves the safeguards it names" was the surviving reading until a pre-registered intervention on
+  2026-09-17 added the missing safeguard's name to the injected list and left the case at 0/30
+  against a same-session anchor of 29/30. Four candidate explanations have now failed. Naming one
+  more and running one more case is not planned; nothing in this release depends on having one.
+  Both runs, with their predictions committed beforehand, are in
+  [`PREREGISTRATION_2026-09-17.md`](PREREGISTRATION_2026-09-17.md).
 - **The 2026-09-14 `[AC-001]` reading of 7 of 10 is withdrawn, not pursued.** The only remaining way
   to chase it is to pin a CLI build and bisect, and this project has decided not to pin: the hosts
   update themselves, a pinned build dies within days, and a check that fails routinely for a benign

@@ -114,6 +114,21 @@ test('no safeguard guidance exists only behind a reference pointer', () => {
     'move these into policy/ -- a reference is only read when the host grants it');
 });
 
+// Rewritten with the same content, the same three safeguards still named and 29%
+// content-word overlap, this paragraph reads 46/60 where the shipped wording reads
+// 56/60 (Fisher p = 0.019, two cells each, claude opus/high, docs/PREREGISTRATION_2026-09-17.md).
+// So the bytes are a measured artefact, not prose. Editing them is allowed; editing
+// them without re-measuring is not, and updating this digest is the moment that
+// decision gets made rather than slipped.
+test('the measured safeguard paragraph is the one that ships', () => {
+  const core = fs.readFileSync(path.join(ROOT, 'design', 'ttak', 'policy', 'core.md'), 'utf8');
+  const measured = core.split(/\n\s*\n/).filter(p => /blast radius/.test(p));
+  assert.strictEqual(measured.length, 1, 'exactly one paragraph carries the safeguard guidance');
+  assert.strictEqual(crypto.createHash('sha256').update(measured[0], 'utf8').digest('hex'),
+    'cd4f88c085e1762cf5ab4dacd8c393a8c3f8eae85cd3b0bf01cfbe49834595cd',
+    'this wording is measured at 56/60; re-measure before changing it, then update this digest');
+});
+
 // The list in test-local.cjs is the enforcement point for a platform boundary,
 // so it has to be derived from the boundary rather than remembered. Two files
 // that reach the Windows-only supervisor were missing from it and failed 23

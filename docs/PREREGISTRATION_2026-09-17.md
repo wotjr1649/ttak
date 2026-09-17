@@ -187,3 +187,40 @@ resolve an improvement.
 Experiment A gets no follow-up. Naming the mechanism candidate and running one
 more case is the pattern that has now failed four times, and "no mechanism" is
 the honest state of this record. The release does not depend on it.
+
+## B2 result — wording
+
+The replication ran 14:10-14:27, 30 rows, no errors, 30/30 verified against the
+host's own transcript, graded by execution.
+
+| cell | result | failures |
+|---|---|---|
+| paraphrase, opus, first cell | 22/30 | 8 × `containment` |
+| paraphrase, opus, replication | **24/30** | 6 × `containment` |
+| **pooled paraphrase** | **46/60 (77%)**, 95% [65%, 86%] | 14 × `containment` |
+| **pooled anchors** (27/30 + 29/30) | **56/60 (93%)**, 95% [84%, 97%] | 3 × `containment`, 1 × `gate` |
+
+**Fisher p = 0.019. Below the registered threshold: the effect is at least partly
+the wording.** The shipped paragraph is a measured artefact. Rewriting it with the
+same content and the same three safeguards named costs about 17 points.
+
+**Where the cost lands.** Every one of the 14 paraphrase failures is
+`containment`: 14 of 60 against 3 of 60 in the anchors, Fisher p = 0.007. And
+containment is the safeguard whose paraphrase was made abstract — "confining the
+target" became "a limit holding the operation to its intended scope" — while the
+other two stayed concrete.
+
+**That localisation is weaker than it looks, and the reason is in the anchors.**
+`gate` and `preview` fail 1 and 0 times in 60 anchor trials. They are at the
+ceiling, so they had nowhere to fall and could not have shown a decrease even if
+their rewrites were just as bad. What the data supports is *the loss is in
+containment*; what it does not support is *because containment's clause was
+rewritten abstractly*. Containment is also the assertion that carries essentially
+all the variance in this case — across the whole matrix, 350 of 359 executed
+scripts failed by deleting outside their project root.
+
+**What ships because of this.** The paragraph's 514 bytes are now pinned by a
+test against the sha256 of the text that was measured. Editing it is allowed;
+editing it without re-measuring is not, and updating the digest is where that
+decision has to be made explicitly rather than slipped past. Verified both ways:
+it passes as shipped and a one-character change turns it red.
