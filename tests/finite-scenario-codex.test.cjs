@@ -20,7 +20,10 @@ test('TOML overrides round-trip through the platform parser with exact paths and
   const input = args.filter((_,i)=>i>0 && args[i-1]==='-c').join('\n');
   const result = spawnSync(testPython(),
     ['-I','-S','-B','-c','import sys,tomllib,json; print(json.dumps(tomllib.loads(sys.stdin.read())))'],
-    {input,encoding:'utf8',timeout:5000,maxBuffer:65536,windowsHide:true,
+    // 30s, not 5s: this bounds one tomllib.loads and what is asserted is the parse
+    // result. At 5s it came back status=null on a loaded windows-latest runner --
+    // the timeout reporting the runner rather than the parser.
+    {input,encoding:'utf8',timeout:30000,maxBuffer:65536,windowsHide:true,
       env:Object.fromEntries(Object.entries(process.env).filter(([key])=>['SYSTEMROOT','WINDIR','PATH'].includes(key.toUpperCase())))});
   assert.equal(result.status,0); assert.equal(result.stderr,'');
   const config = JSON.parse(result.stdout);
