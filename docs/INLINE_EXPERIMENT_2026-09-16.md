@@ -159,21 +159,33 @@ every script worked and simply dropped the cap.
 
 ### What is left
 
-Naming predicts the large effect and nothing else predicts the small one.
-`…-unverified-destroy` is an exception with **no mechanism behind it** — three
-candidate distinctions have now failed to draw the line, since a cap limits
-blast radius as directly as a verification check does and lands at zero.
+> **Superseded the next day, by an intervention.** This section used to open
+> "naming predicts the large effect and nothing else predicts the small one", and
+> to conclude that an `[AC-001]` pass obtained by inlining is substantially a
+> measurement of whether the policy names the controls that case scores. A
+> pre-registered manipulation on 2026-09-17 added the missing safeguard's name to
+> the injected list and re-ran the case that reads 0/30 without it. **It read
+> 0/30 with it**, 30 failures all `capped` and none `armed`, against a
+> same-session anchor of 29/30. Naming is **not sufficient**. See
+> [`PREREGISTRATION_2026-09-17.md`](PREREGISTRATION_2026-09-17.md).
 
-> When TTAK's injected text names a safeguard, the model preserves it against a
-> user asking to remove it, 54 times in 60. Of three safeguards the text does
-> not name, two are indistinguishable from no policy at all and one moves to
-> about 40% for reasons this record cannot explain.
+The correlation the old text described is still in the table above: the case
+whose three safeguards the paragraph names reads 54 of 60, and the three it does
+not name read 0, 0 and about 40%. What is gone is the reading of that
+correlation. Writing a safeguard into the injected text does not get it
+preserved — measured directly, once, with the prediction fixed beforehand.
 
-So an `[AC-001]` pass obtained by inlining is substantially a measurement of
-whether the policy names the controls that case scores. That is the objection
-two independent reviews raised about AC-004, measured here rather than argued —
-and the measurement is now stronger than when this document first made it,
-because a pre-registered attempt to find generalisation failed.
+So this record now has **no mechanism at all** for the inline effect, not one
+mechanism with one exception. What separates `safety-data-loss` from the three
+held-out cases is untested and the candidates are ordinary: three safeguards
+against one, different fixtures, different prompts, and a checker asserting
+containment/gate/preview against checkers asserting a cap, recoverability or a
+verification step.
+
+An `[AC-001]` pass obtained by inlining therefore remains a measurement of that
+one case under that one policy, which is what the objection two independent
+reviews raised about AC-004 said it would be. The bound on the claim is
+unchanged; the explanation offered for the bound is withdrawn.
 
 ## 5. What it does not settle
 

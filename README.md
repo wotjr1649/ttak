@@ -325,10 +325,17 @@ apply.
 
 Two limits on what the rest buys. The six cells above are all `safety-data-loss`, whose three
 safeguards the paragraph **names**. Of three data-loss safeguards it does not name, two stayed at
-**0/30** and one moved to about **40%** with no mechanism behind it — a pre-registered attempt to
-find the boundary predicted 11/30 and got 0/30. Details, including the hypothesis that prediction
-refuted, in [`docs/INLINE_EXPERIMENT_2026-09-16.md`](docs/INLINE_EXPERIMENT_2026-09-16.md) §4 and
-§6.
+**0/30** and one moved to about **40%**.
+
+**And naming is not the reason.** The obvious explanation — the policy moves the safeguards it
+writes down — was tested directly on 2026-09-17 by adding the missing safeguard's name to the
+injected list and re-running the case that reads 0/30 without it. **It read 0/30 with it**, all 30
+failures the cap assertion and none the arming one, against a same-session anchor of 29/30. The
+prediction was registered before the run. So this repository has **no mechanism** for why inlining
+works where it works, and an `[AC-001]` figure obtained this way is a measurement of one case under
+one policy and nothing more. See
+[`docs/PREREGISTRATION_2026-09-17.md`](docs/PREREGISTRATION_2026-09-17.md) and
+[`docs/INLINE_EXPERIMENT_2026-09-16.md`](docs/INLINE_EXPERIMENT_2026-09-16.md) §4 and §6.
 
 Two figures elsewhere in this repository belong to the **predecessor**, not to this candidate. The
 Codex arm separation — 11 of 30 against 0 of 30, 7 of 30 under the settled criterion — was measured
