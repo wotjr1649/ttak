@@ -422,7 +422,8 @@ def response_text(row):
 
 
 def row_key(row):
-    """The identity of one trial: (case, trial, arm, host, policy_sha256).
+    """The identity of one trial:
+    (case, trial, arm, host, policy_sha256, model, effort).
 
     The policy hash is part of the identity because an ablation runs the same
     case, trial, arm and host against two different policy texts; without it
@@ -430,6 +431,13 @@ def row_key(row):
     silently records nothing. Read with .get(), so the two graded runs from
     2026-09-07 -- written before the field existed -- resolve to None for
     every row and still de-duplicate against each other exactly as before.
+
+    Model and effort are here for exactly the same reason, and were missing
+    until a run on 2026-09-17 wrote two models to one --out file: the second
+    model's 30 rows were skipped as already present and the run reported
+    success having collected nothing. Anything the caller varies across
+    invocations that share an --out file has to be in this tuple, or the
+    resume check reads a different condition's row as this one's.
 
     `trial` is coerced to int so a grader or hand-edit that re-serializes it
     as a JSON string ("1" instead of 1) still matches the run loop's native int and
@@ -467,7 +475,8 @@ def row_key(row):
             pass
     if trial is None:
         raise ValueError(f"case={row.get('case')!r}: non-numeric or non-integer trial {raw!r}")
-    return (row["case"], trial, row["arm"], row["host"], row.get("policy_sha256"))
+    return (row["case"], trial, row["arm"], row["host"], row.get("policy_sha256"),
+            row.get("model"), row.get("effort"))
 
 
 # --- cases.jsonl -------------------------------------------------------------
@@ -520,10 +529,14 @@ def load_existing_keys(out_path):
     return keys
 
 
-def should_skip(case_id, trial, arm, host, policy_sha, existing_keys):
-    # Must build the same tuple row_key() does, in the same order: these are
-    # the two halves of one identity, and a run resumes wrongly if they drift.
-    return (case_id, trial, arm, host, policy_sha) in existing_keys
+def should_skip(case_id, trial, arm, host, policy_sha, model, effort, existing_keys):
+    # Build the key through row_key() rather than repeating its tuple here.
+    # These are the two halves of one identity and a run resumes wrongly if
+    # they drift -- which they did: a field added to row_key() and not to the
+    # literal that used to live here is a silent skip, not an error.
+    return row_key({"case": case_id, "trial": trial, "arm": arm, "host": host,
+                    "policy_sha256": policy_sha, "model": model,
+                    "effort": effort}) in existing_keys
 
 
 def append_row(out_path, row):
@@ -638,7 +651,7 @@ def do_dry_run(cases, host, arm, model, trials, existing, plugin_dir=None, polic
     print(f"# plugin_dir={plugin_dir or ROOT} policy_sha256={policy_sha} effort={effort}")
     for case in cases:
         for trial in range(1, trials + 1):
-            if should_skip(case["id"], trial, arm, host, policy_sha, existing):
+            if should_skip(case["id"], trial, arm, host, policy_sha, model, effort, existing):
                 skipped += 1
                 continue
             cmd = build_command(host, arm, model, case["prompt"], plugin_dir, effort)
@@ -668,7 +681,7 @@ def do_run(cases, host, arm, model, trials, out_path, timeout, plugin_dir=None, 
     ran, skipped = 0, 0
     for case in cases:
         for trial in range(1, trials + 1):
-            if should_skip(case["id"], trial, arm, host, policy_sha, existing):
+            if should_skip(case["id"], trial, arm, host, policy_sha, model, effort, existing):
                 skipped += 1
                 continue
             row = run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout,
@@ -936,22 +949,27 @@ def _selftest():
     except ValueError as e:
         assert "AC-999" in str(e)
 
-    existing = {("c1", 1, "without", "claude", None)}
-    assert should_skip("c1", 1, "without", "claude", None, existing)
-    assert not should_skip("c1", 2, "without", "claude", None, existing), "must key on trial, not just case"
-    assert not should_skip("c1", 1, "with", "claude", None, existing), "must key on arm, not just case+trial"
-    assert not should_skip("c1", 1, "without", "codex", None, existing), "must key on host too"
+    existing = {("c1", 1, "without", "claude", None, "m", None)}
+    assert should_skip("c1", 1, "without", "claude", None, "m", None, existing)
+    assert not should_skip("c1", 2, "without", "claude", None, "m", None, existing), "must key on trial, not just case"
+    assert not should_skip("c1", 1, "with", "claude", None, "m", None, existing), "must key on arm, not just case+trial"
+    assert not should_skip("c1", 1, "without", "codex", None, "m", None, existing), "must key on host too"
+    # Two models sharing one --out file: the defect a 2026-09-17 run hit, where
+    # the second model's rows were skipped as already present and the run
+    # reported success having collected nothing.
+    assert not should_skip("c1", 1, "without", "claude", None, "m2", None, existing), "must key on the model too"
+    assert not should_skip("c1", 1, "without", "claude", None, "m", "high", existing), "must key on the effort too"
 
     # The defect the ablation would otherwise have walked into: two policy
     # variants share (case, trial, arm, host), so with the hash out of the key
     # the second variant is skipped as already present and its condition
     # records nothing -- an empty arm that looks like a completed one.
-    seen_a = {("c1", 1, "with", "claude", "aaa")}
-    assert should_skip("c1", 1, "with", "claude", "aaa", seen_a)
-    assert not should_skip("c1", 1, "with", "claude", "bbb", seen_a),         "must key on the policy hash: a second variant is a different trial, not a repeat"
+    seen_a = {("c1", 1, "with", "claude", "aaa", "m", None)}
+    assert should_skip("c1", 1, "with", "claude", "aaa", "m", None, seen_a)
+    assert not should_skip("c1", 1, "with", "claude", "bbb", "m", None, seen_a),         "must key on the policy hash: a second variant is a different trial, not a repeat"
     assert row_key({"case": "c1", "trial": 1, "arm": "with", "host": "claude",
-                    "policy_sha256": "aaa"}) == ("c1", 1, "with", "claude", "aaa"),         "row_key() and should_skip() must build the same tuple, in the same order"
-    assert row_key({"case": "c1", "trial": 1, "arm": "with", "host": "claude"}) ==         ("c1", 1, "with", "claude", None), "a row written before the field existed reads as None"
+                    "policy_sha256": "aaa", "model": "m"}) == ("c1", 1, "with", "claude", "aaa", "m", None),         "row_key() and should_skip() must build the same tuple, in the same order"
+    assert row_key({"case": "c1", "trial": 1, "arm": "with", "host": "claude"}) ==         ("c1", 1, "with", "claude", None, None, None), "a row written before the field existed reads as None"
 
     # row_key(): trial is coerced to int, so a JSON string "1" (D1: a
     # grader that re-serializes numbers as strings) and native int 1 are

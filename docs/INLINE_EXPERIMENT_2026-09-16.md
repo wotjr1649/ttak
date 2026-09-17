@@ -177,7 +177,8 @@ because a pre-registered attempt to find generalisation failed.
 
 ## 5. What it does not settle
 
-- **Three held-out cases, one model.** Each was run because the previous
+- **Three held-out cases, one model.** (§6 extends the main contrast to six
+  models on two hosts; the held-out cases below are still one model.) Each was run because the previous
   reading could not be distinguished from an alternative, and two of the three
   overturned the reading that preceded them. What would separate
   `…-unverified-destroy` from the two zeros is a fourth case, and this record no
@@ -201,3 +202,58 @@ because a pre-registered attempt to find generalisation failed.
   ships. This says what one changed policy does on one model, and it is filed as
   a probe: the new case lives in `cases-probe.jsonl`, not in the frozen
   `cases.jsonl`.
+
+## 6. It is not one model: six configurations, two hosts (2026-09-17)
+
+The pointer-versus-inlined contrast above was one model. It has now been run on
+six, across both hosts, same case, same two policy texts, n = 30 per cell.
+
+| 구성 | pointer | inlined | Fisher p | inlined Wilson 95% |
+|---|---|---|---|---|
+| claude/opus | 0/30 (0%) | **27/30 (90%)** | 9.23e-14 | [74%, 97%] |
+| claude/sonnet | 0/30 (0%) | **28/30 (93%)** | 8.39e-15 | [79%, 98%] |
+| claude/haiku | 0/30 (0%) | **1/30 (3%)** | 1 | [1%, 17%] |
+| codex/gpt-5.6-sol | 0/30 (0%) | **30/30 (100%)** | 1.69e-17 | [89%, 100%] |
+| codex/gpt-5.6-terra | 1/30 (3%) | **29/30 (97%)** | 1.52e-14 | [83%, 99%] |
+| codex/gpt-5.6-luna | 0/30 (0%) | **12/30 (40%)** | 0.000124 | [25%, 58%] |
+
+359 rows, every one verified against the host's own transcript before scoring
+(`verify_injection.py`, 360/360 — the opus cell is the 2026-09-16 run carried
+forward, the other five were collected and verified on 2026-09-17), and every
+one graded by executing the returned script (`exec_guards.py`), not by reading
+it.
+
+The pointer column is the finding restated: **1 of 180 trials** across six
+configurations preserved the safeguards when the guidance sat behind a
+reference. Five of the six move significantly when the same bytes are injected
+inline. The defect is not a property of one model or one host.
+
+**haiku is the one exception, and it is a different failure.** Its inlined cell
+is 1/30 — the guidance arrives and is not acted on. All 59 of its 60 failures
+are `containment`, never `armed`: the scripts work and delete outside their
+project root regardless of what the policy says. That is a capability floor, not
+a delivery defect, and inlining cannot fix it. `luna` at 40% sits between the
+two, failing `containment` 14 times out of its 18.
+
+What this changes about the claims above: the 90-point effect generalises across
+models and hosts, so §4's shipping-defect finding is stronger than it was. What
+it does **not** change is §4's limit — every cell here is `safety-data-loss`,
+the case whose safeguards the paragraph names. Nothing in this section speaks to
+the three held-out safeguards, which remain two zeros and one unexplained 40%.
+
+```
+python tests/conformance/verify_injection.py --in tests/conformance/runs/2026-09-17-five-cells*.jsonl \
+    --codex-fixtures "$TEMP/ttak-conformance"
+python tests/conformance/exec_guards.py --in tests/conformance/runs/2026-09-17-five-cells-<model>.jsonl \
+    --out tests/conformance/runs/2026-09-17-five-cells-<model>.exec.jsonl
+```
+
+> **A runner defect this run exposed.** `run.py` keys an already-collected row on
+> `(case, trial, arm, host, policy_sha256)` and **not** on the model. Two models
+> writing to one output file therefore collide: the second is skipped silently as
+> already present. The first attempt lost all 30 haiku rows that way and reported
+> success. Worked around for this run with one output file per model, and then
+> fixed: `model` and `effort` are in the key, and `should_skip()` now builds it by
+> calling `row_key()` instead of repeating its tuple -- the literal that used to
+> live there is how a field could be added to one half of the identity and not the
+> other, which is a silent skip rather than an error.
