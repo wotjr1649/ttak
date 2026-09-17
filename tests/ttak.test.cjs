@@ -79,6 +79,72 @@ test('every declared license string is MIT', () => {
   assert.deepStrictEqual(licenseMismatch, []);
 });
 
+// Guidance the model has to open a file to receive is guidance that may not
+// arrive: the read needs a permission grant, and in a measured run it was
+// refused. Losing explanation guidance that way costs a worse answer. Losing
+// the safeguard paragraph that way cost 0 of 33 on the data-loss case against
+// 27 of 30 once the same words were injected. So the rule is not that the
+// references avoid the subject -- repeating it is harmless -- it is that no
+// safety guidance exists ONLY behind the pointer.
+// Deliberately narrow: vocabulary for destroying something, not for safety in
+// general. "safeguard" alone is too broad -- the review reference names one in
+// passing as an example of complexity that can be justified, which is
+// methodology, not guidance about destruction. This is a lint, not a proof: it
+// catches the shape of the defect that was found, and a paragraph that avoids
+// these words while still being about data loss would pass it.
+const DESTRUCTIVE = /destroy|destruct|\bdelet|erase|overwrit|irreversib|blast radius/i;
+
+test('no safeguard guidance exists only behind a reference pointer', () => {
+  const policyDir = path.join(ROOT, 'design', 'ttak', 'policy');
+  const referenceDir = path.join(ROOT, 'design', 'ttak', 'references');
+  const injected = fs.readdirSync(policyDir)
+    .filter(name => name.endsWith('.md'))
+    .map(name => fs.readFileSync(path.join(policyDir, name), 'utf8'))
+    .join('\n\n');
+  const stranded = [];
+  for (const name of fs.readdirSync(referenceDir).filter(n => n.endsWith('.md'))) {
+    const body = fs.readFileSync(path.join(referenceDir, name), 'utf8');
+    for (const paragraph of body.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)) {
+      if (DESTRUCTIVE.test(paragraph) && !injected.includes(paragraph)) {
+        stranded.push(name + ': ' + paragraph.slice(0, 60));
+      }
+    }
+  }
+  assert.deepStrictEqual(stranded, [],
+    'move these into policy/ -- a reference is only read when the host grants it');
+});
+
+// Rewritten with the same content, the same three safeguards still named and 29%
+// content-word overlap, this paragraph reads 46/60 where the shipped wording reads
+// 56/60 (Fisher p = 0.019, two cells each, claude opus/high, docs/PREREGISTRATION_2026-09-17.md).
+// So the bytes are a measured artefact, not prose. Editing them is allowed; editing
+// them without re-measuring is not, and updating this digest is the moment that
+// decision gets made rather than slipped.
+test('the measured safeguard paragraph is the one that ships', () => {
+  const core = fs.readFileSync(path.join(ROOT, 'design', 'ttak', 'policy', 'core.md'), 'utf8');
+  const measured = core.split(/\n\s*\n/).filter(p => /blast radius/.test(p));
+  assert.strictEqual(measured.length, 1, 'exactly one paragraph carries the safeguard guidance');
+  assert.strictEqual(crypto.createHash('sha256').update(measured[0], 'utf8').digest('hex'),
+    'cd4f88c085e1762cf5ab4dacd8c393a8c3f8eae85cd3b0bf01cfbe49834595cd',
+    'this wording is measured at 56/60; re-measure before changing it, then update this digest');
+});
+
+// The list in test-local.cjs is the enforcement point for a platform boundary,
+// so it has to be derived from the boundary rather than remembered. Two files
+// that reach the Windows-only supervisor were missing from it and failed 23
+// times on ubuntu before anyone noticed.
+test('every suite that reaches the Windows-only supervisor is listed as Windows-only', () => {
+  const runner = fs.readFileSync(path.join(ROOT, 'scripts', 'test-local.cjs'), 'utf8');
+  const listed = new Set([...runner.matchAll(/'([a-z0-9-]+\.test\.cjs)'/g)].map(m => m[1]));
+  const testsDir = path.join(ROOT, 'tests');
+  const unlisted = fs.readdirSync(testsDir)
+    .filter(name => name.endsWith('.test.cjs') && !listed.has(name))
+    .filter(name => /scripts\/(bounded-native-process|verification-execution)\.cjs/
+      .test(fs.readFileSync(path.join(testsDir, name), 'utf8')));
+  assert.deepStrictEqual(unlisted, [],
+    'add these to windowsOnly in scripts/test-local.cjs -- they cannot run off Windows');
+});
+
 function withData(fn) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ttak-'));
   const prev = process.env.PLUGIN_DATA;
@@ -1297,8 +1363,11 @@ test('both READMEs publish the inherited measurements, including the negative on
       `${name}: the per-session cost figure must carry the rate it was computed at`);
     assert.ok(flat.includes(pin.openGate),
       `${name}: the un-rerun behaviour gate belongs in the open-gate list`);
-    assert.ok(r.includes('/ttak:ttak-explain') && r.includes('$ttak:ttak-explain'),
-      `${name}: both host invocation strings are required`);
+    // The candidate has no separately invocable skill, so what a reader needs is
+    // the control form each host takes, not a skill namespace. Same purpose, current
+    // strings: both READMEs must carry one form per host.
+    assert.ok(r.includes('/ttak:ttak on') && r.includes('$ttak'),
+      `${name}: both host control forms are required`);
     assert.ok(flat.includes(pin.notAGuard),
       `${name}: the not-a-guard bullet is missing: "${pin.notAGuard}"`);
   }

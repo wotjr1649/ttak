@@ -120,6 +120,45 @@ Every paragraph or bullet of the instruction text TTAK ships:
 Not in scope: documentation, tests, manifests, and the hook runtime, none of which reproduce source
 text. `README.md` and `README.ko.md` are covered by a single row at the end.
 
+## Current release candidate additions
+
+The original per-unit tables and measurements below describe the earlier candidate. Existing unit
+IDs are retained; new units are appended rather than renumbering the historical record.
+
+| Current artifact | Addition | Derivation |
+|---|---|---|
+| `policy/invariants.md` I9 | Identify and preserve protected behavior before simplifying | New operational prose supporting the existing safety invariant |
+| `policy/contract.md` C10 | Current step, completed result, blockers and interruption recovery | Re-expression of `SRC-IHAVEADHD` progress and completion principles |
+| `skills/ttak-explain/SKILL.md` | Explicit audience overrides, layered explanation and source fidelity | Re-expression of `SRC-DREAMBIG-ELI5` audience adaptation; factual fidelity remains TTAK's requirement |
+| `skills/ttak-review/SKILL.md` | Focused complexity review with evidence and false-positive checks | Derived purpose from `SRC-PONYTAIL` `skills/ponytail-review/SKILL.md`; new prose, same pinned MIT notice in `ATTRIBUTIONS.md` |
+
+Historical word-run measurements have not been remeasured for these additions and must not be
+read as file-wide measurements of the new candidate. No upstream license notice was changed.
+
+### Current candidate file-wide measurement
+
+The separate September 8 measurement below covers all five current instruction files, including
+frontmatter, against the four vendored upstream skill files. It supplements the historical
+measurements above; it does not replace them or extend the earlier human ruling to new prose.
+Lexical overlap is evidence for review, not proof of derivation or license clearance.
+
+| Current artifact | Ponytail development | Ponytail review | ELI5 | i-have-adhd |
+|---|---:|---:|---:|---:|
+| `policy/precedence.md` | 2 | 2 | 3 | 3 |
+| `policy/invariants.md` | 8 | 3 | 2 | 3 |
+| `policy/contract.md` | 4 | 3 | 2 | 4 |
+| `skills/ttak-review/SKILL.md` | 4 | 4 | 3 | 4 |
+| `skills/ttak-explain/SKILL.md` | 2 | 4 | 3 | 4 |
+
+Each cell is the longest contiguous matching word sequence. Reproduce with
+`python -B tests/release/provenance.py`; use the existing Python runtime. The script checks
+vendored hashes before measuring, case-folds text, tokenizes with `[a-z0-9]+`, and disables
+SequenceMatcher's automatic junk heuristic. Its JSON includes exact current and upstream
+hashes, pinned revisions and zero-based word offsets, without copying source passages.
+An independent dynamic-programming calculation verified all 20 maxima and matching spans.
+The measurement and validation records are retained in `.superpowers/current-provenance-28/`.
+No model call, dependency installation, upstream notice change or external publication was needed.
+
 ## Sources and pinned revisions
 
 | Source | Repository | Pinned revision | Licence at that revision |

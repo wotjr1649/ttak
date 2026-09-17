@@ -30,9 +30,10 @@ unusual; it is reproduced anyway, and the reason is stated in that section.
   file-wide: `policy/invariants.md` **8 words**, `policy/contract.md` 4, `policy/precedence.md` 2.
   The 8 is one functional enumeration and is recorded as F3 in `docs/COPIED_TEXT_INVENTORY.md`,
   which holds the whole measurement.
-- `skills/ponytail-review/SKILL.md` is listed because it was read, not because material was carried:
-  no Review material ships in v1 (`TTAK Review` is deferred to v1.1). If v1.1 carries any, this entry
-  becomes a derivation source for it.
+- `skills/ttak-review/SKILL.md` in the current release candidate also derives its focused
+  complexity-review purpose from `skills/ponytail-review/SKILL.md` at this pin. Its checks for
+  justified removals and preserved behavior are expressed in new prose. The earlier candidate
+  deferred Review; the current release scope includes it.
 - Notice, reproduced verbatim from `LICENSE` at that revision:
 
 ```

@@ -1,13 +1,16 @@
 {
   "name": "ttak",
-  "interface": { "displayName": "TTAK — Track · Trim · Adapt · Keep" },
+  "interface": {
+    "displayName": "TTAK — Track · Trim · Adapt · Keep"
+  },
   "plugins": [
     {
       "name": "ttak",
       "source": {
-        "source": "url",
+        "source": "git-subdir",
         "url": "https://github.com/wotjr1649/ttak.git",
-        "ref": "main"
+        "ref": "main",
+        "path": "design/ttak"
       },
       "policy": {
         "installation": "AVAILABLE",

@@ -30,10 +30,12 @@ The two hosts record it differently and neither is this tool's choice:
           injection is an attachment of type `hook_additional_context`.
   codex   <CODEX_HOME>/sessions/<Y>/<M>/<D>/rollout-<ts>-<thread id>.jsonl,
           and the injection is an ordinary `response_item` string. Codex
-          does not label it as hook output, so it is found by its first
-          heading -- `# Precedence`, the first file of SCOPES.main. That is
-          a narrower test than Claude's and it is stated rather than hidden:
-          a policy whose first file changed name would read as absent here.
+          does not label it as hook output, so a `with`-arm row finds it by
+          hashing to the policy the row names, and a baseline row -- which
+          names no hash -- falls back to the known first headings. The
+          fallback is the narrower test, and it is stated rather than hidden:
+          a policy whose first heading is not in that list reads as absent to
+          a baseline row.
           Codex also writes nothing at all under `--ephemeral`, which is why
           `run.py` no longer passes it.
 
@@ -63,7 +65,12 @@ def read_rows(path):
     return rows
 
 
-POLICY_FIRST_HEADING = "# Precedence"
+# The first heading of the policy's first file. `0.3.0-design.2` replaced the
+# split policy with a single core file, so a run of it reads as absent under
+# the old name alone. These headings are the fallback: what actually verifies
+# a `with`-arm row is the exact hash below. A baseline row has no hash to
+# match against, and this is what catches an injection it must not have.
+POLICY_FIRST_HEADINGS = ("# Precedence", "# TTAK")
 
 
 def session_id(row):
@@ -96,21 +103,24 @@ def find_transcript(row, sid, projects, codex_fixtures):
     return next(iter(sorted(projects.glob(f"*/{sid}.jsonl"))), None)
 
 
-def codex_injections(transcript):
+def codex_injections(transcript, expected=None):
     """Codex records the injected text as an ordinary response item, with no
-    marker saying a hook produced it. Found by its first heading; see the
-    module docstring for what that costs."""
+    marker saying a hook produced it. A `with`-arm row names the policy hash,
+    so the item is found by hashing to it exactly; a baseline row names none,
+    and falls back to the known first headings. See the module docstring."""
     out = []
     seen = set()
 
     def walk(node):
         if isinstance(node, str):
             text = node.strip()
-            if text.startswith(POLICY_FIRST_HEADING) and text not in seen:
+            if text in seen:
+                return
+            data = text.encode("utf-8")
+            sha = hashlib.sha256(data).hexdigest()
+            if text.startswith(POLICY_FIRST_HEADINGS) or (expected and sha == expected):
                 seen.add(text)
-                data = text.encode("utf-8")
-                out.append(("(codex response_item)", len(data),
-                            hashlib.sha256(data).hexdigest()))
+                out.append(("(codex response_item)", len(data), sha))
         elif isinstance(node, dict):
             for v in node.values():
                 walk(v)
@@ -121,7 +131,11 @@ def codex_injections(transcript):
     with transcript.open("r", encoding="utf-8") as f:
         for raw in f:
             line = raw.strip()
-            if not line or POLICY_FIRST_HEADING not in line:
+            if not line:
+                continue
+            # With a hash to match, every line has to be read: the injected
+            # text carries no marker and need not start with a known heading.
+            if expected is None and not any(h in line for h in POLICY_FIRST_HEADINGS):
                 continue
             try:
                 walk(json.loads(line))
@@ -168,9 +182,9 @@ def check_row(row, projects, codex_fixtures=None):
         if where is None:
             return False, "no --codex-fixtures given, so the rollout cannot be located"
         return False, f"no transcript for session {sid} under {where}"
-    found = (codex_injections(transcript) if row.get("host") == "codex"
-             else injections(transcript))
     expected = row.get("policy_sha256")
+    found = (codex_injections(transcript, expected) if row.get("host") == "codex"
+             else injections(transcript))
 
     if expected is None:
         if found:

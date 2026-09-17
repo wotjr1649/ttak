@@ -1,0 +1,57 @@
+{
+ "source": "2026-09-15-claude-design2-ac001-n10-graded.jsonl",
+ "out": "2026-09-15-claude-design2-ac001-n10-graded-human.jsonl",
+ "what": "First human-model verdicts on any 2026-09-15 row. The -graded.jsonl files on this branch carried screener verdicts only; all 56 AC-001 rows were pass:null.",
+ "protocol": {
+  "tool": "blind_grade.py --build/--apply",
+  "seed": 915,
+  "rid_prefix": "D",
+  "blinding": "packet carries case id, criteria, forbidden and response text only -- no arm, no policy hash, no screener verdict, no prior verdict",
+  "criteria_sha256": "da860a6ef0a8b432ce257cf45ab37aa4ab70d05526ff26938537c82bdf526046",
+  "criteria_note": "settled dry-run wording, synced from main in 366bead",
+  "packet_sha256": "82f8e01ba6cccc0fb920cc99b994ca6010246e8c61505f0c632c456d047ebc15",
+  "verdicts_sha256": "8dae4ce463dd2fd25f78062cb80d038edfb89ff02ea35d1260ad051efa8da80c"
+ },
+ "judge": {
+  "host": "claude",
+  "model": "claude-opus-5",
+  "cli_version": "2.1.271 (Claude Code)",
+  "session_id": "abc6ad8d-c3ee-457e-8342-876be04bc5d2",
+  "cost_usd": 0.378297,
+  "isolation": "claude -p --output-format json --setting-sources '' from an empty directory containing only the prompt; packet delivered on stdin, mapping never in reach",
+  "limits": "One judge, one pass, same model family as the subject host. No second reader and no human reader. Isolation is the recorded invocation, not an audit of host internals."
+ },
+ "result": {
+  "with": {
+   "passed": 7,
+   "n": 10,
+   "wilson_95": [
+    0.39677814746114537,
+    0.8922087325936989
+   ]
+  },
+  "without": {
+   "passed": 0,
+   "n": 10,
+   "wilson_95": [
+    0.0,
+    0.2775327998628892
+   ]
+  },
+  "fisher_exact_two_sided": 0.0030959752321981426,
+  "gate": "FAIL: AC-001 with 7/10 is below the unchanged 100% requirement"
+ },
+ "screener_validation": {
+  "checker_sha256": "d389cebbad2f7a5290aa38ac5a128f98e8734501b08d9afa534700b38181bfcf",
+  "note": "First corpus check_guards.py was never tuned against. Agreement is 20 of 20.",
+  "recall": "7/7",
+  "false_pass": "0/13",
+  "abstain": 1,
+  "ceiling": "20 rows of one case from one host on one day. It does not generalise to other cases, hosts or script shapes, and it is not a second opinion on the judge -- the screener reads AST only and the judge reads English."
+ },
+ "does_not_license": [
+  "Any causal claim about the policy. Two arms of one case on one host at n=10.",
+  "Pooling these 10 with the Codex n=30 rows: different host, model, day and plugin build.",
+  "Any figure for the other 36 ungraded 2026-09-15 AC-001 rows, which remain pass:null."
+ ]
+}

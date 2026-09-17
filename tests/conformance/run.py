@@ -119,12 +119,27 @@ def contains_subseq(cmd, sub):
     return any(cmd[i:i + m] == sub for i in range(n - m + 1))
 
 
-def assert_isolated(host, cmd, model):
+def effort_flag(host, effort):
+    """How each host takes reasoning effort. Claude has a flag; Codex has no
+    flag for it and takes a config override instead -- verified against
+    `claude --help` (low, medium, high, xhigh, max) and `codex exec --help`
+    plus the key name in an operator config.toml. A model with no effort
+    setting passes None and gets neither."""
+    return {"claude": ["--effort", effort],
+            "codex": ["-c", f"model_reasoning_effort={effort}"]}[host]
+
+
+def assert_isolated(host, cmd, model, effort=None):
     for sub in REQUIRED[host]:
         if not contains_subseq(cmd, sub):
             raise AssertionError(f"{host} command missing required isolation flag {sub!r}: {cmd!r}")
     if "--model" not in cmd or cmd[cmd.index("--model") + 1] != model:
         raise AssertionError(f"{host} command must pin --model to the requested model, never inherit a default: {cmd!r}")
+    # Effort is pinned the same way and for the same reason: an edit that drops
+    # it leaves the host on its own default, and two cells of a per-model
+    # matrix would then differ by something the row does not record.
+    if effort is not None and not contains_subseq(cmd, effort_flag(host, effort)):
+        raise AssertionError(f"{host} command must pin the requested effort {effort!r}: {cmd!r}")
 
 
 # Windows caps a command line at 32,767 characters and the failure is opaque:
@@ -145,7 +160,7 @@ def assert_fits_command_line(host, cmd):
             f"large part on stdin rather than as an argument.")
 
 
-def build_command(host, arm, model, prompt, plugin_dir=None):
+def build_command(host, arm, model, prompt, plugin_dir=None, effort=None):
     """Build the argv for one trial. `arm` toggles whether TTAK is loaded:
 
     Claude: --plugin-dir loads a plugin directory for one session only
@@ -168,16 +183,20 @@ def build_command(host, arm, model, prompt, plugin_dir=None):
     """
     if host == "claude":
         cmd = list(CLAUDE_BASE) + ["--model", model]
+        if effort is not None:
+            cmd += effort_flag(host, effort)
         if arm == "with":
             cmd += ["--plugin-dir", str(plugin_dir or ROOT)]
     elif host == "codex":
         cmd = list(CODEX_BASE) + ["--model", model]
+        if effort is not None:
+            cmd += effort_flag(host, effort)
         if arm == "with":
             cmd += ["--dangerously-bypass-hook-trust"]
     else:
         raise ValueError(f"unknown host {host!r}")
     cmd.append(prompt)
-    assert_isolated(host, cmd, model)
+    assert_isolated(host, cmd, model, effort)
     assert_fits_command_line(host, cmd)
     return cmd
 
@@ -292,9 +311,22 @@ def codex_fixture_problem(arm, fixtures=None):
 # sha256 dadd47cd012f2a3a0094da27ac11ead312e85ab178aace8a85aeecf27c6bd2d2.
 
 POLICY_SCOPE_MAIN = ("precedence", "invariants", "contract")  # hooks/ttak.cjs SCOPES.main
+POLICY_CORE = "core.md"  # 0.3.0-rc.1 replaced the three with one
 
 
 def compose_policy(policy_dir):
+    policy_dir = Path(policy_dir)
+    core = policy_dir / POLICY_CORE
+    if core.is_file():
+        # The candidate injects one file with {{TTAK_ROOT}} replaced by the
+        # plugin root in forward slashes -- hooks/ttak.cjs compose(). Same BOM
+        # strip and trim as the three-file path below. Verified 2026-09-15
+        # against the injection recorded in a session transcript: 1,224 bytes,
+        # sha256 ce3390c883581a0d40b1761823304b8e49e586b89959e0fe4ae4e89db943090d.
+        text = core.read_text(encoding="utf-8").lstrip("﻿").strip()
+        if not text:
+            raise ValueError(f"{core}: policy file is empty; the hook would inject nothing")
+        return text.replace("{{TTAK_ROOT}}", str(policy_dir.parent.resolve()).replace("\\", "/"))
     parts = []
     for name in POLICY_SCOPE_MAIN:
         f = Path(policy_dir) / f"{name}.md"
@@ -321,9 +353,14 @@ def policy_sha256(host, arm, plugin_dir, codex_fixtures=None):
     if host == "claude":
         return hashlib.sha256(compose_policy(Path(plugin_dir or ROOT) / "policy").encode("utf-8")).hexdigest()
     home = codex_home("with", codex_fixtures)
-    found = next(iter(sorted(home.glob("plugins/**/policy/invariants.md"))), None)
+    # Both policy layouts, newest first: 0.3.0-rc.1 ships one core.md where the
+    # predecessor shipped three files, and compose_policy() already reads
+    # either. Looking only for invariants.md made a correctly provisioned
+    # candidate fixture read as "a shape this runner does not know".
+    found = next(iter(sorted(home.glob("plugins/**/policy/core.md"))
+                      + sorted(home.glob("plugins/**/policy/invariants.md"))), None)
     if found is None:
-        raise ValueError(f"no policy/ directory under {home / 'plugins'}: "
+        raise ValueError(f"no policy/core.md or policy/invariants.md under {home / 'plugins'}: "
                          "the with-arm fixture is missing or has a shape this runner does not know")
     return hashlib.sha256(compose_policy(found.parent).encode("utf-8")).hexdigest()
 
@@ -385,7 +422,8 @@ def response_text(row):
 
 
 def row_key(row):
-    """The identity of one trial: (case, trial, arm, host, policy_sha256).
+    """The identity of one trial:
+    (case, trial, arm, host, policy_sha256, model, effort).
 
     The policy hash is part of the identity because an ablation runs the same
     case, trial, arm and host against two different policy texts; without it
@@ -393,6 +431,13 @@ def row_key(row):
     silently records nothing. Read with .get(), so the two graded runs from
     2026-09-07 -- written before the field existed -- resolve to None for
     every row and still de-duplicate against each other exactly as before.
+
+    Model and effort are here for exactly the same reason, and were missing
+    until a run on 2026-09-17 wrote two models to one --out file: the second
+    model's 30 rows were skipped as already present and the run reported
+    success having collected nothing. Anything the caller varies across
+    invocations that share an --out file has to be in this tuple, or the
+    resume check reads a different condition's row as this one's.
 
     `trial` is coerced to int so a grader or hand-edit that re-serializes it
     as a JSON string ("1" instead of 1) still matches the run loop's native int and
@@ -430,7 +475,8 @@ def row_key(row):
             pass
     if trial is None:
         raise ValueError(f"case={row.get('case')!r}: non-numeric or non-integer trial {raw!r}")
-    return (row["case"], trial, row["arm"], row["host"], row.get("policy_sha256"))
+    return (row["case"], trial, row["arm"], row["host"], row.get("policy_sha256"),
+            row.get("model"), row.get("effort"))
 
 
 # --- cases.jsonl -------------------------------------------------------------
@@ -483,10 +529,14 @@ def load_existing_keys(out_path):
     return keys
 
 
-def should_skip(case_id, trial, arm, host, policy_sha, existing_keys):
-    # Must build the same tuple row_key() does, in the same order: these are
-    # the two halves of one identity, and a run resumes wrongly if they drift.
-    return (case_id, trial, arm, host, policy_sha) in existing_keys
+def should_skip(case_id, trial, arm, host, policy_sha, model, effort, existing_keys):
+    # Build the key through row_key() rather than repeating its tuple here.
+    # These are the two halves of one identity and a run resumes wrongly if
+    # they drift -- which they did: a field added to row_key() and not to the
+    # literal that used to live here is a silent skip, not an error.
+    return row_key({"case": case_id, "trial": trial, "arm": arm, "host": host,
+                    "policy_sha256": policy_sha, "model": model,
+                    "effort": effort}) in existing_keys
 
 
 def append_row(out_path, row):
@@ -521,7 +571,15 @@ def capture_cli_version(host):
 
 
 def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout,
-              plugin_dir=None, policy_sha=None, codex_fixtures=None):
+              plugin_dir=None, policy_sha=None, codex_fixtures=None, effort=None):
+    # Absolute, always. Every trial runs from a fresh empty cwd below, so a
+    # relative --plugin-dir resolves to nothing there: the host loads no
+    # plugin, the hook never runs, and the `with` arm is the baseline wearing
+    # a `with` label -- the one result this instrument must never produce
+    # silently. Observed 2026-09-15, caught by verify_injection.py and not by
+    # anything here, which is why it is pinned here now.
+    if plugin_dir is not None:
+        plugin_dir = str(Path(plugin_dir).resolve())
     # A neutral, empty cwd for every trial: the isolation flags stop the
     # operator's own settings/config leaking in, but the model's own repo
     # (this one) would leak a second way if either arm ran from ROOT — a
@@ -544,7 +602,7 @@ def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout
                 plugin_data_dir = trial_dir / "plugin-data"
                 seed_state_on(plugin_data_dir)
 
-        cmd = build_command(host, arm, model, case["prompt"], plugin_dir)
+        cmd = build_command(host, arm, model, case["prompt"], plugin_dir, effort)
         env = build_env(plugin_data_dir)
         if host == "codex":
             # Both arms, not just `with`: see CODEX_FIXTURES. A fresh directory
@@ -569,7 +627,7 @@ def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout
 
     return {
         "case": case["id"], "ac": case["ac"], "trial": trial, "arm": arm, "host": host,
-        "model": model, "cli_version": cli_version, "plugin_skills": plugin_skills,
+        "model": model, "effort": effort, "cli_version": cli_version, "plugin_skills": plugin_skills,
         "command": cmd, "exit_code": exit_code, "stdout": stdout, "stderr": stderr,
         "error": error, "duration_s": round(time.time() - started, 3),
         # Which policy ran, and where. The cwd is gone by the time this row is
@@ -583,19 +641,20 @@ def run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout
     }
 
 
-def do_dry_run(cases, host, arm, model, trials, existing, plugin_dir=None, policy_sha=None):
+def do_dry_run(cases, host, arm, model, trials, existing, plugin_dir=None, policy_sha=None,
+               effort=None):
     # Honors resumability too: a row already present in --out would not
     # actually be re-run, so "the exact commands it would run" must skip it
     # here as well, or a dry-run against a partially-done --out would show
     # commands that a real run of the same arguments would not issue.
     skipped = 0
-    print(f"# plugin_dir={plugin_dir or ROOT} policy_sha256={policy_sha}")
+    print(f"# plugin_dir={plugin_dir or ROOT} policy_sha256={policy_sha} effort={effort}")
     for case in cases:
         for trial in range(1, trials + 1):
-            if should_skip(case["id"], trial, arm, host, policy_sha, existing):
+            if should_skip(case["id"], trial, arm, host, policy_sha, model, effort, existing):
                 skipped += 1
                 continue
-            cmd = build_command(host, arm, model, case["prompt"], plugin_dir)
+            cmd = build_command(host, arm, model, case["prompt"], plugin_dir, effort)
             print(f"# case={case['id']} ac={case['ac']} trial={trial} arm={arm} host={host}")
             print(shlex.join(cmd))
     if skipped:
@@ -604,7 +663,7 @@ def do_dry_run(cases, host, arm, model, trials, existing, plugin_dir=None, polic
 
 
 def do_run(cases, host, arm, model, trials, out_path, timeout, plugin_dir=None, policy_sha=None,
-           codex_fixtures=None):
+           codex_fixtures=None, effort=None):
     if host == "codex":
         problem = codex_fixture_problem(arm, codex_fixtures)
         if problem is not None:
@@ -622,11 +681,11 @@ def do_run(cases, host, arm, model, trials, out_path, timeout, plugin_dir=None, 
     ran, skipped = 0, 0
     for case in cases:
         for trial in range(1, trials + 1):
-            if should_skip(case["id"], trial, arm, host, policy_sha, existing):
+            if should_skip(case["id"], trial, arm, host, policy_sha, model, effort, existing):
                 skipped += 1
                 continue
             row = run_trial(host, arm, model, cli_version, plugin_skills, case, trial, timeout,
-                            plugin_dir, policy_sha, codex_fixtures)
+                            plugin_dir, policy_sha, codex_fixtures, effort)
             append_row(out_path, row)
             ran += 1
     print(f"ran {ran} trial(s), skipped {skipped} already-present row(s) -> {out_path}")
@@ -822,6 +881,21 @@ def _selftest():
     assert "--dangerously-bypass-hook-trust" in build_command("codex", "with", "m", "p")
     assert "--dangerously-bypass-hook-trust" not in build_command("codex", "without", "m", "p")
 
+    # Effort is pinned per host and recorded; a model without one passes neither.
+    assert contains_subseq(build_command("claude", "without", "m", "p", effort="high"),
+                           ["--effort", "high"])
+    assert contains_subseq(build_command("codex", "without", "m", "p", effort="high"),
+                           ["-c", "model_reasoning_effort=high"])
+    assert "--effort" not in build_command("claude", "without", "m", "p")
+    assert not any("model_reasoning_effort" in str(a) for a in build_command("codex", "without", "m", "p"))
+    for _host in ("claude", "codex"):
+        try:
+            assert_isolated(_host, build_command(_host, "without", "m", "p"), "m", "high")
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(f"{_host}: a dropped effort flag must fail loudly")
+
     # response_text(): the two hosts write different shapes and one reader has
     # to know both, or a whole host's rows read as empty.
     claude_row = {"host": "claude", "stdout": json.dumps({"result": "hello"})}
@@ -875,22 +949,27 @@ def _selftest():
     except ValueError as e:
         assert "AC-999" in str(e)
 
-    existing = {("c1", 1, "without", "claude", None)}
-    assert should_skip("c1", 1, "without", "claude", None, existing)
-    assert not should_skip("c1", 2, "without", "claude", None, existing), "must key on trial, not just case"
-    assert not should_skip("c1", 1, "with", "claude", None, existing), "must key on arm, not just case+trial"
-    assert not should_skip("c1", 1, "without", "codex", None, existing), "must key on host too"
+    existing = {("c1", 1, "without", "claude", None, "m", None)}
+    assert should_skip("c1", 1, "without", "claude", None, "m", None, existing)
+    assert not should_skip("c1", 2, "without", "claude", None, "m", None, existing), "must key on trial, not just case"
+    assert not should_skip("c1", 1, "with", "claude", None, "m", None, existing), "must key on arm, not just case+trial"
+    assert not should_skip("c1", 1, "without", "codex", None, "m", None, existing), "must key on host too"
+    # Two models sharing one --out file: the defect a 2026-09-17 run hit, where
+    # the second model's rows were skipped as already present and the run
+    # reported success having collected nothing.
+    assert not should_skip("c1", 1, "without", "claude", None, "m2", None, existing), "must key on the model too"
+    assert not should_skip("c1", 1, "without", "claude", None, "m", "high", existing), "must key on the effort too"
 
     # The defect the ablation would otherwise have walked into: two policy
     # variants share (case, trial, arm, host), so with the hash out of the key
     # the second variant is skipped as already present and its condition
     # records nothing -- an empty arm that looks like a completed one.
-    seen_a = {("c1", 1, "with", "claude", "aaa")}
-    assert should_skip("c1", 1, "with", "claude", "aaa", seen_a)
-    assert not should_skip("c1", 1, "with", "claude", "bbb", seen_a),         "must key on the policy hash: a second variant is a different trial, not a repeat"
+    seen_a = {("c1", 1, "with", "claude", "aaa", "m", None)}
+    assert should_skip("c1", 1, "with", "claude", "aaa", "m", None, seen_a)
+    assert not should_skip("c1", 1, "with", "claude", "bbb", "m", None, seen_a),         "must key on the policy hash: a second variant is a different trial, not a repeat"
     assert row_key({"case": "c1", "trial": 1, "arm": "with", "host": "claude",
-                    "policy_sha256": "aaa"}) == ("c1", 1, "with", "claude", "aaa"),         "row_key() and should_skip() must build the same tuple, in the same order"
-    assert row_key({"case": "c1", "trial": 1, "arm": "with", "host": "claude"}) ==         ("c1", 1, "with", "claude", None), "a row written before the field existed reads as None"
+                    "policy_sha256": "aaa", "model": "m"}) == ("c1", 1, "with", "claude", "aaa", "m", None),         "row_key() and should_skip() must build the same tuple, in the same order"
+    assert row_key({"case": "c1", "trial": 1, "arm": "with", "host": "claude"}) ==         ("c1", 1, "with", "claude", None, None, None), "a row written before the field existed reads as None"
 
     # row_key(): trial is coerced to int, so a JSON string "1" (D1: a
     # grader that re-serializes numbers as strings) and native int 1 are
@@ -1206,6 +1285,34 @@ def _selftest():
         assert compose_policy(pol) == "A\n\nB\n\nC", repr(compose_policy(pol))
         assert policy_sha256("claude", "with", td) ==             hashlib.sha256("A\n\nB\n\nC".encode("utf-8")).hexdigest()
         assert policy_sha256("claude", "without", td) is None,             "the baseline injects nothing, so it has no policy identity to record"
+
+        # The Codex locator must find either policy layout, not just the old one.
+        for leaf in ("core.md", "invariants.md"):
+            fx = Path(td) / f"fx-{leaf}"
+            fx_pol = fx / "codex-home-with" / "plugins" / "cache" / "ttak" / "ttak" / "9.9.9" / "policy"
+            fx_pol.mkdir(parents=True)
+            (fx_pol / leaf).write_text("X", encoding="utf-8")
+            if leaf == "invariants.md":
+                for other in ("precedence.md", "contract.md"):
+                    (fx_pol / other).write_text("X", encoding="utf-8")
+            assert policy_sha256("codex", "with", None, fx) is not None, leaf
+        # The candidate's single file takes precedence over the three when it is
+        # there, and its {{TTAK_ROOT}} resolves to the plugin root -- the policy
+        # directory's parent -- with forward slashes on every platform. A hash over
+        # the unresolved text would name a policy the hook never injected.
+        (pol / "core.md").write_text("\ufeff  X {{TTAK_ROOT}}/references/explain.md Y  \n", encoding="utf-8")
+        expected_root = str(td.resolve()).replace("\\", "/")
+        assert compose_policy(pol) == f"X {expected_root}/references/explain.md Y", repr(compose_policy(pol))
+        assert "{{TTAK_ROOT}}" not in compose_policy(pol), \
+            "an unresolved placeholder means the recorded hash names text no host ever saw"
+        (pol / "core.md").write_text("  \n", encoding="utf-8")
+        try:
+            compose_policy(pol)
+            raise AssertionError("an empty core.md must be rejected like an empty scope file")
+        except ValueError:
+            pass
+        (pol / "core.md").unlink()
+
         (pol / "contract.md").write_text("   \n", encoding="utf-8")
         try:
             compose_policy(pol)
@@ -1345,6 +1452,9 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--host", choices=["claude", "codex"])
     p.add_argument("--arm", choices=["with", "without"])
+    p.add_argument("--effort", default=None, choices=("low", "medium", "high", "xhigh", "max"),
+                   help="reasoning effort to pin. Omit it for a model that has no effort setting; "
+                        "the row records which was used either way")
     p.add_argument("--model", default=None,
                    help=f"model id; defaults to {DEFAULT_MODEL!r} on claude, required on codex")
     p.add_argument("--trials", type=int)
@@ -1433,9 +1543,9 @@ def main(argv=None):
         if args.dry_run:
             existing = load_existing_keys(args.out) if args.out else set()
             return do_dry_run(cases, args.host, args.arm, args.model, args.trials, existing,
-                              args.plugin_dir, policy_sha)
+                              args.plugin_dir, policy_sha, args.effort)
         return do_run(cases, args.host, args.arm, args.model, args.trials, args.out, args.timeout,
-                      args.plugin_dir, policy_sha, args.codex_fixtures)
+                      args.plugin_dir, policy_sha, args.codex_fixtures, args.effort)
     except (ValueError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1

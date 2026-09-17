@@ -1,0 +1,196 @@
+{
+  "status": "DESIGN_AND_STATIC_EVALUATION_ONLY",
+  "runtime_unchanged": true,
+  "native_starts": 0,
+  "reference_measurements": [
+    {
+      "name": "ponytail",
+      "revision": "2ed6c52c9d7e5e56942508591085fd45dea277d3",
+      "url": "https://raw.githubusercontent.com/DietrichGebert/ponytail/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail/SKILL.md",
+      "sha256": "1316a2f3f95741d2300b116fe0c2d81ce4a9568656ed0a62643f54aaf09957f2",
+      "file_bytes": 6637,
+      "body_bytes": 5699,
+      "body_lines": 101,
+      "file_characters": 6616,
+      "body_characters": 5678,
+      "plugin_eval_estimate_file_tokens": 1654
+    },
+    {
+      "name": "ponytail-review",
+      "revision": "2ed6c52c9d7e5e56942508591085fd45dea277d3",
+      "url": "https://raw.githubusercontent.com/DietrichGebert/ponytail/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail-review/SKILL.md",
+      "sha256": "40df33b58fc6ef889b93585733feb9566b76e9586efa7f376785c1e995197ac0",
+      "file_bytes": 2383,
+      "body_bytes": 1865,
+      "body_lines": 45,
+      "file_characters": 2371,
+      "body_characters": 1853,
+      "plugin_eval_estimate_file_tokens": 593
+    },
+    {
+      "name": "eli5",
+      "revision": "a766623b062331fdde53467001379b4ddf3acc2f",
+      "url": "https://raw.githubusercontent.com/DreambigOu/ELI5/a766623b062331fdde53467001379b4ddf3acc2f/skills/eli5/SKILL.md",
+      "sha256": "a671efd44a818aee7dbe4ea2ec634079401c3f578c08cb634c2b6181ced2dbe9",
+      "file_bytes": 7965,
+      "body_bytes": 7242,
+      "body_lines": 111,
+      "file_characters": 7947,
+      "body_characters": 7224,
+      "plugin_eval_estimate_file_tokens": 1987
+    },
+    {
+      "name": "i-have-adhd",
+      "revision": "58494af57962b2d7a996b4d419474380a299af5e",
+      "url": "https://raw.githubusercontent.com/ayghri/i-have-adhd/58494af57962b2d7a996b4d419474380a299af5e/skills/i-have-adhd/SKILL.md",
+      "sha256": "938d0e350a0c2b0e2e6c3a9032542e062846d108e0f89dd27c798ba5b436397e",
+      "file_bytes": 6813,
+      "body_bytes": 6391,
+      "body_lines": 130,
+      "file_characters": 6813,
+      "body_characters": 6391,
+      "plugin_eval_estimate_file_tokens": 1704
+    },
+    {
+      "name": "new-ttak-core",
+      "path": "design/ttak/policy/core.md",
+      "file_bytes": 691,
+      "body_bytes": 690,
+      "body_lines": 10,
+      "sha256": "35e29800d603d10b3f2404549ac9dd89da4b71a4aaf7453de10035bc7ffa1b1d"
+    },
+    {
+      "name": "new-ttak-review",
+      "path": "design/ttak/skills/ttak-review/SKILL.md",
+      "file_bytes": 1158,
+      "body_bytes": 983,
+      "body_lines": 9,
+      "sha256": "a33451a0ebc1101f972c61d88aab05b58a6ac9a4d88b0a689bed21eb9ce193b9"
+    },
+    {
+      "name": "new-ttak-explain",
+      "path": "design/ttak/skills/ttak-explain/SKILL.md",
+      "file_bytes": 1247,
+      "body_bytes": 1047,
+      "body_lines": 9,
+      "sha256": "725875ff31991f9990cf3c3752b3d67e890bf4cd8de5c6aac42c29ec8f2fc778"
+    }
+  ],
+  "plugin_eval": {
+    "version": "0.1.0",
+    "method": "ceil(JavaScript string length / 4); static heuristic, not model tokenization",
+    "baseline": "isolated empty home; built-in thresholds, not an ecosystem mean",
+    "results": [
+      {
+        "name": "plugin-before",
+        "score": 11,
+        "grade": "F",
+        "budgets": {
+          "trigger_cost_tokens": 204,
+          "invoke_cost_tokens": 4453,
+          "deferred_cost_tokens": 95526,
+          "explicit_only_invoke_cost_tokens": 0,
+          "total_tokens": 100183
+        },
+        "findings": [
+          "interface-missing-websiteURL",
+          "interface-missing-privacyPolicyURL",
+          "interface-missing-termsOfServiceURL",
+          "mcpServers-path-invalid",
+          "skill:ttak-review:description-trigger-weak",
+          "invoke_cost_tokens-budget-high",
+          "deferred_cost_tokens-budget-high"
+        ],
+        "raw_report_sha256": "2d680fb9c2bc4a1cdd40f704a1b83791005c33373cd7e32baf91f4faec0eedfc"
+      },
+      {
+        "name": "plugin-after",
+        "score": 58,
+        "grade": "D",
+        "budgets": {
+          "trigger_cost_tokens": 104,
+          "invoke_cost_tokens": 808,
+          "deferred_cost_tokens": 173,
+          "explicit_only_invoke_cost_tokens": 0,
+          "total_tokens": 1085
+        },
+        "findings": [
+          "interface-missing-websiteURL",
+          "interface-missing-privacyPolicyURL",
+          "interface-missing-termsOfServiceURL"
+        ],
+        "raw_report_sha256": "97d8d299ff9f01b6963e3ebafbfb847e1f6f722b5f14ee13465ecbfe0e2651e8"
+      },
+      {
+        "name": "explain-before",
+        "score": 86,
+        "grade": "B",
+        "budgets": {
+          "trigger_cost_tokens": 81,
+          "invoke_cost_tokens": 3349,
+          "deferred_cost_tokens": 0,
+          "total_tokens": 3430
+        },
+        "findings": [
+          "invoke_cost_tokens-budget-high"
+        ],
+        "raw_report_sha256": "413d4700bd9365019714401951a1724667902883995e5686a2080736ede2fd35"
+      },
+      {
+        "name": "explain-after",
+        "score": 100,
+        "grade": "A",
+        "budgets": {
+          "trigger_cost_tokens": 39,
+          "invoke_cost_tokens": 312,
+          "deferred_cost_tokens": 0,
+          "total_tokens": 351
+        },
+        "findings": [],
+        "raw_report_sha256": "135c3d94970951ad32b1337481e42fdbf1b6e927546842821f304e2222dc513d"
+      },
+      {
+        "name": "review-before",
+        "score": 91,
+        "grade": "B",
+        "budgets": {
+          "trigger_cost_tokens": 83,
+          "invoke_cost_tokens": 667,
+          "deferred_cost_tokens": 0,
+          "total_tokens": 750
+        },
+        "findings": [
+          "description-trigger-weak",
+          "invoke_cost_tokens-budget-high"
+        ],
+        "raw_report_sha256": "291b5de9945d0b52e5160df37db4e1de573837a2206cb66f5d4b6ca0a9c1b9b0"
+      },
+      {
+        "name": "review-after",
+        "score": 100,
+        "grade": "A",
+        "budgets": {
+          "trigger_cost_tokens": 33,
+          "invoke_cost_tokens": 290,
+          "deferred_cost_tokens": 0,
+          "total_tokens": 323
+        },
+        "findings": [],
+        "raw_report_sha256": "ce108926e8cf6e1e30869e1a0211defadbe9a9d3a59008b4fbd772aa00837dcd"
+      }
+    ],
+    "caveats": [
+      "Inline MCP object false-positive against the validated current package",
+      "Public website/privacy/terms URL deductions are not functional behavior tests",
+      "Deferred token estimate includes code as text; not proof it is injected",
+      "String defaultPrompt caused analyzer .join failure; equivalent array form used in draft",
+      "Static score does not establish factual correctness"
+    ]
+  },
+  "benchmark_setup": {
+    "scenarios": 3,
+    "executed": false,
+    "core_wiring_pending": true,
+    "dry_run_supported": false
+  }
+}
