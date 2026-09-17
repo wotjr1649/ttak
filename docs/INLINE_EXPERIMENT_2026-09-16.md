@@ -1,22 +1,30 @@
-# Delivering the guidance moves the safeguards it names, and one it does not
+# Delivering the guidance moves one case, and nothing here explains which
 
-TTAK's data-loss guidance is not in the text TTAK injects. It is in
+TTAK's data-loss guidance was not in the text TTAK injects. It was in
 `references/review.md`, behind a pointer the model often cannot follow. Injected
-inline instead, the same words take the gating case from **0/30 to 27/30**.
+inline instead, the same words take the gating case from **1 of 180 trials to
+27-30 of 30**, on five of six model configurations across both hosts (§6).
 
 Three safeguards those words never name were then measured against the same
-three policies. Two did not move at all. One moved to about 40%, and nothing in
-this record explains why it and not the others.
+three policies. Two did not move at all. One moved to about 40%.
 
-> **Two corrections.** The first version of this document (2026-09-16) reported
-> one held-out case and concluded the policy moves only what it names. A second
-> held-out case refuted that — it moved 0 → 11/30. The revision proposed that
-> the boundary was the paragraph's opening principle, "limits what an operation
-> can destroy", and registered a prediction: a third held-out safeguard fitting
-> that principle should land near 11/30. **The third case came back 0/30**
-> (2026-09-17), with an anchor cell in the same session confirming the
-> instrument was reading normally. That hypothesis is refuted too. Section 4
-> carries what is left, which is less than either draft claimed.
+> **Three corrections, and the last one is the largest.** The first version
+> (2026-09-16) reported one held-out case and concluded the policy moves only
+> what it names. A second held-out case refuted that — it moved 0 → 11/30. The
+> revision proposed that the boundary was the paragraph's opening principle,
+> "limits what an operation can destroy", and registered a prediction: a third
+> held-out safeguard fitting that principle should land near 11/30. **The third
+> case came back 0/30** (2026-09-17), with a same-session anchor confirming the
+> instrument. That hypothesis was refuted too, and §4 fell back to the naming
+> correlation as the surviving reading.
+>
+> **That reading is now refuted as well, by an intervention rather than another
+> observation.** Adding the missing safeguard's name to the injected list left
+> the case at 0/30 against a same-session anchor of 29/30
+> ([`PREREGISTRATION_2026-09-17.md`](PREREGISTRATION_2026-09-17.md)). Naming is
+> not sufficient. What this document establishes is the size and breadth of the
+> effect on one case; it no longer offers any account of why that case and not
+> the others.
 
 ```
 python tests/conformance/exec_guards.py --in tests/conformance/runs/2026-09-16-inline-*.jsonl
