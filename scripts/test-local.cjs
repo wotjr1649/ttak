@@ -45,8 +45,15 @@ try {
       // failures where they happen and the last 10k is whatever passed after
       // them. A CI run reporting 23 failures and naming none is a check
       // nobody can act on, so name them first, then keep the tail.
-      const named = log.split('\n').filter(line => line.startsWith('not ok ')).join('\n');
-      process.stderr.write((named && named + '\n\n') + log.slice(-10000));
+      // Names alone were not enough the first time this mattered: a Windows job
+      // failed two process-supervision tests on one run and passed the next two,
+      // and the assertion that broke was in the YAML block after the `not ok`
+      // line, which the tail had dropped. Keep each failing entry with the block
+      // that follows it.
+      const entries = log.split(/(?=^not ok )/m).slice(1)
+        .map(part => part.split(/^ok /m)[0].split(/^# Subtest/m)[0].trimEnd())
+        .join('\n\n');
+      process.stderr.write((entries && entries + '\n\n') + log.slice(-10000));
       process.exitCode = 1; break;
     }
   }

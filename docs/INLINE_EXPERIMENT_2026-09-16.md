@@ -218,10 +218,15 @@ unchanged; the explanation offered for the bound is withdrawn.
   predecessor's 2,977 bytes and give back the size that design.2 exists to save.
   What the result licenses is that the safeguard paragraph specifically is not
   paying for itself as a pointer.
-- **Nothing here re-opens the matrix.** Those 2,160 rows measured design.2 as it
-  ships. This says what one changed policy does on one model, and it is filed as
-  a probe: the new case lives in `cases-probe.jsonl`, not in the frozen
-  `cases.jsonl`.
+- **The matrix is now rc.1's policy, not what ships.** Those 2,160 rows measured
+  the pointer policy. That was "design.2 as it ships" when this line was written
+  and it stopped being true the moment the paragraph moved inline. `[AC-001]` has
+  been re-measured on the shipped policy across six configurations (§6).
+  **`[AC-002]`, `[AC-003]` and `[AC-004]` have not been**, and `[AC-004]` is the
+  simplification criterion, which is the one the added paragraph is adjacent to.
+  Recorded as an open item in [`RELEASE.md`](RELEASE.md) rather than assumed
+  unaffected. The new cases stay filed as probes: they live in
+  `cases-probe.jsonl`, not in the frozen `cases.jsonl`.
 
 ## 6. It is not one model: six configurations, two hosts (2026-09-17)
 

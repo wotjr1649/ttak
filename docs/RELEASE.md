@@ -1,6 +1,6 @@
 # First release candidate
 
-**The candidate is `design/ttak`, version `0.3.0-rc.1`** (2026-09-15). Both marketplace manifests
+**The candidate is `design/ttak`, version `0.3.0-rc.2`** (2026-09-17). Both marketplace manifests
 serve it. The `0.2.0` runtime at the repository root is preserved as the record of what it replaced,
 not as the shipping candidate. The candidate's control, injection and reference selection are
 measured on both hosts. **`[AC-001]` does not pass, and the reason is now a larger measurement than
@@ -53,6 +53,22 @@ the one this line used to carry.** Shipping stays No-Go.
   to chase it is to pin a CLI build and bisect, and this project has decided not to pin: the hosts
   update themselves, a pinned build dies within days, and a check that fails routinely for a benign
   reason is one people learn to skip. Nothing in this repository rests on the 7 of 10.
+
+> **Why rc.2.** `rc.1` shipped the safeguard guidance behind a pointer. `rc.2` inlines it, and the
+> policy bytes are what these measurements are of, so the two cannot carry one version number:
+> `[AC-001]` reads 0/30 on rc.1's policy and 27-30/30 on rc.2's for five of six model
+> configurations. Every figure in this document belongs to the `rc` whose policy it was measured on,
+> and where that is not stated the figure is rc.1's.
+>
+> **What rc.2 has not re-measured.** The 2,160-row matrix is rc.1's policy. `[AC-001]` has been
+> re-measured on rc.2 (six configurations, 359 rows). **`[AC-002]`, `[AC-003]` and `[AC-004]` have
+> not.** rc.2 adds 516 bytes about not removing safeguards during simplification, and `[AC-004]` is
+> the simplification criterion, so it is the one where the old number is least safe to carry
+> forward. Nothing here predicts a change -- the matrix found 0 of 24 comparisons surviving an
+> adverse reading, and there is no reason to expect the addition to move criteria it does not
+> address. That is an expectation, not a measurement, and it is recorded as an open item rather than
+> assumed: re-measuring those three needs blind model grading as well as subject calls, and it
+> belongs with a Go decision rather than ahead of one.
 
 Current shipping scope (2026-09-14): the user's latest request removes the
 192-subject comparison and repeated baseline superiority from mandatory release
